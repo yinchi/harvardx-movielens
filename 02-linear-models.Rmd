@@ -1,0 +1,406 @@
+# Linear regression models {#sec:linear}
+
+Let $Y = (Y_1, \ldots, Y_M)$ and $X_i = (X_{1,i}, \ldots, X_{N,i})$ for some positive integer $i$.
+We call $Y$ the dependent variable and  $\left( X_{1}, X_{2}, ... , X_{i} \right)$, the
+independent variables.  Furthermore, for some integer $M$, we consider $Y_1$ to $Y_m$ to represent
+observations and $Y_{M+1}$ to $Y_N$ the unknown values to be predicted.
+
+We can use linear regression models to predict $Y_{M+1}$ to $Y_n$. A linear regression model has
+the form
+\[
+Y = \mu + \sum_{i=1}^N b_{i}f_i\left(X_{i}\right) + \varepsilon,
+\]
+where $b_i$ represents the $i$th regression coefficient vector, each $f_i$'s is a possibly non-linear
+function of $X_i$, and $\varepsilon$ represents random error. In this section we fit linear
+models with up to four $b_i$'s to the `movielens` dataset,
+representing movie, user, genre, and temporal effects, respectively.
+The `edx` partition will be used for fitting and the `validation` set to compare model performance.
+
+## Using the mean rating only
+
+Let $Y_{u,i}$ denote the rating user $u$ gave (or would give) movie $i$. Our first model is of the
+form
+\[
+Y_{u,i} \sim \mu + \varepsilon_{u,i},
+\]
+where $\mu$ the "true" rating of all movies and $\varepsilon_{u,i}$ represents independent random
+errors sampled from the same distribution with mean 0. The best estimate $\hat{\mu}$ of $\mu$ is
+the mean of all ratings in `edx`, or:
+
+```{r Mean-only-model}
+
+mu <- mean(edx$rating)
+mu
+```
+
+The model gives the following RMSE values when applied to the `validation` set:
+
+```{r Mean-only-RMSE}
+
+# When multiple effects (movie, user, genre) are added in our model, some predictions
+# may fall out of the valid range.  This function fixes these predictions to the range
+# [0.5, 5].
+clamp <- function(x) raster::clamp(as.numeric(x), 0.5, 5)
+
+# Tibble to contain RMSE values for each model in our report.
+RMSEs <- tibble(Method = c("Mean only"),
+                RMSE = RMSE(mu, validation$rating),
+                "RMSE (clamped estimates)" = RMSE(mu, validation$rating))
+RMSEs[[nrow(RMSEs),'RMSE']]
+```
+
+## Modeling movie effects
+
+We add a term to our model for movie effects:
+\[
+Y_{u,i} \sim \mu + b_{1,i}i + \varepsilon_{u,i},
+\]
+The best estimate $\hat{b}_{1,i}$ of $b_{1,i}$ is the mean of
+$Y_{u,i} - \hat{\mu}$ for each movie $i$. The following code computes $\hat{b}_{1,i}$ for each $i$ and
+plots these as a histogram:
+
+```{r Movie-effects, fig.height=3, fig.width=4}
+
+# Least-squares estimate of movie effect is the mean of (rating - mu) for all
+# ratings of that movie.
+movie_biases <- edx |> 
+  group_by(movieId) |> 
+  summarize(b_i = mean(rating - mu))
+
+# Plot a histogram of the movie effects
+par(cex = 0.7)
+hist(movie_biases$b_i, 30, xlab = TeX(r'[$\hat{b}_{1,i}$]'),
+     main = TeX(r'[Histogram of $\hat{b}_{1,i}$]'))
+```
+
+The new model gives the following RMSE values when applied to the `validation` set:
+
+```{r Movie-effects-RMSE}
+
+# Obtain predictions for the validation set
+predicted_ratings <- validation |> 
+  left_join(movie_biases, by='movieId') |>
+  mutate(pred = mu + b_i) |>
+  pull(pred)
+
+# Compute RMSE and add to data.table
+RMSEs <- RMSEs |>
+  add_row(Method = "Movie effects",
+          RMSE = RMSE(predicted_ratings, validation$rating),
+          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), validation$rating))
+
+RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T)
+```
+
+### Clamping the predictions
+
+In the above table, clamping means setting any predictions less than 0.5 to 0.5, and
+any predictions greater than 5.0 to 5.0, thus enforcing the limits of possible ratings.
+This slightly reduces the RMSE when multiple biases are added to the model, as we demonstrate below.
+
+## Modeling movie and user effects
+
+We add a term $b_u$ to our model for user effects:
+\[
+Y_{u,i} \sim \mu + b_{1,i}i + b_{2,u}u + \varepsilon_{u,i},
+\]
+We approximate $b_{2,u}$ for each user $u$ as the mean of
+$\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1,i}$. The following code computes $\hat{b}_{2,u}$ for
+each $u$ and plots these as a histogram:
+
+```{r User-effects, fig.height=3, fig.width=4}
+
+# Estimate user effects
+user_biases <- edx |> 
+  left_join(movie_biases, by='movieId') |>
+  group_by(userId) |>
+  summarize(b_u = mean(rating - mu - b_i))
+
+# Plot a histogram of the user effects
+par(cex = 0.7)
+hist(user_biases$b_u, 30, xlab = TeX(r'[$\hat{b}_{2,u}$]'),
+     main = TeX(r'[Histogram of $\hat{b}_{2,u}$]'))
+```
+
+The new model gives the following RMSE values when applied to the `validation` set:
+
+```{r User-effects-RMSE}
+
+# Obtain predictions for the validation set
+predicted_ratings <- validation |> 
+  left_join(movie_biases, by='movieId') |>
+  left_join(user_biases, by='userId') |>
+  mutate(pred = mu + b_i + b_u) |>
+  pull(pred)
+
+# Compute RMSE and add to data.table
+RMSEs <- RMSEs |>
+  add_row(Method = "Movie + user effects",
+          RMSE = RMSE(predicted_ratings, validation$rating),
+          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), validation$rating))
+RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T)
+```
+
+## Adding genre effects
+
+We add another bias term $b_g$ to our model for genre effects:
+\[
+Y_{u,i} \sim \mu + b_{1,i}i + b_{2,u}u + b_{3,g(i)}g(i) + \varepsilon_{u,i},
+\]
+where $g(i)$ is the **combination** of genres for movie $i$.
+We approximate $b_{3,g}$ for each genre combination $g$ as the mean of
+$\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1,i} - \hat{b}_{2.u}$. The following code computes
+$\hat{b}_{3,g}$ for each $g$ and plots these as a histogram:
+
+
+```{r Genre-effects, fig.height=3, fig.width=4}
+
+# Estimate user effects
+genre_biases <- edx |> 
+  left_join(movie_biases, by='movieId') |>
+  left_join(user_biases, by='userId') |>
+  group_by(genres) |>
+  summarize(b_g = mean(rating - mu - b_i - b_u))
+
+# Plot a histogram of the user effects
+par(cex = 0.7)
+hist(genre_biases$b_g, 30, xlab = TeX(r'[$\hat{b}_{3,g}$]'),
+     main = TeX(r'[Histogram of $\hat{b}_{3,g}$]'))
+```
+
+The new model gives the following RMSE values when applied to the `validation` set:
+
+```{r Genre-effects-RMSE}
+
+# Obtain predictions for the validation set
+predicted_ratings <- validation |> 
+  left_join(movie_biases, by='movieId') |>
+  left_join(user_biases, by='userId') |>
+  left_join(genre_biases, by='genres') |>
+  mutate(pred = mu + b_i + b_u + b_g) |>
+  pull(pred)
+
+# Compute RMSE and add to data.table
+RMSEs <- RMSEs |>
+  add_row(Method = "Movie + user + genre effects",
+          RMSE = RMSE(predicted_ratings, validation$rating),
+          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), validation$rating))
+RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T)
+```
+
+## Adding a time effect
+
+Consider a new model with the form
+\[
+Y_{u,i} \sim \mu + b_{1,i}i + b_{2,u}u + b_{3,g(i)}g(i) + b_{4,t_{u,i}}f(t_{u,i}) + \varepsilon_{u,i}.
+\]
+where $t_{u,i}$ is a week index, such the date of the oldest rating is defined as the
+start of Week 1.
+
+The following code defines $f(t)$ as the smoothed average rating on Week $t$ minus the overall mean:
+
+```{r Time-averages, fig.height=3, fig.width=4}
+
+# Add a week number to each rating in the edx and validation datasets
+edx <- edx |>
+  mutate(weekNum = (timestamp - min(timestamp)) |>
+           as.numeric(unit = "days") |> {\(x) floor(x/7) + 1}() )
+validation <- validation |>
+  mutate(weekNum = (timestamp - min(timestamp)) |>
+           as.numeric(unit = "days") |> {\(x) floor(x/7) + 1}() )
+
+# Fit a smooth curve to the ratings as a function of time
+fit <- mgcv::gam(rating ~ s(weekNum, bs = "cs"),
+                 family = gaussian(), data = edx) # apply smoothing
+
+# Evaluate the fitted curve for each week number
+r <- seq(1,max(edx$weekNum))
+mu_t <- mgcv::predict.gam(fit, data.frame(weekNum = r)) - mu
+rm(fit)
+
+# Plot the fitted curve
+ggplot(data.frame(weekNum = r, mu_t), aes(weekNum, mu_t)) + geom_line() +
+  xlab(TeX(r'[$d_{u,i}$]')) + ylab(TeX(r'[$\mu\,(d_{u,i}\,)$]'))
+```
+
+We approximate $b_{t,g}$ for each genre combination $g$ as the mean of
+$\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1,i} - \hat{b}_{2.u} - b_{3,g(i)}g(i)$,
+**divided by $\mu_{t_{u,i}}$**.
+Fitting the $b_{4,t}$'s for the new model, returns RMSE values of:
+
+```{r Time-effect-model-and-RMSE, fig.height=3, fig.width=4}
+
+# Compute the time effects
+time_biases <- edx |> 
+  left_join(movie_biases, by='movieId') |>
+  left_join(user_biases, by='userId') |>
+  left_join(genre_biases, by='genres') |>
+  group_by(weekNum) |>
+  summarize(b_t = mean(rating - mu - b_i - b_u - b_g)/mu_t[first(weekNum)])
+
+# Obtain predictions for the validation set
+predicted_ratings <- validation |> 
+  left_join(movie_biases, by='movieId') |>
+  left_join(user_biases, by='userId') |>
+  left_join(genre_biases, by='genres') |>
+  left_join(time_biases, by='weekNum') |>
+  mutate(pred = mu + b_i + b_u + b_g + b_t*mu_t[weekNum]) |>
+  pull(pred)
+
+# Compute RMSE and add to data.table
+RMSEs <- RMSEs |>
+  add_row(Method = "Movie + user + genre + time effects",
+          RMSE = RMSE(predicted_ratings, validation$rating),
+          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), validation$rating))
+RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T)
+```
+
+## Adding $L_2$ regularization
+
+To improve our model further, we can add $L_2$ regularization.  Whereas the previous model minimizes
+\[
+E = \sum_{u,i} \left(y_{u,i} - b_{1,i}i - b_{2,u}u - b_{3,g(i)}g(i) - b_{4,t_{u,i}}f(t_{u,i})\right)^2,
+\]
+in this section we add a penalty term such that the new expression to minimize is as follows:
+\[
+E + \lambda\left(\sum_i b_{1,i}^2 + \sum_u b_{2,u}^2 + \sum_g b_{3,g}^2 + \sum_t b_{4,t}^2\right).
+\]
+This can be expressed in matrix form as
+\[
+\arg\min_b E + \lambda\lVert b\rVert_2^2
+\]
+where $b$ is a concatenation of the bias vectors: $b = [b_1\mid b_2\mid b_3\mid b_4]$.
+
+To do this we first split `edx` into a training and test set:
+
+```{r EDX-split, warning=FALSE}
+
+# Test set will be 10% of edx data
+set.seed(1, sample.kind="Rounding")
+test_index <- createDataPartition(y = edx$rating, times = 1, p = 0.1, list = FALSE)
+edx_train <- edx[-test_index,]
+temp <- edx[test_index,]
+
+# Make sure userId and movieId in edx_test set are also in edx_train set
+edx_test <- temp |>
+  semi_join(edx_train, by = "movieId") |>
+  semi_join(edx_train, by = "userId") |>
+  as.data.table()
+
+# Add rows removed from edx_test set back into edx_train set
+removed2 <- anti_join(temp, edx_test)
+edx_train <- rbind(edx_train, removed2) |> as.data.table()
+
+rm(removed2, temp, test_index)
+```
+
+Fitting the regularized model to the training set for different $\lambda$, and
+using the test set for RMSE calculation, we obtain the following plot of RMSE against $\lambda$.
+
+```{r Regularization, fig.height=3, fig.width=4}
+
+# List of regularization parameter values to try.
+# Since I know the approximate optimal value, I added more points
+# in this range.
+lambdas <- c(0,1,2,3,4,seq(4.5,5.5,0.1),6,7,8,9,10)
+
+# Compute RMSE values for each lambda using the *test* (not validation) set.
+rmses <- sapply(lambdas, function(l){
+  message("lambda = ", l)
+  
+  # Compute movie, user, genre, and time effects using the test set.
+  movie_biases_reg <- edx_train[, .(b_i = sum(rating - mu)/(.N+l)), by = 'movieId']
+  
+  temp <- movie_biases_reg[edx_train, on = 'movieId']
+  user_biases_reg <- temp[, .(b_u = sum(rating - mu - b_i)/(.N+l)), by = 'userId']
+  
+  temp <- user_biases_reg[temp, on = 'userId']
+  genre_biases_reg <- temp[, .(b_g = sum(rating - mu - b_i - b_u)/(.N+l)), by = 'genres']
+  
+  temp <- genre_biases_reg[temp, on = 'genres']
+  time_biases_reg <- temp[, .(b_t = sum(rating - mu - b_i - b_u - b_g)
+                              /mu_t[weekNum]/(.N+l)), by = 'weekNum']
+  
+  # Generate predictions
+  predicted_ratings <- time_biases_reg[
+    genre_biases_reg[
+      user_biases_reg[
+        movie_biases_reg[
+            edx_test,
+          on = 'movieId'],
+        on = 'userId'],
+      on = 'genres'],
+    on = 'weekNum'] |>
+    mutate(pred = mu + b_i + b_u + b_g + b_t*mu_t[weekNum]) |> 
+    pull(pred)
+  
+  # Compute RMSE
+  return(RMSE(predicted_ratings, edx_test$rating))
+})
+
+# Plot RMSE against lambda
+par(cex = 0.7)
+qplot(lambdas, rmses, xlab = TeX(r'($\lambda)'), ylab = 'RMSE', geom = c('point', 'line'))
+```
+
+The optimal value of $\lambda$ is thus:
+
+```{r}
+lambda <- lambdas[which.min(rmses)]
+lambda
+```
+
+Fitting the regularized model one last time and computing the RMSE on the validation set, we
+obtain:
+
+```{r Regularized-model-and-RMSE}
+
+# Compute the regularized movie, user, genre, and time effects
+movie_biases_reg <- edx_train[, .(b_i = sum(rating - mu)/(.N+lambda)), by = 'movieId']
+
+temp <- movie_biases_reg[edx_train, on = 'movieId']
+user_biases_reg <- temp[, .(b_u = sum(rating - mu - b_i)/(.N+lambda)), by = 'userId']
+
+temp <- user_biases_reg[temp, on = 'userId']
+genre_biases_reg <- temp[, .(b_g = sum(rating - mu - b_i - b_u)/(.N+lambda)), by = 'genres']
+
+temp <- genre_biases_reg[temp, on = 'genres']
+time_biases_reg <- temp[, .(b_t = sum(rating - mu - b_i - b_u - b_g)
+                            /mu_t[weekNum]/(.N+lambda)), by = 'weekNum']
+
+# Generate predictions for the *validation* set.
+predicted_ratings_reg <- time_biases_reg[
+  genre_biases_reg[
+    user_biases_reg[
+      movie_biases_reg[
+        validation,
+        on = 'movieId'],
+      on = 'userId'],
+    on = 'genres'],
+  on = 'weekNum'] |>
+  mutate(pred = mu + b_i + b_u + b_g + b_t*mu_t[weekNum]) |> 
+  pull(pred)
+
+rm(temp)
+
+# Compute RMSE and add to data.table
+RMSEs <- RMSEs |>
+  add_row(Method = "Movie + user + genre + time effects (regularized)",
+          RMSE = RMSE(predicted_ratings_reg, validation$rating),
+          "RMSE (clamped estimates)" =
+            RMSE(clamp(predicted_ratings_reg), validation$rating))
+RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T)
+```
+
+## Section summary
+
+The table of RMSEs for all models considered in this section is below.
+
+```{r}
+RMSEs |> kable(align='lrr', booktabs = T, linesep = "")
+```
+
+The results demonstrate that each added feature has reduced the RMSE, as well as
+adding regularization and clamping; however, there are diminishing returns as each effect is added
+to the model.
+
