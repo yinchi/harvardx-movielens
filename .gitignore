@@ -6,3 +6,5 @@ ml-10M100K
 _book
 _bookdown_files
 _main.Rmd
+*.tmp
+*.bak
