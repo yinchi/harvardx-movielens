@@ -102,7 +102,7 @@ colnames(movies) <- c("movieId", "title", "genres")
 movies <- movies |> mutate(movieId = as.integer(movieId))
 
 
-# STEP 3: Add a `movies` column to the ratings and save to `movielens`.
+# STEP 3: Join the `ratings` and `movies` data tables and save to `movielens`.
 movielens <- left_join(ratings, movies, by = "movieId")
 
 
