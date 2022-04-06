@@ -1,0 +1,238 @@
+--- 
+title: 'HarvardX PH125.9x: Movielens project'
+author: "Yin-Chi Chan"
+date: "`r Sys.Date()`"
+output: pdf_document
+documentclass: article
+mainfont: Times New Roman
+mathfont: Cambria Math
+monofont: Cascadia Code
+geometry: margin=2.5cm
+bibliography: book.bib
+biblio-style: acm
+description: |
+  See also: _output.yml, _bookdown.yml
+link-citations: yes
+site: bookdown::bookdown_site
+---
+
+# Introduction
+```{r Setup, include=FALSE, purl=FALSE}
+
+# R 4.1 key features: new pipe operator, \(x) as shortcut for function(x)
+# R 4.0 key feature: stringsAsFactors = FALSE by default
+if (packageVersion('base') < '4.1.0') {
+  stop('This code requires R >= 4.1.0!')
+}
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE
+)
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  paste0("\n \\", "small","\n\n", x, "\n\n \\normalsize")
+})
+```
+
+```{r Load-libraries}
+if(!require("pacman")) install.packages("pacman")
+library(pacman)
+
+p_load(knitr, data.table, latex2exp, patchwork, tidyverse, caret, lubridate)
+```
+
+This report partially fulfils the requirements for the HarvardX course
+[PH125.9x: "Data Science: Capstone"](https://learning.edx.org/course/course-v1:HarvardX+PH125.9x+1T2022/home).
+The objective of this process is to build a movie recommendation system
+using the MovieLens dataset.  The 10M version [@movielens10M] of this dataset was used for
+this project.
+
+Using the code provided by the course, the 10 million records of the MovieLens 10M dataset are split
+into the `edx` partition, for building the movie recommendation system, and the `validation`
+partition, for evaluating the proposed system.  The `validation` dataset contains roughly 10 percent
+of the records in the MovieLens 10M dataset. The code for generating these two datasets is provided
+below:
+
+```{r Create-edx-and-validation-sets}
+
+##########################################################
+# Create edx set, validation set (final hold-out test set)
+##########################################################
+
+# Note: this code was modified from the course-provided version for speed.
+
+# MovieLens 10M dataset:
+# https://grouplens.org/datasets/movielens/10m/
+# http://files.grouplens.org/datasets/movielens/ml-10m.zip
+
+
+# STEP 1: download and unzip 'ml-10m.zip' as necessary
+
+if(!dir.exists("ml-10M100K")) dir.create("ml-10M100K")
+dl <- "ml-10M100K/ratings.zip"
+if(!file.exists(dl))
+  download.file("https://files.grouplens.org/datasets/movielens/ml-10m.zip", dl)
+
+ratings_file <- "ml-10M100K/ratings.dat"
+if(!file.exists(ratings_file)) unzip(dl, ratings_file)
+
+movies_file <- "ml-10M100K/movies.dat"
+if(!file.exists(movies_file)) unzip(dl, movies_file)
+
+
+# STEP 2a: Load the ratings file.  This file is delimited using double colons.
+
+ratings <- as.data.frame(
+  str_split(read_lines(ratings_file), fixed("::"), simplify = T))
+colnames(ratings) <- c("userId", "movieId", "rating", "timestamp")
+ratings <- ratings |>
+  mutate(userId = as.integer(userId),
+         movieId = as.integer(movieId),
+         rating = as.numeric(rating),
+         timestamp = as_datetime(as.integer(timestamp)))
+
+
+# STEP 2b: Load the movies file.  Again, this file is delimited using double colons.
+movies <- as.data.frame(
+  str_split(read_lines(movies_file), fixed("::"), simplify = T))
+colnames(movies) <- c("movieId", "title", "genres")
+movies <- movies |> mutate(movieId = as.integer(movieId))
+
+
+# STEP 3: Add a `movies` column to the ratings and save to `movielens`.
+movielens <- left_join(ratings, movies, by = "movieId")
+
+
+# STEP 4: Split the `movielens` dataset into the `edx` and `validation` sets.
+
+# Validation set will be 10% of MovieLens data
+set.seed(1, sample.kind="Rounding")
+test_index <- createDataPartition(y = movielens$rating, times = 1, p = 0.1, list = FALSE)
+edx <- movielens[-test_index,]
+temp <- movielens[test_index,]
+
+# Make sure userId and movieId in validation set are also in edx set
+validation <- temp |> 
+      semi_join(edx, by = "movieId") |>
+      semi_join(edx, by = "userId")
+
+# Add rows removed from validation set back into edx set
+removed <- anti_join(temp, validation)
+edx <- rbind(edx, removed)
+
+
+# STEP 5; convert timestamps to datetime
+
+edx <- edx |>
+  mutate(timestamp = as_datetime(timestamp)) |>
+  as.data.table()
+validation <- validation |>
+  mutate(timestamp = as_datetime(timestamp)) |>
+  as.data.table()
+
+rm(dl, ratings, movies, test_index, temp, movielens, removed)
+```
+
+## Data description
+
+The data consists of ten million movie ratings, each expressed using six variables.  The number
+of ratings in the `edx` and `validation` partitions are `nrow(edx)` and `nrow(validation)`,
+respectively, i.e., `r nrow(edx)` and `r nrow(validation)`.  The six variables are:
+
+```{r}
+colnames(edx)
+```
+
+and are defined as follows:
+
+* userId: an integer from 1 to `r max(as.integer(edx$userId))` denoting the user who made the rating.
+* movieId: an integer from 1 to `r max(as.integer(edx$movieId))` denoting which movie was rated.
+* rating: a multiple of 0.5, from 0.5 to 5.0.
+* timestamp: a `POSIXct` object representing the time at which the rating was made.
+* title: the name of the movie rated, suffixed which the year of release in parentheses.
+* genres: a list of genres for the rated movie, delimited by the pipe ('|') character.
+
+The density of the rating matrix is:
+
+```{r Matrix-density}
+nrow(edx) / max(edx$userId) / max(edx$movieId)
+```
+
+
+The list of possible genres, the number of movies in each genre, and the mean
+number of ratings per movie in each genre is given as follows:
+
+```{r Genre-summary}
+
+# Get the list of possible genres
+
+genres <- edx$genres |> unique() |> str_split('\\|') |> flatten_chr() |>
+  unique() |> sort() |> 
+  tail(-1) # remove "(no genres listed)"
+
+# Construct a data.table with one entry per movie
+temp <- edx |> group_by(movieId) |>
+  summarise(title = first(title), genres = first(genres))
+
+# Find the number of movies and ratings for each genre
+genre_summary <-
+  data.table(Genre = genres,
+             Movies = sapply(genres, function(g) sum(temp$genres %flike% g)),
+             Ratings = sapply(genres, function(g) sum(edx$genres %flike% g))
+             ) |>
+  mutate("Mean # ratings per movie" = Ratings/Movies)
+
+rm(temp)
+genre_summary |> kable(align='lrrr', digits = 1, booktabs = T, linesep = "")
+```
+
+The number of ratings per movie and per user in `edx` is plotted below.
+
+```{r Ratings-per-movie-and-user, fig.height=3, fig.width=6}
+
+# Count the number of ratings for each movie and rank the movies by ratings received
+ratings_per_movie <- edx |>
+  group_by(movieId) |>
+  summarise(title = first(title), genres = first(genres), n_ratings = n()) |>
+  mutate(rank = frank(-n_ratings))
+
+# Count the number of ratings for each user and rank the users by ratings given
+ratings_per_user <- edx |>
+  group_by(userId) |>
+  summarise(title = first(title), n_ratings = n()) |>
+  mutate(rank = frank(-n_ratings))
+
+# Plot the number of ratings for each movie and user, sorted by rank
+plot1 <- ratings_per_movie |>
+  ggplot(aes(rank,n_ratings)) + geom_point(alpha = 0.3) +
+  scale_x_log10() + scale_y_log10() +
+  xlab('Rank') + ylab('Count') + labs(title = 'Ratings per movie')
+plot2 <- ratings_per_user |>
+  ggplot(aes(rank,n_ratings)) + geom_point(alpha = 0.3) +
+  scale_x_log10() + scale_y_log10() +
+  xlab('Rank') + ylab('Count') + labs(title = 'Ratings per user')
+
+rm(ratings_per_movie, ratings_per_user)
+par(cex = 0.7)
+plot1 + plot2
+```
+
+## Project Objective
+
+The objective of this project is to estimate movie ratings given the values of the other five
+variables. The goodness of the proposed recommender system is evaluated using the root mean squared
+error (RMSE):
+\[
+\text{RMSE} = \sqrt{\frac{1}{N}\sum_i \left(y_i - \hat{y}_i\right)^2}
+\]
+where $y$ denotes the true values in the validation set, $\hat{y}$ denotes the estimated values,
+and $N$ denotes the number of observations in the validation set.
+
+The library function `caret::RSME` is used in this report for RSME evaluation.
+
+Note that minimizing the RMSE is equivalent to minimizing the sum of the square errors, i.e.,
+$\sum_i \left(y_i - \hat{y}_i\right)^2$.
+
