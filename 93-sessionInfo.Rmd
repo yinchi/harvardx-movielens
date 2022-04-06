@@ -1,0 +1,9 @@
+# Session info
+
+```{r}
+sessionInfo()
+```
+
+```{r}
+tidyverse::tidyverse_conflicts()
+```
