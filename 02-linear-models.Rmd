@@ -1,31 +1,60 @@
 # Linear regression models {#sec:linear}
 
-Let $Y = (Y_1, \ldots, Y_M)$ and $X_i = (X_{1,i}, \ldots, X_{N,i})$ for some positive integer $i$.
-We call $Y$ the dependent variable and  $\left( X_{1}, X_{2}, ... , X_{i} \right)$, the
-independent variables.  Furthermore, for some integer $M$, we consider $Y_1$ to $Y_m$ to represent
-observations and $Y_{M+1}$ to $Y_N$ the unknown values to be predicted.
+## Overview and notation {#sec:notation}
 
-We can use linear regression models to predict $Y_{M+1}$ to $Y_n$. A linear regression model has
-the form
-\[
-Y = \mu + \sum_{i=1}^N b_{i}f_i\left(X_{i}\right) + \varepsilon,
-\]
-where $b_i$ represents the $i$th regression coefficient vector, each $f_i$'s is a possibly non-linear
-function of $X_i$, and $\varepsilon$ represents random error. In this section we fit linear
-models with up to four $b_i$'s to the `movielens` dataset,
-representing movie, user, genre, and temporal effects, respectively.
-The `edx` partition will be used for fitting and the `validation` set to compare model performance.
+Let $Y$ be a $N_\mathrm{U}\times N_\mathrm{M}$ matrix of movie ratings, such that $Y_{u,i}$ is
+the rating user $u$ has given or would give movie $i$.
+Additionally, define $X_j$ such that $X_{u,i}$ denotes the $j$th attribute
+of user-movie pair $(u,i)$. Such attributes include $u$ and $i$
+themselves, the genres of movie $i$, and the timestamp at which the rating was made.
+Finally, only the indices $(u,i)$ in the training set, denoted $\mathcal{T}$, are observable.
+
+The goal is to
+estimate $Y$ given the observable elements of $Y$ (the actual ratings). Given a user-movie pair $(u,i)$,
+we model $Y_r$ using a multiple linear regression model:
+$$
+y_{u,i} \sim \mu + \left(\sum_j \beta_{j;u,i} \right) +\varepsilon_{u,i},
+$$
+where
+
+* $\mu$ represents the “true” rating for all movies,
+* $\beta_j;u,i$ is the $j$th bias term for pair $(u,i)$,
+* and $\varepsilon_{u,i}$ is random error, all independently sampled from the
+   same zero-mean distribution.
+
+We further define $b_j$ such that
+$$
+\left(X_{j;u,i} = n\right) \implies \left(\beta_{j;u,i} = b_{j;n}\right).
+$$
+
+We can write the above in matrix form:
+$$
+Y \sim \mu + \left( \sum_j \beta_j \right) + \varepsilon.
+$$
+
+The objective is to minimize the sum of the squared errors
+$$
+\text{SE}_{\mathcal{V}} =
+\sum_{(u,i)\in\mathcal{V}} \left[Y_{u,i} - \mu - \sum_j \beta_{j;u,i} \right]^2
+$$
+where $\mathcal{V}$ represents the validation set of observed movie ratings.
+This can be thought of as a $\mathcal{V}$-based approximation of
+$$
+\text{SE} = \left\Vert Y - \mu - \sum_j \beta_j \right\Vert_{2,2}^2.
+$$
+
+The estimated value of $Y$ for $(u,v) \notin \mathcal{T}$ is
+$$
+\hat{Y}_{u,v} = \mu + \sum_j \beta_{j;u,v}.
+$$
 
 ## Using the mean rating only
 
-Let $Y_{u,i}$ denote the rating user $u$ gave (or would give) movie $i$. Our first model is of the
-form
-\[
-Y_{u,i} \sim \mu + \varepsilon_{u,i},
-\]
-where $\mu$ the "true" rating of all movies and $\varepsilon_{u,i}$ represents independent random
-errors sampled from the same distribution with mean 0. The best estimate $\hat{\mu}$ of $\mu$ is
-the mean of all ratings in `edx`, or:
+Our first model is of the form
+$$
+Y_{u,i} \sim \mu + \varepsilon_{u,i}.
+$$
+The best estimate $\hat{\mu}$ of $\mu$ is the mean of all ratings in `edx`, or:
 
 ```{r Mean-only-model}
 
@@ -33,7 +62,7 @@ mu <- mean(edx$rating)
 mu
 ```
 
-The model gives the following RMSE values when applied to the `validation` set:
+This model gives the following RMSE values when applied to the `validation` set:
 
 ```{r Mean-only-RMSE}
 
@@ -42,7 +71,7 @@ The model gives the following RMSE values when applied to the `validation` set:
 # [0.5, 5].
 clamp <- function(x) raster::clamp(as.numeric(x), 0.5, 5)
 
-# Tibble to contain RMSE values for each model in our report.
+# Compute RMSE and add to a tibble.
 RMSEs <- tibble(Method = c("Mean only"),
                 RMSE = RMSE(mu, validation$rating),
                 "RMSE (clamped estimates)" = RMSE(mu, validation$rating))
@@ -52,11 +81,11 @@ RMSEs[[nrow(RMSEs),'RMSE']]
 ## Modeling movie effects
 
 We add a term to our model for movie effects:
-\[
-Y_{u,i} \sim \mu + b_{1,i}i + \varepsilon_{u,i},
-\]
-The best estimate $\hat{b}_{1,i}$ of $b_{1,i}$ is the mean of
-$Y_{u,i} - \hat{\mu}$ for each movie $i$. The following code computes $\hat{b}_{1,i}$ for each $i$ and
+$$
+Y_{u,i} \sim \mu + b_{1;i}i + \varepsilon_{u,i},
+$$
+The least-squares estimate $\hat{b}_{1;i}$ of $b_{1;i}$ is the mean of
+$Y_{u,i} - \hat{\mu}$ for each movie $i$. The following code computes $\hat{b}_{1;i}$ for each $i$ and
 plots these as a histogram:
 
 ```{r Movie-effects, fig.height=3, fig.width=4}
@@ -101,11 +130,11 @@ This slightly reduces the RMSE when multiple biases are added to the model, as w
 ## Modeling movie and user effects
 
 We add a term $b_u$ to our model for user effects:
-\[
-Y_{u,i} \sim \mu + b_{1,i}i + b_{2,u}u + \varepsilon_{u,i},
-\]
+$$
+Y_{u,i} \sim \mu + b_{1;i}i + b_{2;u}u + \varepsilon_{u,i}.
+$$
 We approximate $b_{2,u}$ for each user $u$ as the mean of
-$\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1,i}$. The following code computes $\hat{b}_{2,u}$ for
+$\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1;i}$. The following code computes $\hat{b}_{2;u}$ for
 each $u$ and plots these as a histogram:
 
 ```{r User-effects, fig.height=3, fig.width=4}
@@ -144,25 +173,26 @@ RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T)
 ## Adding genre effects
 
 We add another bias term $b_g$ to our model for genre effects:
-\[
-Y_{u,i} \sim \mu + b_{1,i}i + b_{2,u}u + b_{3,g(i)}g(i) + \varepsilon_{u,i},
-\]
+$$
+Y_{u,i} \sim \mu + b_{1;i} + b_{2;u} + b_{3;g(i)} + \varepsilon_{u,i},
+$$
 where $g(i)$ is the **combination** of genres for movie $i$.
-We approximate $b_{3,g}$ for each genre combination $g$ as the mean of
-$\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1,i} - \hat{b}_{2.u}$. The following code computes
+We approximate $b_{3;g}$ for each genre combination $g$ as the mean of
+$\hat{b}_u = Y_{u;i} - \hat{\mu} - \hat{b}_{1;i} - \hat{b}_{2;u}$, averaged over
+all ratings where $g(i) = g$. The following code computes
 $\hat{b}_{3,g}$ for each $g$ and plots these as a histogram:
 
 
 ```{r Genre-effects, fig.height=3, fig.width=4}
 
-# Estimate user effects
+# Estimate genre effects
 genre_biases <- edx |> 
   left_join(movie_biases, by='movieId') |>
   left_join(user_biases, by='userId') |>
   group_by(genres) |>
   summarize(b_g = mean(rating - mu - b_i - b_u))
 
-# Plot a histogram of the user effects
+# Plot a histogram of the genre effects
 par(cex = 0.7)
 hist(genre_biases$b_g, 30, xlab = TeX(r'[$\hat{b}_{3,g}$]'),
      main = TeX(r'[Histogram of $\hat{b}_{3,g}$]'))
@@ -191,13 +221,26 @@ RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T)
 ## Adding a time effect
 
 Consider a new model with the form
-\[
-Y_{u,i} \sim \mu + b_{1,i}i + b_{2,u}u + b_{3,g(i)}g(i) + b_{4,t_{u,i}}f(t_{u,i}) + \varepsilon_{u,i}.
-\]
+$$
+Y_{u,i} \sim \mu + b_{1;i} + b_{2;u} + b_{3;g(i)} + f(t_{u,i}) + \varepsilon_{u,i}.
+$$
 where $t_{u,i}$ is a week index, such the date of the oldest rating is defined as the
 start of Week 1.
 
-The following code defines $f(t)$ as the smoothed average rating on Week $t$ minus the overall mean:
+The new optimization problem minimizes
+$$
+\text{SE}_{\mathcal{V}} =
+\sum_{(u,i)\in\mathcal{V}} \left[y_{u,i} - \mu - b_{1;i} - b_{2;u} - b_{3;g(i)} - f(t_{u,i})\right]^2.
+$$
+In matrix form, the above is an validation-set-based approximation of
+$$
+\text{SE} = \left\Vert Y - \mu_t - \sum_j \beta_j \right\Vert_{2,2}^2.
+$$
+Note the addition of the $t$ subscript compared to the original problem formulation
+defined in Section \@ref(sec:notation), with 
+$\mu_{t;u,i} = \mu - f(t_{u,i})$.
+
+The following code defines $f(t)$ as the smoothed average rating on Week $t$, minus $\mu$:
 
 ```{r Time-averages, fig.height=3, fig.width=4}
 
@@ -215,36 +258,47 @@ fit <- mgcv::gam(rating ~ s(weekNum, bs = "cs"),
 
 # Evaluate the fitted curve for each week number
 r <- seq(1,max(edx$weekNum))
-mu_t <- mgcv::predict.gam(fit, data.frame(weekNum = r)) - mu
+f_t <- mgcv::predict.gam(fit, data.frame(weekNum = r)) - mu
 rm(fit)
 
 # Plot the fitted curve
-ggplot(data.frame(weekNum = r, mu_t), aes(weekNum, mu_t)) + geom_line() +
+ggplot(data.frame(weekNum = r, f_t), aes(weekNum, f_t)) + geom_line() +
   xlab(TeX(r'[$d_{u,i}$]')) + ylab(TeX(r'[$\mu\,(d_{u,i}\,)$]'))
 ```
 
 We approximate $b_{t,g}$ for each genre combination $g$ as the mean of
-$\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1,i} - \hat{b}_{2.u} - b_{3,g(i)}g(i)$,
-**divided by $\mu_{t_{u,i}}$**.
-Fitting the $b_{4,t}$'s for the new model, returns RMSE values of:
+$\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1;i} - \hat{b}_{2;u} - b_{3;g(i)}$.
+Fitting the $b_{j;t}$'s $j=1,2,3$, for the new model, we obtain RMSE values of:
 
 ```{r Time-effect-model-and-RMSE, fig.height=3, fig.width=4}
 
-# Compute the time effects
-time_biases <- edx |> 
-  left_join(movie_biases, by='movieId') |>
-  left_join(user_biases, by='userId') |>
-  left_join(genre_biases, by='genres') |>
-  group_by(weekNum) |>
-  summarize(b_t = mean(rating - mu - b_i - b_u - b_g)/mu_t[first(weekNum)])
+# Compute the biases
+
+movie_biases_t <- edx |> 
+  mutate(f_t = f_t[weekNum]) |> 
+  group_by(movieId) |> 
+  summarize(b_i = mean(rating - mu - f_t))
+
+user_biases_t <- edx |> 
+  mutate(f_t = f_t[weekNum]) |> 
+  left_join(movie_biases_t, by='movieId') |>
+  group_by(userId) |>
+  summarize(b_u = mean(rating - mu - b_i - f_t))
+
+genre_biases_t <- edx |> 
+  mutate(f_t = f_t[weekNum]) |> 
+  left_join(movie_biases_t, by='movieId') |>
+  left_join(user_biases_t, by='userId') |>
+  group_by(genres) |>
+  summarize(b_g = mean(rating - mu - b_i - b_u - f_t))
 
 # Obtain predictions for the validation set
 predicted_ratings <- validation |> 
-  left_join(movie_biases, by='movieId') |>
-  left_join(user_biases, by='userId') |>
-  left_join(genre_biases, by='genres') |>
-  left_join(time_biases, by='weekNum') |>
-  mutate(pred = mu + b_i + b_u + b_g + b_t*mu_t[weekNum]) |>
+  mutate(f_t = f_t[weekNum]) |> 
+  left_join(movie_biases_t, by='movieId') |>
+  left_join(user_biases_t, by='userId') |>
+  left_join(genre_biases_t, by='genres') |>
+  mutate(pred = mu + b_i + b_u + b_g + f_t) |>
   pull(pred)
 
 # Compute RMSE and add to data.table
@@ -258,20 +312,19 @@ RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T)
 ## Adding $L_2$ regularization
 
 To improve our model further, we can add $L_2$ regularization.  Whereas the previous model minimizes
-\[
-E = \sum_{u,i} \left(y_{u,i} - b_{1,i}i - b_{2,u}u - b_{3,g(i)}g(i) - b_{4,t_{u,i}}f(t_{u,i})\right)^2,
-\]
+$$
+\text{SE}_{\mathcal{V}} = \sum_{(u,i)\in\mathcal{V}} \left[y_{u,i} - \mu - b_{1;i} - b_{2;u} - b_{3;g(i)} - f(t_{u,i})\right]^2,
+$$
 in this section we add a penalty term such that the new expression to minimize is as follows:
-\[
-E + \lambda\left(\sum_i b_{1,i}^2 + \sum_u b_{2,u}^2 + \sum_g b_{3,g}^2 + \sum_t b_{4,t}^2\right).
-\]
-This can be expressed in matrix form as
-\[
-\arg\min_b E + \lambda\lVert b\rVert_2^2
-\]
-where $b$ is a concatenation of the bias vectors: $b = [b_1\mid b_2\mid b_3\mid b_4]$.
+$$
+\text{SE}_{\mathcal{V}} + \lambda\left(\sum_i b_{1;i}^2 + \sum_u b_{2;u}^2 + \sum_g b_{3;g}^2 \right).
+$$
+In matrix form, the above is an validation-set-based approximation of
+$$
+\left\Vert Y - \mu_t - \sum_j \beta_j \right\Vert_{2,2}^2 + \lambda\sum_j\left\Vert b_j\right\Vert_2^2.
+$$
 
-To do this we first split `edx` into a training and test set:
+To perform regularization, we first split `edx` into a training and test set:
 
 ```{r EDX-split, warning=FALSE}
 
@@ -309,29 +362,28 @@ rmses <- sapply(lambdas, function(l){
   message("lambda = ", l)
   
   # Compute movie, user, genre, and time effects using the test set.
-  movie_biases_reg <- edx_train[, .(b_i = sum(rating - mu)/(.N+l)), by = 'movieId']
+  # Note that f_t here refers to the variable f_t and not the f_t column in
+  # any of the data.tables.
+  movie_biases_reg <-
+    edx_train[, .(b_i = sum(rating - mu - f_t[weekNum])/(.N+l)), by = 'movieId']
   
   temp <- movie_biases_reg[edx_train, on = 'movieId']
-  user_biases_reg <- temp[, .(b_u = sum(rating - mu - b_i)/(.N+l)), by = 'userId']
+  user_biases_reg <-
+    temp[, .(b_u = sum(rating - mu - b_i - f_t[weekNum])/(.N+l)), by = 'userId']
   
   temp <- user_biases_reg[temp, on = 'userId']
-  genre_biases_reg <- temp[, .(b_g = sum(rating - mu - b_i - b_u)/(.N+l)), by = 'genres']
-  
-  temp <- genre_biases_reg[temp, on = 'genres']
-  time_biases_reg <- temp[, .(b_t = sum(rating - mu - b_i - b_u - b_g)
-                              /mu_t[weekNum]/(.N+l)), by = 'weekNum']
+  genre_biases_reg <-
+    temp[, .(b_g = sum(rating - mu - b_i - b_u - f_t[weekNum])/(.N+l)), by = 'genres']
   
   # Generate predictions
-  predicted_ratings <- time_biases_reg[
-    genre_biases_reg[
-      user_biases_reg[
-        movie_biases_reg[
-            edx_test,
-          on = 'movieId'],
-        on = 'userId'],
-      on = 'genres'],
-    on = 'weekNum'] |>
-    mutate(pred = mu + b_i + b_u + b_g + b_t*mu_t[weekNum]) |> 
+  predicted_ratings <- genre_biases_reg[
+    user_biases_reg[
+      movie_biases_reg[
+        edx_test,
+        on = 'movieId'],
+      on = 'userId'],
+    on = 'genres'] |>
+    mutate(pred = mu + b_i + b_u + b_g + f_t[weekNum]) |> 
     pull(pred)
   
   # Compute RMSE
@@ -356,30 +408,27 @@ obtain:
 ```{r Regularized-model-and-RMSE}
 
 # Compute the regularized movie, user, genre, and time effects
-movie_biases_reg <- edx_train[, .(b_i = sum(rating - mu)/(.N+lambda)), by = 'movieId']
+movie_biases_reg <-
+  edx_train[, .(b_i = sum(rating - mu - f_t[weekNum])/(.N+lambda)), by = 'movieId']
 
 temp <- movie_biases_reg[edx_train, on = 'movieId']
-user_biases_reg <- temp[, .(b_u = sum(rating - mu - b_i)/(.N+lambda)), by = 'userId']
+user_biases_reg <-
+  temp[, .(b_u = sum(rating - mu - b_i - f_t[weekNum])/(.N+lambda)), by = 'userId']
 
 temp <- user_biases_reg[temp, on = 'userId']
-genre_biases_reg <- temp[, .(b_g = sum(rating - mu - b_i - b_u)/(.N+lambda)), by = 'genres']
-
-temp <- genre_biases_reg[temp, on = 'genres']
-time_biases_reg <- temp[, .(b_t = sum(rating - mu - b_i - b_u - b_g)
-                            /mu_t[weekNum]/(.N+lambda)), by = 'weekNum']
+genre_biases_reg <-
+  temp[, .(b_g = sum(rating - mu - b_i - b_u - f_t[weekNum])/(.N+lambda)), by = 'genres']
 
 # Generate predictions for the *validation* set.
-predicted_ratings_reg <- time_biases_reg[
-  genre_biases_reg[
+predicted_ratings_reg <- genre_biases_reg[
     user_biases_reg[
       movie_biases_reg[
         validation,
         on = 'movieId'],
       on = 'userId'],
-    on = 'genres'],
-  on = 'weekNum'] |>
-  mutate(pred = mu + b_i + b_u + b_g + b_t*mu_t[weekNum]) |> 
-  pull(pred)
+    on = 'genres'] |> 
+  mutate(pred = mu + b_i + b_u + b_g + f_t[weekNum]) |> 
+    pull(pred)
 
 rm(temp)
 

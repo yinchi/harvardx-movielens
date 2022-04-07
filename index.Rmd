@@ -16,6 +16,9 @@ link-citations: yes
 site: bookdown::bookdown_site
 ---
 
+The source code in this report is typeset in [Cascadia Code](https://github.com/microsoft/cascadia-code),
+with code ligatures enabled.
+
 # Introduction
 ```{r Setup, include=FALSE, purl=FALSE}
 
@@ -225,14 +228,22 @@ plot1 + plot2
 The objective of this project is to estimate movie ratings given the values of the other five
 variables. The goodness of the proposed recommender system is evaluated using the root mean squared
 error (RMSE):
-\[
-\text{RMSE} = \sqrt{\frac{1}{N}\sum_i \left(y_i - \hat{y}_i\right)^2}
-\]
-where $y$ denotes the true values in the validation set, $\hat{y}$ denotes the estimated values,
+$$
+\text{RMSE}_{\mathcal{V}} = \sqrt{\frac{1}{N}\sum_{(u,i)\in\mathcal{V}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2}
+$$
+where $y$ denotes the true values of movie ratings in the validation set $\mathcal{V}$,
+$\hat{y}$ denotes the estimated values,
 and $N$ denotes the number of observations in the validation set.
 
 The library function `caret::RSME` is used in this report for RSME evaluation.
 
 Note that minimizing the RMSE is equivalent to minimizing the sum of the square errors, i.e.,
-$\sum_i \left(y_i - \hat{y}_i\right)^2$.
+$$
+\text{SE}_{\mathcal{V}} = \sum_{(u,i)\in\mathcal{V}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2.
+$$
+In matrix form, this can be thought of as a $\mathcal{V}$-based approximation of the square of the
+$L_{2,2}$ or Frobenius norm, i.e.,
+$$
+\text{SE} = \left\Vert Y - \hat{Y} \right\Vert_{2,2}^2.
+$$
 
