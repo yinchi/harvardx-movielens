@@ -278,7 +278,7 @@ rm(fit)
 
 # Plot the fitted curve
 ggplot(data.frame(weekNum = r, f_t), aes(weekNum, f_t)) + geom_line() +
-  xlab(TeX(r'[$d_{u,i}$]')) + ylab(TeX(r'[$\mu\,(d_{u,i}\,)$]'))
+  xlab(TeX(r'[$t_{u,i}$]')) + ylab(TeX(r'[$\mu\,(t_{u,i}\,)$]'))
 ```
 
 We approximate $b_{t,g}$ for each genre combination $g$ as the mean of

@@ -2,7 +2,7 @@
 
 In this section, we consider Funk's matrix factorization (MF)
 algorithm [@Funk2006; @Koren2009] for rating prediction.
-We use the model $Y <- P + \sim UV^\mathrm{T} + \varepsilon$
+We use the model $Y \sim P + \sim UV^\mathrm{T} + \varepsilon$
 where $Y$ is the $N_\mathrm{U}\times N_\mathrm{M}$
 rating matrix, i.e., with $N_u$ users and $N_i$ movies,
 $P$ represents the predictions from best model of the previous section, and
