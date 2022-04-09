@@ -1,0 +1,6 @@
+# (APPENDIX) Appendices {-} 
+
+# Code listing: `svd.cpp` {#sec:code}
+
+```{Rcpp eval=FALSE, file='svd.cpp', purl = F}
+```
