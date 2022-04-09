@@ -33,6 +33,7 @@ hist(predicted_ratings_FINAL_VALIDATION - validation$rating, 50,
 Here is a plot of the cumulative distribution of the absolute error:
 ```{r Absolute-error-ECDF, fig.height=4, fig.width=4}
 the_ecdf <- ecdf(predicted_ratings_FINAL_VALIDATION - validation$rating)
+par(cex = 0.7)
 plot(seq(0,4.5,0.001), the_ecdf(seq(0,4.5,0.001)), 'l',
      xlab = 'Absoulute error of prediction', ylab = 'Empirical CDF')
 ```
