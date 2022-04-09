@@ -70,7 +70,7 @@ below:
 # Create edx set, validation set (final hold-out test set)
 ##########################################################
 
-# Note: this code was modified from the course-provided version for speed.
+# NOTE: this code was modified from the course-provided version for speed.
 
 # MovieLens 10M dataset:
 # https://grouplens.org/datasets/movielens/10m/

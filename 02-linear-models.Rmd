@@ -243,7 +243,7 @@ Consider a new model with the form
 $$
 Y_{u,i} \sim \mu + b_{1;i} + b_{2;u} + b_{3;g(i)} + f(t_{u,i}) + \varepsilon_{u,i}.
 $$
-where $t_{u,i}$ is a week index, such the date of the oldest rating is defined as the
+where $t_{u,i}$ is a week index, such that the date of the oldest rating is defined as the
 start of Week 1.
 
 The new optimization problem minimizes
@@ -278,7 +278,7 @@ rm(fit)
 
 # Plot the fitted curve
 ggplot(data.frame(weekNum = r, f_t), aes(weekNum, f_t)) + geom_line() +
-  xlab(TeX(r'[$t_{u,i}$]')) + ylab(TeX(r'[$\mu\,(t_{u,i}\,)$]'))
+  xlab(TeX(r'[$t_{u,i}$]')) + ylab(TeX(r'[$f\,(t_{u,i}\,)$]'))
 ```
 
 We approximate $b_{t,g}$ for each genre combination $g$ as the mean of

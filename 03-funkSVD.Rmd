@@ -79,7 +79,7 @@ funk <- function(Uidx, Vidx, residuals, nFeatures, steps = 500,
 
 set.seed(1)
 if (!file.exists('funk_tuning.Rdata')) {
-  nFeatures <- c(1, 2, 4, 8, 12, seq(14,24), 28, 32)
+  nFeatures <- c(1, 2, 4, 8, seq(12,20), 24, 28, 32)
   rmses <- sapply(nFeatures, \(nF){
     
     message(nF, ' features')
@@ -109,7 +109,7 @@ set.seed(1)
 
 load('funk_tuning.Rdata')
 par(cex = 0.7)
-plot(nFeatures, rmses, 'b', xlab = 'rank(UV)', ylab = 'RMSE')
+qplot(nFeatures, rmses, xlab = 'rank(UV)', ylab = 'RMSE', geom = c('point','line'))
 ```
 
 ```{r Optimal-num-features-Funk}
@@ -118,7 +118,7 @@ nFeaturesOpt
 ```
 
 
-Using the new model with $k=$`r nFeaturesOpt` to predict ratings for the `edx_test` gives the following RMSE
+Using the new model with $k=`r nFeaturesOpt`$ to predict ratings for the `edx_test` gives the following RMSE
 values:
 ```{r Funk-MF-prediction}
 
@@ -146,7 +146,7 @@ RMSEs <- RMSEs |>
           RMSE = RMSE(predicted_ratings_funk, edx_test$rating),
           "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings_funk), edx_test$rating))
 
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T)
+RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 The RMSEs of all models in this report, evaluated using `edx_test`, are as follows:
