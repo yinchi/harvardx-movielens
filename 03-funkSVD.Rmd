@@ -9,7 +9,7 @@ $P$ represents the predictions from best model of the previous section, and
 and $U$ and $V$ are $N_u \times k$ and $N_i \times k$
 **feature matrices**, respectively.
 Unknown ratings $Y_{u,i}$ can thus be estimated as $P_{u,i} + U_u V_i^\mathrm{T}$.
-The matrix $k$ is known as the **rank** of matrix $UV$; i.e. $UV$ is a
+The parameter $k$ is known as the **rank** of matrix $UV$; i.e. $UV$ is a
 rank-$k$ approximation of the residual matrix $Y-P$.
 
 
@@ -78,38 +78,41 @@ funk <- function(Uidx, Vidx, residuals, nFeatures, steps = 500,
 # Compute RMSE values for varying number of MF features.
 
 set.seed(1)
-# nFeatures <- c(1, 2, 4, 8, 12, seq(14,24), 28, 32)
-# rmses <- sapply(nFeatures, \(nF){
-# 
-#   message(nF, ' features')
-# 
-#   # Run Funk MF
-#   set.seed(1)
-#   funkResult <- funk(Uidx, Vidx, residuals_train, nFeatures = nF, steps = 500)
-#   U <- funkResult$U
-#   V <- funkResult$V
-# 
-#   # Uidx[u] is the row index of user u in matrix U
-#   # Vidx[v] is the row index of movie v in matrix V
-#   predicted_ratings_funk <- edx_test |>
-#     mutate(pred = previous_test +
-#              map2_dbl(userId, movieId, \(u,v) U[Uidx[u],] %*% V[Vidx[v],])) |>
-#     pull(pred)
-#   rmse <- RMSE(predicted_ratings_funk, edx_test$rating)
-# 
-#   message(rmse)
-#   message()
-#   return(rmse)
-# })
-# 
-# save(nFeatures,rmses, file = 'funk_tuning.Rdata')
+if (!file.exists('funk_tuning.Rdata')) {
+  nFeatures <- c(1, 2, 4, 8, 12, seq(14,24), 28, 32)
+  rmses <- sapply(nFeatures, \(nF){
+    
+    message(nF, ' features')
+    
+    # Run Funk MF
+    set.seed(1)
+    funkResult <- funk(Uidx, Vidx, residuals_train, nFeatures = nF, steps = 500)
+    U <- funkResult$U
+    V <- funkResult$V
+    
+    # Uidx[u] is the row index of user u in matrix U
+    # Vidx[v] is the row index of movie v in matrix V
+    predicted_ratings_funk <- edx_test |>
+      mutate(pred = previous_test +
+               map2_dbl(userId, movieId, \(u,v) U[Uidx[u],] %*% V[Vidx[v],])) |>
+      pull(pred)
+    rmse <- RMSE(predicted_ratings_funk, edx_test$rating)
+    
+    message(rmse)
+    message()
+    return(rmse)
+  })
+  
+  save(nFeatures,rmses, file = 'funk_tuning.Rdata')
+}
 set.seed(1)
 
 load('funk_tuning.Rdata')
-plot(nFeatures, rmses, 'b')
+par(cex = 0.7)
+plot(nFeatures, rmses, 'b', xlab = 'rank(UV)', ylab = 'RMSE')
 ```
 
-```{r}
+```{r Optimal-num-features-Funk}
 nFeaturesOpt <- nFeatures[which.min(rmses)]
 nFeaturesOpt
 ```
