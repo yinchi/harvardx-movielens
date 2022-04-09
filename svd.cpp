@@ -36,22 +36,25 @@ Rcpp::List funkCpp(
     double learningRate
 )
 {
-  int nUsers = Rcpp::max(coo_i)+1;
-  int nItems = Rcpp::max(coo_j)+1;
-  int nRatings = coo_x.size();
+  int nUsers = Rcpp::max(coo_i)+1; // number of users
+  int nItems = Rcpp::max(coo_j)+1; // number of movies (items)
+  int nRatings = coo_x.size();     // number of known ratings
   
+  // Seed U and V with random values
   arma::mat U(nUsers, nFeatures, arma::fill::randu);
   arma::mat V(nItems, nFeatures, arma::fill::randu);
-  
   U *= sqrt(0.5/nFeatures);
   V *= sqrt(0.5/nFeatures);
   
-  Rcpp::Rcout << "nUsers:" << nUsers << ", ";
-  Rcpp::Rcout << "nItems:" << nItems << ", ";
-  Rcpp::Rcout << "nRatings:" << nRatings << std::endl;
+  // Diagnostics logging
+  Rcpp::Rcerr << "nUsers:" << nUsers << ", ";
+  Rcpp::Rcerr << "nItems:" << nItems << ", ";
+  Rcpp::Rcerr << "nRatings:" << nRatings << std::endl;
   
-  
+  // Progress bar for R console
   Progress p(steps, true);
+  
+  // Main loop
   for (int ss = 0; ss < steps; ss++) {
     
     // Kill program if user has requested it (Ctrl+C in most consoles)
@@ -67,10 +70,13 @@ Rcpp::List funkCpp(
       U.row(i) += learningRate * (err*V.row(j) - regCoef*U.row(i));
       V.row(j) += learningRate * (err*U.row(i) - regCoef*V.row(j));
     }
+    
+    // Report progress
     p.increment();
   }
-  Rcpp::Rcout << std::endl;
+  Rcpp::Rcerr << std::endl; // add gap between progress bars of multiple runs
   
+  // Return list(U,V)
   Rcpp::List ret;
   ret["U"] = U;
   ret["V"] = V;
