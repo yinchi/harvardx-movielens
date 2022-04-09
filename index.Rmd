@@ -16,10 +16,13 @@ link-citations: yes
 site: bookdown::bookdown_site
 ---
 
+## Code ligatures
+
 The source code in this report is typeset in [Cascadia Code](https://github.com/microsoft/cascadia-code),
 with code ligatures enabled.
 
-# Introduction
+## R setup
+
 ```{r Setup, include=FALSE, purl=FALSE}
 
 # R 4.1 key features: new pipe operator, \(x) as shortcut for function(x)
@@ -44,8 +47,10 @@ knitr::knit_hooks$set(chunk = function(x, options) {
 if(!require("pacman")) install.packages("pacman")
 library(pacman)
 
-p_load(knitr, data.table, latex2exp, patchwork, tidyverse, caret, lubridate)
+p_load(knitr, kableExtra, data.table, latex2exp, patchwork, tidyverse, caret, lubridate)
 ```
+
+# Introduction
 
 This report partially fulfils the requirements for the HarvardX course
 [PH125.9x: "Data Science: Capstone"](https://learning.edx.org/course/course-v1:HarvardX+PH125.9x+1T2022/home).
