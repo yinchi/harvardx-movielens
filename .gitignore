@@ -9,3 +9,4 @@ _main.Rmd
 *.tmp
 *.bak
 /*.Rdata
+*.log
