@@ -137,7 +137,7 @@ RMSEs <- RMSEs |>
           RMSE = RMSE(predicted_ratings, edx_test$rating),
           "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), edx_test$rating))
 
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T)
+RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 ### Clamping the predictions
@@ -186,7 +186,7 @@ RMSEs <- RMSEs |>
   add_row(Method = "Movie + user effects",
           RMSE = RMSE(predicted_ratings, edx_test$rating),
           "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), edx_test$rating))
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T)
+RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 ## Adding genre effects
@@ -234,7 +234,7 @@ RMSEs <- RMSEs |>
   add_row(Method = "Movie + user + genre effects",
           RMSE = RMSE(predicted_ratings, edx_test$rating),
           "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), edx_test$rating))
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T)
+RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 ## Adding a time effect
@@ -321,7 +321,7 @@ RMSEs <- RMSEs |>
   add_row(Method = "Movie + user + genre + time effects",
           RMSE = RMSE(predicted_ratings, edx_test$rating),
           "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), edx_test$rating))
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T)
+RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 ## Adding $L_2$ regularization {#sec:regularization}
@@ -425,15 +425,15 @@ RMSEs <- RMSEs |>
           RMSE = RMSE(predicted_ratings_reg, edx_test$rating),
           "RMSE (clamped estimates)" =
             RMSE(clamp(predicted_ratings_reg), edx_test$rating))
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T)
+RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 ## Section summary
 
 The table of RMSEs for all models considered in this section is below.
 
-```{r}
-RMSEs |> kable(align='lrr', booktabs = T, linesep = "")
+```{r RMSE-summary}
+RMSEs |> kable(align='lrr', booktabs = T, linesep = "") |> row_spec(0, bold = T)
 ```
 
 The results demonstrate that each added feature has reduced the RMSE, as well as

@@ -205,7 +205,8 @@ genre_summary <-
 
 rm(temp)
 genre_summary |> arrange(desc(`Mean Rating`)) |>
-  kable(align='lrrr', digits = c(0,0,0,2,1), booktabs = T, linesep = "")
+  kable(align='lrrr', digits = c(0,0,0,2,1), booktabs = T, linesep = "") |> 
+  row_spec(0, bold = T)
 ```
 
 The number of ratings per movie and per user in `edx` is plotted below.

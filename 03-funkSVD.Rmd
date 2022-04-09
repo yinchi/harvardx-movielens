@@ -148,8 +148,8 @@ RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T)
 
 The RMSEs of all models in this report, evaluated using `edx_test`, are as follows:
 
-```{r}
-RMSEs
+```{r RMSE-summary-2}
+RMSEs |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 We now "submit" our best model, i.e.
