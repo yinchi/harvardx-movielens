@@ -395,9 +395,6 @@ obtain:
 
 ```{r Regularized-model-and-RMSE}
 
-# Compute the regularized movie, user, genre, and time effects, using `edx_train`.
-# NOTE: Now that we found lambda, we fit our model on the *whole* edx set rather than
-# just edx_train.
 movie_biases_reg <-
   edx_train[, .(b_i = sum(rating - mu - f_t[weekNum])/(.N+lambda)), by = 'movieId']
 
