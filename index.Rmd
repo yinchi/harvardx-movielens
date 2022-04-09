@@ -158,6 +158,15 @@ and are defined as follows:
 * title: the name of the movie rated, suffixed which the year of release in parentheses.
 * genres: a list of genres for the rated movie, delimited by the pipe ('|') character.
 
+Note that only integer ratings were supported before February 2003; the earliest half-star rating
+is:
+
+```{r}
+temp <- edx[edx$rating %% 1 == 0.5]
+temp[which.min(temp$timestamp)]
+```
+
+
 The density of the rating matrix is:
 
 ```{r Matrix-density}
@@ -182,14 +191,21 @@ temp <- edx |> group_by(movieId) |>
 
 # Find the number of movies and ratings for each genre
 genre_summary <-
-  data.table(Genre = genres,
-             Movies = sapply(genres, function(g) sum(temp$genres %flike% g)),
-             Ratings = sapply(genres, function(g) sum(edx$genres %flike% g))
-             ) |>
-  mutate("Mean # ratings per movie" = Ratings/Movies)
+  data.table(
+    Genre = genres,
+    Movies = sapply(genres, function(g)
+      sum(temp$genres %flike% g)),
+    Ratings = sapply(genres, function(g)
+      sum(edx$genres %flike% g)),
+    "Mean Rating" = sapply(genres, function(g) {
+      edx[edx$genres %flike% g,'rating']$rating |> mean()
+    })
+  ) |>
+  mutate("Ratings per movie" = Ratings / Movies)
 
 rm(temp)
-genre_summary |> kable(align='lrrr', digits = 1, booktabs = T, linesep = "")
+genre_summary |> arrange(desc(`Mean Rating`)) |>
+  kable(align='lrrr', digits = c(0,0,0,2,1), booktabs = T, linesep = "")
 ```
 
 The number of ratings per movie and per user in `edx` is plotted below.
@@ -205,16 +221,16 @@ ratings_per_movie <- edx |>
 # Count the number of ratings for each user and rank the users by ratings given
 ratings_per_user <- edx |>
   group_by(userId) |>
-  summarise(title = first(title), n_ratings = n()) |>
+  summarise(n_ratings = n()) |>
   mutate(rank = frank(-n_ratings))
 
 # Plot the number of ratings for each movie and user, sorted by rank
 plot1 <- ratings_per_movie |>
-  ggplot(aes(rank,n_ratings)) + geom_point(alpha = 0.3) +
+  ggplot(aes(rank,n_ratings)) + geom_line() +
   scale_x_log10() + scale_y_log10() +
   xlab('Rank') + ylab('Count') + labs(title = 'Ratings per movie')
 plot2 <- ratings_per_user |>
-  ggplot(aes(rank,n_ratings)) + geom_point(alpha = 0.3) +
+  ggplot(aes(rank,n_ratings)) + geom_line() +
   scale_x_log10() + scale_y_log10() +
   xlab('Rank') + ylab('Count') + labs(title = 'Ratings per user')
 
@@ -229,21 +245,21 @@ The objective of this project is to estimate movie ratings given the values of t
 variables. The goodness of the proposed recommender system is evaluated using the root mean squared
 error (RMSE):
 $$
-\text{RMSE}_{\mathcal{V}} = \sqrt{\frac{1}{N}\sum_{(u,i)\in\mathcal{V}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2}
+\text{RMSE} = \sqrt{\frac{1}{\left|\mathcal{T}\right|}\sum_{(u,i)\in\mathcal{T}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2}
 $$
-where $y$ denotes the true values of movie ratings in the validation set $\mathcal{V}$,
+where $y$ denotes the true values of movie ratings in the test set $\mathcal{T}$,
 $\hat{y}$ denotes the estimated values,
-and $N$ denotes the number of observations in the validation set.
+and $N$ denotes the number of observations in the test set.
 
 The library function `caret::RSME` is used in this report for RSME evaluation.
 
 Note that minimizing the RMSE is equivalent to minimizing the sum of the square errors, i.e.,
 $$
-\text{SE}_{\mathcal{V}} = \sum_{(u,i)\in\mathcal{V}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2.
+\text{SE} = \sum_{(u,i)\in\mathcal{T}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2.
 $$
-In matrix form, this can be thought of as a $\mathcal{V}$-based approximation of the square of the
-$L_{2,2}$ or Frobenius norm, i.e.,
+In matrix form, this can be thought of as the square of the
+$L_{2,2}$ or Frobenius norm of the prediction errors, i.e.,
 $$
-\text{SE} = \left\Vert Y - \hat{Y} \right\Vert_{2,2}^2.
+\text{SE} = \left\Vert Y - \hat{Y} \right\Vert_{2,2}^2,
 $$
-
+where $Y - \hat{Y}$ is defined as zero for user-movie pairs not in the test set.
