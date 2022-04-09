@@ -1,11 +1,11 @@
 # Final validation
 
-We now choose our best model \@ref(eq:model) for validation with the `validation` dataset.
+We now choose our best model \@ref(eq:final-model) for validation with the `validation` dataset.
 
 
 The final RMSE computed with the `validation` set is:
 
-```{r}
+```{r Final-RMSE-validation-set}
 predicted_ratings_FINAL_VALIDATION <- validation |>
   mutate(weekNum = (timestamp - min(timestamp)) |>
            as.numeric(unit = "days") |> {\(x) floor(x/7) + 1}() ) |> 
@@ -23,7 +23,7 @@ RMSE(predicted_ratings_FINAL_VALIDATION, validation$rating)
 
 The plot below plots a histogram of prediction errors:
 
-```{r fig.height=3, fig.width=4}
+```{r Prediction-error-plot, fig.height=3, fig.width=4}
 par(cex = 0.7)
 hist(predicted_ratings_FINAL_VALIDATION - validation$rating, 50,
      xlab = 'Prediction Error', main = '')
@@ -31,7 +31,7 @@ hist(predicted_ratings_FINAL_VALIDATION - validation$rating, 50,
 
 
 Here is a plot of the cumulative distribution of the absolute error:
-```{r fig.height=4, fig.width=4}
+```{r Absolute-error-ECDF, fig.height=4, fig.width=4}
 the_ecdf <- ecdf(predicted_ratings_FINAL_VALIDATION - validation$rating)
 plot(seq(0,4.5,0.001), the_ecdf(seq(0,4.5,0.001)), 'l',
      xlab = 'Absoulute error of prediction', ylab = 'Empirical CDF')
@@ -39,20 +39,20 @@ plot(seq(0,4.5,0.001), the_ecdf(seq(0,4.5,0.001)), 'l',
 
 What proportion of predictions are within half a star of the actual rating?
 
-```{r}
+```{r Within-half-star}
 mean(abs(predicted_ratings_FINAL_VALIDATION - validation$rating) < 0.5)
 ```
 
 How many parameters are there in the model?
 
-```{r}
+```{r Num-parameters}
 nrow(movie_biases_reg) + nrow(user_biases_reg) + nrow(genre_biases_reg) +
   length(f_t) + length(U) + length(V)
 ```
 
 Save the model:
 
-```{r}
+```{r Save-model}
 save(mu, movie_biases_reg, user_biases_reg, genre_biases_reg,
      f_t, Uidx, Vidx, U, V, file = 'FINAL_model.Rdata')
 ```

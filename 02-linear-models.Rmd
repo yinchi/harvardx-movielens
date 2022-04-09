@@ -385,7 +385,7 @@ qplot(lambdas, rmses, xlab = TeX(r'($\lambda)'), ylab = 'RMSE', geom = c('point'
 
 The optimal value of $\lambda$ is thus:
 
-```{r}
+```{r Optimal-lambda}
 lambda <- lambdas[which.min(rmses)]
 lambda
 ```

@@ -25,9 +25,9 @@ and updates the feature matrices as follows:
 where $\gamma$ is the learning rate and $\lambda$ is a regularization parameter.
 In this report, these are set to 0.02 and 0.001, respectively, in accordance to guidance from
 @Funk2006. The code for the Funk MF implementation used in this report can be found in
-Appendix \@ref(#sec:code).
+Appendix \@ref(sec:code).
 
-```{r Funk-MF, fig.height=4, fig.width=4}
+```{r Funk-MF, fig.height=3, fig.width=3}
 
 # Residuals from previous best model
 previous_train <- genre_biases_reg[
@@ -155,7 +155,7 @@ RMSEs |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 We now "submit" our best model, i.e.
 \begin{equation}
 Y_{u,i} \sim \mu + b_{1;i} + b_{2;u} + b_{3;g(i)} + f(t_{u,i})
-+ UV^\mathrm{T} + \varepsilon_{u,i}, (\#final-model)
++ UV^\mathrm{T} + \varepsilon_{u,i}, (\#eq:final-model)
 \end{equation}
 
 with parameters `movie_biases_reg`, `user_biases_reg`, `genre_biases_reg`, `f_t`, `U`, and `V`,
