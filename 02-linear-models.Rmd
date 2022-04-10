@@ -62,7 +62,7 @@ $$
 $$
 where $\mathcal{T}$ represents the test set of observed movie ratings.
 
-The estimated value of $Y$ for $(u,v) \notin \mathcal{T}$ is
+The estimated value of $Y_{u,v}$ for $(u,v) \notin \mathcal{T}$ is
 $$
 \hat{Y}_{u,v} = \mu + \sum_j \beta_{j;u,v}.
 $$
@@ -128,8 +128,7 @@ The new model gives the following RMSE values when applied to `edx_test`:
 # Obtain predictions for the edx_test set
 predicted_ratings <- edx_test |> 
   left_join(movie_biases, by='movieId') |>
-  mutate(pred = mu + b_i) |>
-  pull(pred)
+  mutate(pred = mu + b_i) |> pull(pred)
 
 # Compute RMSE and add to data.table
 RMSEs <- RMSEs |>
@@ -178,8 +177,7 @@ The new model gives the following RMSE values when applied to the `edx_test` set
 predicted_ratings <- edx_test |> 
   left_join(movie_biases, by='movieId') |>
   left_join(user_biases, by='userId') |>
-  mutate(pred = mu + b_i + b_u) |>
-  pull(pred)
+  mutate(pred = mu + b_i + b_u) |> pull(pred)
 
 # Compute RMSE and add to data.table
 RMSEs <- RMSEs |>
@@ -226,8 +224,7 @@ predicted_ratings <- edx_test |>
   left_join(movie_biases, by='movieId') |>
   left_join(user_biases, by='userId') |>
   left_join(genre_biases, by='genres') |>
-  mutate(pred = mu + b_i + b_u + b_g) |>
-  pull(pred)
+  mutate(pred = mu + b_i + b_u + b_g) |> pull(pred)
 
 # Compute RMSE and add to data.table
 RMSEs <- RMSEs |>
@@ -367,8 +364,7 @@ rmses <- sapply(lambdas, function(l){
   predicted_ratings <- genre_biases_reg[
     user_biases_reg[
       movie_biases_reg[
-        edx_test,
-        on = 'movieId'],
+        edx_test, on = 'movieId'],
       on = 'userId'],
     on = 'genres'] |>
     mutate(pred = mu + b_i + b_u + b_g + f_t[weekNum]) |> 
@@ -408,14 +404,13 @@ genre_biases_reg <-
 
 # Generate predictions for the *edx_test* set.
 predicted_ratings_reg <- genre_biases_reg[
-    user_biases_reg[
-      movie_biases_reg[
-        edx_test,
-        on = 'movieId'],
-      on = 'userId'],
-    on = 'genres'] |> 
+  user_biases_reg[
+    movie_biases_reg[
+      edx_test, on = 'movieId'],
+    on = 'userId'],
+  on = 'genres'] |> 
   mutate(pred = mu + b_i + b_u + b_g + f_t[weekNum]) |> 
-    pull(pred)
+  pull(pred)
 
 rm(temp)
 

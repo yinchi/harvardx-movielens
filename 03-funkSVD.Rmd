@@ -31,35 +31,31 @@ Appendix \@ref(sec:code).
 
 # Residuals from previous best model
 previous_train <- genre_biases_reg[
-    user_biases_reg[
-        movie_biases_reg[
-            edx_train,
-            on = 'movieId'],
-        on = 'userId'],
-    on = 'genres'] |> 
-    mutate(pred = mu + b_i + b_u + b_g + f_t[weekNum]) |> 
-    pull(pred)
+  user_biases_reg[
+    movie_biases_reg[
+      edx_train, on = 'movieId'],
+    on = 'userId'],
+  on = 'genres'] |> 
+  mutate(pred = mu + b_i + b_u + b_g + f_t[weekNum]) |> 
+  pull(pred)
 
 residuals_train <- edx_train$rating - previous_train
 
 # Test set predictions for previous best model
 previous_test <- genre_biases_reg[
-    user_biases_reg[
-        movie_biases_reg[
-            edx_test,
-            on = 'movieId'],
-        on = 'userId'],
-    on = 'genres'] |> 
-    mutate(pred = mu + b_i + b_u + b_g + f_t[weekNum]) |> 
-    pull(pred)
+  user_biases_reg[
+    movie_biases_reg[
+      edx_test, on = 'movieId'],
+    on = 'userId'],
+  on = 'genres'] |> 
+  mutate(pred = mu + b_i + b_u + b_g + f_t[weekNum]) |> 
+  pull(pred)
 
 # Obtain new movie and user indices **without gaps**, and save the mappings
-Uidx <- seq(max(edx_train$userId))
-Uidx[] <- 0
+Uidx <- numeric(max(edx_train$userId))
 Uidx[unique(edx_train$userId)] = seq(uniqueN(edx_train$userId))
 
-Vidx <- seq(max(edx_train$movieId))
-Vidx[] <- 0
+Vidx <- numeric(max(edx_train$movieId))
 Vidx[unique(edx_train$movieId)] = seq(uniqueN(edx_train$movieId))
 
 # Funk matrix factorization. See C++ source for full documentation.
@@ -76,7 +72,6 @@ funk <- function(Uidx, Vidx, residuals, nFeatures, steps = 500,
 }
 
 # Compute RMSE values for varying number of MF features.
-
 set.seed(1)
 if (!file.exists('funk_tuning.Rdata')) {
   nFeatures <- c(1, 2, 4, 8, seq(12,20), 24, 28, 32)
@@ -98,8 +93,7 @@ if (!file.exists('funk_tuning.Rdata')) {
       pull(pred)
     rmse <- RMSE(predicted_ratings_funk, edx_test$rating)
     
-    message(rmse)
-    message()
+    message(rmse,'\n')
     return(rmse)
   })
   
@@ -152,7 +146,7 @@ RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 The RMSEs of all models in this report, evaluated using `edx_test`, are as follows:
 
 ```{r RMSE-summary-2}
-RMSEs |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+RMSEs |> kable(align='lrr', booktabs = T, linesep = "") |> row_spec(0, bold = T)
 ```
 
 We now "submit" our best model, i.e.

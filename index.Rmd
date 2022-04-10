@@ -178,6 +178,38 @@ The density of the rating matrix is:
 nrow(edx) / max(edx$userId) / max(edx$movieId)
 ```
 
+The number of ratings per movie and per user in `edx` is plotted below.
+
+```{r Ratings-per-movie-and-user, fig.height=3, fig.width=6}
+
+# Count the number of ratings for each movie and rank the movies by ratings received
+ratings_per_movie <- edx |>
+  group_by(movieId) |>
+  summarise(title = first(title), genres = first(genres), n_ratings = n()) |>
+  mutate(rank = frank(-n_ratings))
+
+# Count the number of ratings for each user and rank the users by ratings given
+ratings_per_user <- edx |>
+  group_by(userId) |>
+  summarise(n_ratings = n()) |>
+  mutate(rank = frank(-n_ratings))
+
+# Plot the number of ratings for each movie and user, sorted by rank
+plot1 <- ratings_per_movie |>
+  ggplot(aes(rank,n_ratings)) + geom_line() +
+  scale_x_log10() + scale_y_log10() +
+  xlab('Rank') + ylab('Number of ratings') + labs(title = 'Ratings per movie')
+plot2 <- ratings_per_user |>
+  ggplot(aes(rank,n_ratings)) + geom_line() +
+  scale_x_log10() + scale_y_log10() +
+  xlab('Rank') + ylab('Number of ratings') + labs(title = 'Ratings per user')
+
+rm(ratings_per_movie, ratings_per_user)
+par(cex = 0.7)
+plot1 + plot2
+```
+
+### Movie genres
 
 The list of possible genres, the number of movies in each genre, and the mean
 number of ratings per movie in each genre is given as follows:
@@ -214,35 +246,18 @@ genre_summary |> arrange(desc(`Mean Rating`)) |>
   row_spec(0, bold = T)
 ```
 
-The number of ratings per movie and per user in `edx` is plotted below.
-
-```{r Ratings-per-movie-and-user, fig.height=3, fig.width=6}
-
-# Count the number of ratings for each movie and rank the movies by ratings received
-ratings_per_movie <- edx |>
-  group_by(movieId) |>
-  summarise(title = first(title), genres = first(genres), n_ratings = n()) |>
-  mutate(rank = frank(-n_ratings))
-
-# Count the number of ratings for each user and rank the users by ratings given
-ratings_per_user <- edx |>
-  group_by(userId) |>
-  summarise(n_ratings = n()) |>
-  mutate(rank = frank(-n_ratings))
-
-# Plot the number of ratings for each movie and user, sorted by rank
-plot1 <- ratings_per_movie |>
-  ggplot(aes(rank,n_ratings)) + geom_line() +
-  scale_x_log10() + scale_y_log10() +
-  xlab('Rank') + ylab('Count') + labs(title = 'Ratings per movie')
-plot2 <- ratings_per_user |>
-  ggplot(aes(rank,n_ratings)) + geom_line() +
-  scale_x_log10() + scale_y_log10() +
-  xlab('Rank') + ylab('Count') + labs(title = 'Ratings per user')
-
-rm(ratings_per_movie, ratings_per_user)
+The number of genres for each movie is plotted as a histogram below:
+```{r Genre-counts-hist, fig.height=3, fig.width=4}
+genre_counts <- table(str_count(edx$genres, '\\|') + 1 - str_count(edx$genres, 'no genres'))
 par(cex = 0.7)
-plot1 + plot2
+barplot(genre_counts,
+      xlab = 'Number of genres', ylab = 'Count', main = 'Genres per movie')
+```
+
+Therefore it is likely better to analyze genre combinations rather than individual genres.
+The following code confirms that over half of all movies have either two or three genres:
+```{r Genre-counts}
+sum(genre_counts[c('2','3')])/sum(genre_counts)
 ```
 
 ## Project Objective
