@@ -16,3 +16,9 @@ pre code {
     padding-left: 22px;
     text-indent: -22px;
 }
+.book.color-theme-1 .book-body .page-wrapper .page-inner section.normal a {
+  color: #00a !important;
+}
+.book.color-theme-2 code span.fu {
+  color: #99f !important;
+} 
