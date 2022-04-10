@@ -45,6 +45,6 @@ given a true rating of 0.5, but increases from 0.4 to 0.5 given a true rating of
 ```{r Run-purl, eval=FALSE, purl=FALSE}
 
 # NOTRUN: generate R script from project
-knitr::purl()
+knitr::purl('_merged.Rmd')
 ```
 

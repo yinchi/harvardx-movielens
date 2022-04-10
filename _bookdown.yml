@@ -1,3 +1,5 @@
+output_dir: bookdown_output
+book_filename: "movielens.Rmd"
 delete_merged_file: false
 language:
   ui:
