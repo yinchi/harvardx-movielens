@@ -17,7 +17,9 @@ site: bookdown::bookdown_site
 
 # Preface {-}
 
-This book is available in both [HTML gitbook](index.html) and [PDF](movielens.pdf) form.
+This book is available in both
+[HTML gitbook](https://yinchi.github.io/harvardx-movielens/index.html) and
+[PDF](https://yinchi.github.io/harvardx-movielens/movielens.pdf) form.
 
 The source code in the PDF version of this report is typeset in
 [Cascadia Code](https://github.com/microsoft/cascadia-code), with code ligatures enabled.

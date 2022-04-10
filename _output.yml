@@ -6,14 +6,16 @@ bookdown::gitbook:
         <li><a href="./">HarvardX 125.9 - Movielens project</a></li>
       after: |
         <li><a href="https://github.com/yinchi/harvardx-movielens" target="blank">Published with bookdown</a></li>
-    edit: |
-      https://github.com/yinchi/harvardx-movielens/edit/main/%s
+    edit: https://github.com/yinchi/harvardx-movielens/blob/main/%s
     download: ["pdf"]
-    search:
-      engine: lunr
     fontsettings:
       theme: sepia
       family: serif
+    sharing:
+      facebook: true
+      twitter: true
+      weibo: false
+      all: ['facebook', 'twitter', 'linkedin']
 bookdown::pdf_book:
   includes:
     in_header: preamble.tex
