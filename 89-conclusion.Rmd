@@ -1,0 +1,39 @@
+# Concluding remarks
+
+In this project, we train a recommender system to predict movie ratings on a scale from 0.5 to 5,
+using the Movielens 10M [@movielens10M] dataset.  Our final model considers user, movie, genre,
+and time-based biases, and uses Funk's matrix factorization to approximate the residuals after
+these effects have been removed from the ratings. The RMSE acheived by our final model,
+as evaluated using the validation partition, is `r RMSEs[[nrow(RMSEs),3]]`.
+
+Note that the effect of adding genre and time-based biases was small.  In particular, the genres
+of a movie can be uniquely determined from its movieID, and most movies have been rated many times,
+decreasing the importance of genre information.  For the same reason, adding the year of release
+of each movie as a model feature is also unlikely to significantly improve the results.
+However, genre and time-based information will prove useful for predicting ratings of *new*
+movies, where a movie bias cannot be computed (using a zero value is the likely best solution).
+In this case, adding the year of release as an additional model feature likely *would* improve
+prediction accuracy.
+
+A consideration is the fact that while this project attempts to minimize the error of the raw
+ratings, a possibly better approach may be binary: would a user like a movie they have not yet
+watched, if that movie were recommended to them? If we assume a user enjoys a movie if they
+rate it 3.5 stars or higher, then the confusion matrix as computed on the validation set is:
+
+```{r}
+confusionMatrix(as.factor(ifelse(predicted_ratings_FINAL_VALIDATION >= 3.5, 'Good', 'Bad')),
+                as.factor(ifelse(validation$rating >= 3.5, 'Good', 'Bad')),
+                positive = 'Good')
+```
+
+The accuracy of our model is about three-quarters, with approximately equal sensitivity and
+specificity.
+
+Furthermore, note that while the ratings in the Movielens dataset are discrete, the generated
+predictions are not. If only discrete predictions are allowed, then a series of thresholds may be
+fitted to our current model for binning (these thresholds do not have to be a half-star apart
+and can instead be based on the distribution of true and predicted ratings).  It remains to be seen
+how such an approach would affect the accuracy of our model, as while correct binning decreases the
+error of a prediction, incorrect binning may instead increase the error of a rating.
+For example, for a prediction of 3.6 that is binned to 3.5, the error decreases from 0.1 to 0
+given a true rating of 0.5, but increases from 0.4 to 0.5 given a true rating of 4.0.
