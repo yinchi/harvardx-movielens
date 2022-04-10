@@ -20,7 +20,8 @@ ratings, a possibly better approach may be binary: would a user like a movie the
 watched, if that movie were recommended to them? If we assume a user enjoys a movie if they
 rate it 3.5 stars or higher, then the confusion matrix as computed on the validation set is:
 
-```{r}
+```{r Confusion-matrix-3.5}
+
 confusionMatrix(as.factor(ifelse(predicted_ratings_FINAL_VALIDATION >= 3.5, 'Good', 'Bad')),
                 as.factor(ifelse(validation$rating >= 3.5, 'Good', 'Bad')),
                 positive = 'Good')
@@ -37,3 +38,10 @@ how such an approach would affect the accuracy of our model, as while correct bi
 error of a prediction, incorrect binning may instead increase the error of a rating.
 For example, for a prediction of 3.6 that is binned to 3.5, the error decreases from 0.1 to 0
 given a true rating of 0.5, but increases from 0.4 to 0.5 given a true rating of 4.0.
+
+```{r Run-purl, eval=FALSE, purl=FALSE}
+
+# NOTRUN: generate R script from project
+knitr::purl()
+```
+

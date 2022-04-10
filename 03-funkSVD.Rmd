@@ -12,7 +12,6 @@ Unknown ratings $Y_{u,i}$ can thus be estimated as $P_{u,i} + U_u V_i^\mathrm{T}
 The parameter $k$ is known as the **rank** of matrix $UV$; i.e. $UV$ is a
 rank-$k$ approximation of the residual matrix $Y-P$.
 
-
 Funk's MF estimates $U$ and $V$ using gradient descent,
 but operating only on the known ratings. First, $U$ and $V$ are seeded with random values.
 Then, for each epoch, the algorithm iterates over all known ratings $(i,j)$ in the training set
@@ -107,6 +106,7 @@ qplot(nFeatures, rmses, xlab = 'rank(UV)', ylab = 'RMSE', geom = c('point','line
 ```
 
 ```{r Optimal-num-features-Funk}
+
 nFeaturesOpt <- nFeatures[which.min(rmses)]
 nFeaturesOpt
 ```
@@ -146,6 +146,7 @@ RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 The RMSEs of all models in this report, evaluated using `edx_test`, are as follows:
 
 ```{r RMSE-summary-2}
+
 RMSEs |> kable(align='lrr', booktabs = T, linesep = "") |> row_spec(0, bold = T)
 ```
 
@@ -155,5 +156,5 @@ Y_{u,i} \sim \mu + b_{1;i} + b_{2;u} + b_{3;g(i)} + f(t_{u,i})
 + UV^\mathrm{T} + \varepsilon_{u,i}, (\#eq:final-model)
 \end{equation}
 
-with parameters `movie_biases_reg`, `user_biases_reg`, `genre_biases_reg`, `f_t`, `U`, and `V`,
-for final validation.
+with parameters `mu`, `movie_biases_reg`, `user_biases_reg`, `genre_biases_reg`,
+`f_t`, `U`, and `V`, for final validation.

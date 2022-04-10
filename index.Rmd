@@ -25,12 +25,6 @@ with code ligatures enabled.
 
 ```{r Setup, include=FALSE, purl=FALSE}
 
-# R 4.1 key features: new pipe operator, \(x) as shortcut for function(x)
-# R 4.0 key feature: stringsAsFactors = FALSE by default
-if (packageVersion('base') < '4.1.0') {
-  stop('This code requires R >= 4.1.0!')
-}
-
 knitr::opts_chunk$set(
   echo = TRUE,
   message = FALSE,
@@ -44,10 +38,26 @@ knitr::knit_hooks$set(chunk = function(x, options) {
 ```
 
 ```{r Load-libraries}
+
+# R 4.1 key features: new pipe operator, \(x) as shortcut for function(x)
+# R 4.0 key features: stringsAsFactors = FALSE by default, raw character strings r"()"
+if (packageVersion('base') < '4.1.0') {
+  stop('This code requires R >= 4.1.0!')
+}
+
 if(!require("pacman")) install.packages("pacman")
 library(pacman)
 
-p_load(knitr, kableExtra, data.table, latex2exp, patchwork, tidyverse, caret, lubridate)
+# Ensure packages are installed but do not load them
+p_install(Rcpp, force = F)
+p_install(RcppArmadillo, force = F)
+p_install(RcppProgress, force = F)
+p_install(mgcv, force = F)          # provides mgcv::gam and mgcv::predict.gam
+p_install(raster, force = F)        # provides raster::clamp
+
+# Load these packages
+p_load(magrittr, knitr, kableExtra, data.table, latex2exp, patchwork,
+       tidyverse, caret, lubridate)
 ```
 
 # Introduction
@@ -93,10 +103,9 @@ if(!file.exists(movies_file)) unzip(dl, movies_file)
 
 # STEP 2a: Load the ratings file.  This file is delimited using double colons.
 
-ratings <- as.data.frame(
-  str_split(read_lines(ratings_file), fixed("::"), simplify = T))
-colnames(ratings) <- c("userId", "movieId", "rating", "timestamp")
-ratings <- ratings |>
+ratings <- str_split(read_lines(ratings_file), fixed("::"), simplify = T) |> 
+  as.data.frame() |> 
+  set_colnames(c("userId", "movieId", "rating", "timestamp")) |>
   mutate(userId = as.integer(userId),
          movieId = as.integer(movieId),
          rating = as.numeric(rating),
@@ -104,10 +113,10 @@ ratings <- ratings |>
 
 
 # STEP 2b: Load the movies file.  Again, this file is delimited using double colons.
-movies <- as.data.frame(
-  str_split(read_lines(movies_file), fixed("::"), simplify = T))
-colnames(movies) <- c("movieId", "title", "genres")
-movies <- movies |> mutate(movieId = as.integer(movieId))
+movies <- str_split(read_lines(movies_file), fixed("::"), simplify = T) |> 
+  as.data.frame() |> 
+  set_colnames(c("movieId", "title", "genres")) |>
+  mutate(movieId = as.integer(movieId))
 
 
 # STEP 3: Join the `ratings` and `movies` data tables and save to `movielens`.
@@ -123,9 +132,7 @@ edx <- movielens[-test_index,]
 temp <- movielens[test_index,]
 
 # Make sure userId and movieId in validation set are also in edx set
-validation <- temp |> 
-      semi_join(edx, by = "movieId") |>
-      semi_join(edx, by = "userId")
+validation <- temp |> semi_join(edx, by = "movieId") |> semi_join(edx, by = "userId")
 
 # Add rows removed from validation set back into edx set
 removed <- anti_join(temp, validation)
@@ -133,13 +140,8 @@ edx <- rbind(edx, removed)
 
 
 # STEP 5; convert timestamps to datetime
-
-edx <- edx |>
-  mutate(timestamp = as_datetime(timestamp)) |>
-  as.data.table()
-validation <- validation |>
-  mutate(timestamp = as_datetime(timestamp)) |>
-  as.data.table()
+edx <- edx |> mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
+validation <- validation |> mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
 
 rm(dl, ratings, movies, test_index, temp, movielens, removed)
 ```
@@ -151,30 +153,32 @@ of ratings in the `edx` and `validation` partitions are `nrow(edx)` and `nrow(va
 respectively, i.e., `r nrow(edx)` and `r nrow(validation)`.  The six variables are:
 
 ```{r Colnames}
+
 colnames(edx)
 ```
 
 and are defined as follows:
 
-* userId: an integer from 1 to `r max(as.integer(edx$userId))` denoting the user who made the rating.
-* movieId: an integer from 1 to `r max(as.integer(edx$movieId))` denoting which movie was rated.
-* rating: a multiple of 0.5, from 0.5 to 5.0.
-* timestamp: a `POSIXct` object representing the time at which the rating was made.
-* title: the name of the movie rated, suffixed which the year of release in parentheses.
-* genres: a list of genres for the rated movie, delimited by the pipe ('|') character.
+* `userId`: an integer from 1 to `r max(as.integer(edx$userId))` denoting the user who made the rating.
+* `movieId`: an integer from 1 to `r max(as.integer(edx$movieId))` denoting which movie was rated.
+* `rating`: a multiple of 0.5, from 0.5 to 5.0.
+* `timestamp`: a `POSIXct` object representing the time at which the rating was made.
+* `title`: the name of the movie rated, suffixed which the year of release in parentheses.
+* `genres`: a list of genres for the rated movie, delimited by the pipe ('|') character.
 
 Note that only integer ratings were supported before February 2003; the earliest half-star rating
 is:
 
 ```{r Earliest-half-star-rating}
 temp <- edx[edx$rating %% 1 == 0.5]
-temp[which.min(temp$timestamp)]
+temp[which.min(temp$timestamp)] |> kable(align='rrrrll', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 
 The density of the rating matrix is:
 
 ```{r Matrix-density}
+
 nrow(edx) / max(edx$userId) / max(edx$movieId)
 ```
 
@@ -242,21 +246,21 @@ genre_summary <-
 
 rm(temp)
 genre_summary |> arrange(desc(`Mean Rating`)) |>
-  kable(align='lrrr', digits = c(0,0,0,2,1), booktabs = T, linesep = "") |> 
-  row_spec(0, bold = T)
+  kable(align='lrrrr', digits = c(0,0,0,2,1), booktabs = T, linesep = "") |> row_spec(0, bold = T)
 ```
 
 The number of genres for each movie is plotted as a histogram below:
 ```{r Genre-counts-hist, fig.height=3, fig.width=4}
+
 genre_counts <- table(str_count(edx$genres, '\\|') + 1 - str_count(edx$genres, 'no genres'))
 par(cex = 0.7)
-barplot(genre_counts,
-      xlab = 'Number of genres', ylab = 'Count', main = 'Genres per movie')
+barplot(genre_counts, xlab = 'Number of genres', ylab = 'Count', main = 'Genres per movie')
 ```
 
 Therefore it is likely better to analyze genre combinations rather than individual genres.
 The following code confirms that over half of all movies have either two or three genres:
 ```{r Genre-counts}
+
 sum(genre_counts[c('2','3')])/sum(genre_counts)
 ```
 

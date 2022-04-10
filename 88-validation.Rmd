@@ -2,12 +2,14 @@
 
 We select our best model \@ref(eq:final-model) for validation against the `validation` dataset.
 ```{r Save-model}
+
 save(mu, movie_biases_reg, user_biases_reg, genre_biases_reg,
      f_t, Uidx, Vidx, U, V, file = 'FINAL_model.Rdata')
 ```
 
 The number of parameters in the model is:
 ```{r Num-parameters}
+
 nrow(movie_biases_reg) + nrow(user_biases_reg) + nrow(genre_biases_reg) +
   length(f_t) + length(U) + length(V)
 ```
@@ -15,6 +17,7 @@ nrow(movie_biases_reg) + nrow(user_biases_reg) + nrow(genre_biases_reg) +
 The final RMSE computed with the `validation` set is:
 
 ```{r Final-RMSE-validation-set}
+
 predicted_ratings_FINAL_VALIDATION <- validation |>
   mutate(weekNum = (timestamp - min(timestamp)) |>
            as.numeric(unit = "days") |> {\(x) floor(x/7) + 1}() ) |> 
@@ -33,6 +36,7 @@ RMSE(predicted_ratings_FINAL_VALIDATION, validation$rating)
 The plot below plots a histogram of prediction errors:
 
 ```{r Prediction-error-plot, fig.height=3, fig.width=4}
+
 par(cex = 0.7)
 hist(predicted_ratings_FINAL_VALIDATION - validation$rating, 50,
      xlab = 'Prediction Error', main = '')
@@ -40,6 +44,7 @@ hist(predicted_ratings_FINAL_VALIDATION - validation$rating, 50,
 
 Below is a plot of the cumulative distribution of the absolute error:
 ```{r Absolute-error-ECDF, fig.height=3, fig.width=3}
+
 the_ecdf <- ecdf(predicted_ratings_FINAL_VALIDATION - validation$rating)
 par(cex = 0.7)
 qplot(seq(0,4.5,0.001), the_ecdf(seq(0,4.5,0.001)),
@@ -49,6 +54,7 @@ qplot(seq(0,4.5,0.001), the_ecdf(seq(0,4.5,0.001)),
 The proportion of predictions are within half a star of the actual rating is:
 
 ```{r Within-half-star}
+
 mean(abs(predicted_ratings_FINAL_VALIDATION - validation$rating) < 0.5)
 ```
 

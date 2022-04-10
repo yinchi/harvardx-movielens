@@ -382,6 +382,7 @@ qplot(lambdas, rmses, xlab = TeX(r'($\lambda)'), ylab = 'RMSE', geom = c('point'
 The optimal value of $\lambda$ is thus:
 
 ```{r Optimal-lambda}
+
 lambda <- lambdas[which.min(rmses)]
 lambda
 ```
@@ -428,6 +429,7 @@ RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 The table of RMSEs for all models considered in this section is below.
 
 ```{r RMSE-summary}
+
 RMSEs |> kable(align='lrr', booktabs = T, linesep = "") |> row_spec(0, bold = T)
 ```
 
