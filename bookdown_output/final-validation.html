@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 4 Final validation | HarvardX PH125.9x: Movielens project</title>
+  <meta name="description" content="See also: _output.yml, _bookdown.yml" />
+  <meta name="generator" content="bookdown 0.25 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 4 Final validation | HarvardX PH125.9x: Movielens project" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="See also: _output.yml, _bookdown.yml" />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 4 Final validation | HarvardX PH125.9x: Movielens project" />
+  
+  <meta name="twitter:description" content="See also: _output.yml, _bookdown.yml" />
+  
+
+<meta name="author" content="Yin-Chi Chan" />
+
+
+<meta name="date" content="2022-04-10" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="funks-matrix-factorization-algorithm.html"/>
+<link rel="next" href="concluding-remarks.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+<script src="libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">HarvardX 125.9 - Movielens project</a></li>
+
+<li class="divider"></li>
+<li><a href="index.html#preface">Preface<span></span></a>
+<ul>
+<li class="chapter" data-level="0.1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>0.1</b> R setup<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="1" data-path="introduction.html"><a href="introduction.html"><i class="fa fa-check"></i><b>1</b> Introduction<span></span></a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="introduction.html"><a href="introduction.html#data-description"><i class="fa fa-check"></i><b>1.1</b> Data description<span></span></a>
+<ul>
+<li class="chapter" data-level="1.1.1" data-path="introduction.html"><a href="introduction.html#movie-genres"><i class="fa fa-check"></i><b>1.1.1</b> Movie genres<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="1.2" data-path="introduction.html"><a href="introduction.html#project-objective"><i class="fa fa-check"></i><b>1.2</b> Project Objective<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="sec-linear-models.html"><a href="sec-linear-models.html"><i class="fa fa-check"></i><b>2</b> Linear regression models<span></span></a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="sec-linear-models.html"><a href="sec-linear-models.html#sec-notation"><i class="fa fa-check"></i><b>2.1</b> Overview and notation<span></span></a></li>
+<li class="chapter" data-level="2.2" data-path="sec-linear-models.html"><a href="sec-linear-models.html#using-the-mean-rating-only"><i class="fa fa-check"></i><b>2.2</b> Using the mean rating only<span></span></a></li>
+<li class="chapter" data-level="2.3" data-path="sec-linear-models.html"><a href="sec-linear-models.html#modeling-movie-effects"><i class="fa fa-check"></i><b>2.3</b> Modeling movie effects<span></span></a>
+<ul>
+<li class="chapter" data-level="2.3.1" data-path="sec-linear-models.html"><a href="sec-linear-models.html#clamping-the-predictions"><i class="fa fa-check"></i><b>2.3.1</b> Clamping the predictions<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="2.4" data-path="sec-linear-models.html"><a href="sec-linear-models.html#modeling-movie-and-user-effects"><i class="fa fa-check"></i><b>2.4</b> Modeling movie and user effects<span></span></a></li>
+<li class="chapter" data-level="2.5" data-path="sec-linear-models.html"><a href="sec-linear-models.html#adding-genre-effects"><i class="fa fa-check"></i><b>2.5</b> Adding genre effects<span></span></a></li>
+<li class="chapter" data-level="2.6" data-path="sec-linear-models.html"><a href="sec-linear-models.html#adding-a-time-effect"><i class="fa fa-check"></i><b>2.6</b> Adding a time effect<span></span></a></li>
+<li class="chapter" data-level="2.7" data-path="sec-linear-models.html"><a href="sec-linear-models.html#sec-regularization"><i class="fa fa-check"></i><b>2.7</b> Adding <span class="math inline">\(L_2\)</span> regularization<span></span></a></li>
+<li class="chapter" data-level="2.8" data-path="sec-linear-models.html"><a href="sec-linear-models.html#section-summary"><i class="fa fa-check"></i><b>2.8</b> Section summary<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html"><i class="fa fa-check"></i><b>3</b> Funk’s matrix factorization algorithm<span></span></a></li>
+<li class="chapter" data-level="4" data-path="final-validation.html"><a href="final-validation.html"><i class="fa fa-check"></i><b>4</b> Final validation<span></span></a></li>
+<li class="chapter" data-level="5" data-path="concluding-remarks.html"><a href="concluding-remarks.html"><i class="fa fa-check"></i><b>5</b> Concluding remarks<span></span></a></li>
+<li><a href="references.html#references">References<span></span></a></li>
+<li class="appendix"><span><b>Appendices<span></span></b></span></li>
+<li class="chapter" data-level="A" data-path="sec-code.html"><a href="sec-code.html"><i class="fa fa-check"></i><b>A</b> Code listing: <span><code>svd.cpp</code></span><span></span></a></li>
+<li class="chapter" data-level="B" data-path="session-info.html"><a href="session-info.html"><i class="fa fa-check"></i><b>B</b> Session info<span></span></a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/yinchi/harvardx-movielens" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">HarvardX PH125.9x: Movielens project</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="final-validation" class="section level1 hasAnchor" number="4">
+<h1><span class="header-section-number">Chapter 4</span> Final validation<a href="final-validation.html#final-validation" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>We select our best model <a href="funks-matrix-factorization-algorithm.html#eq:final-model">(3.1)</a> for validation against the <code>validation</code> dataset.</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="final-validation.html#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(mu, movie_biases_reg, user_biases_reg, genre_biases_reg,</span>
+<span id="cb36-2"><a href="final-validation.html#cb36-2" aria-hidden="true" tabindex="-1"></a>     f_t, Uidx, Vidx, U, V, <span class="at">file =</span> <span class="st">&#39;FINAL_model.Rdata&#39;</span>)</span></code></pre></div>
+<p>The number of parameters in the model is:</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="final-validation.html#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(movie_biases_reg) <span class="sc">+</span> <span class="fu">nrow</span>(user_biases_reg) <span class="sc">+</span> <span class="fu">nrow</span>(genre_biases_reg) <span class="sc">+</span></span>
+<span id="cb37-2"><a href="final-validation.html#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">length</span>(f_t) <span class="sc">+</span> <span class="fu">length</span>(U) <span class="sc">+</span> <span class="fu">length</span>(V)</span></code></pre></div>
+<pre><code>## [1] 1209852</code></pre>
+<p>The final RMSE computed with the <code>validation</code> set is:</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="final-validation.html#cb39-1" aria-hidden="true" tabindex="-1"></a>predicted_ratings_FINAL_VALIDATION <span class="ot">&lt;-</span> validation <span class="sc">|&gt;</span></span>
+<span id="cb39-2"><a href="final-validation.html#cb39-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">weekNum =</span> (timestamp <span class="sc">-</span> <span class="fu">min</span>(timestamp)) <span class="sc">|&gt;</span></span>
+<span id="cb39-3"><a href="final-validation.html#cb39-3" aria-hidden="true" tabindex="-1"></a>           <span class="fu">as.numeric</span>(<span class="at">unit =</span> <span class="st">&quot;days&quot;</span>) <span class="sc">|&gt;</span> {\(x) <span class="fu">floor</span>(x<span class="sc">/</span><span class="dv">7</span>) <span class="sc">+</span> <span class="dv">1</span>}() ) <span class="sc">|&gt;</span> </span>
+<span id="cb39-4"><a href="final-validation.html#cb39-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">f_t =</span> f_t[weekNum]) <span class="sc">|&gt;</span> </span>
+<span id="cb39-5"><a href="final-validation.html#cb39-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(movie_biases_reg, <span class="at">by=</span><span class="st">&#39;movieId&#39;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb39-6"><a href="final-validation.html#cb39-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(user_biases_reg, <span class="at">by=</span><span class="st">&#39;userId&#39;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb39-7"><a href="final-validation.html#cb39-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(genre_biases_reg, <span class="at">by=</span><span class="st">&#39;genres&#39;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb39-8"><a href="final-validation.html#cb39-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pred =</span> mu <span class="sc">+</span> b_i <span class="sc">+</span> b_u <span class="sc">+</span> b_g <span class="sc">+</span> f_t <span class="sc">+</span></span>
+<span id="cb39-9"><a href="final-validation.html#cb39-9" aria-hidden="true" tabindex="-1"></a>           <span class="fu">map2_dbl</span>(userId, movieId, \(u,v) U[Uidx[u],] <span class="sc">%*%</span> V[Vidx[v],])) <span class="sc">|&gt;</span></span>
+<span id="cb39-10"><a href="final-validation.html#cb39-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(pred) <span class="sc">|&gt;</span> <span class="fu">clamp</span>()</span>
+<span id="cb39-11"><a href="final-validation.html#cb39-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-12"><a href="final-validation.html#cb39-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute RMSE and add to data.table</span></span>
+<span id="cb39-13"><a href="final-validation.html#cb39-13" aria-hidden="true" tabindex="-1"></a><span class="fu">RMSE</span>(predicted_ratings_FINAL_VALIDATION, validation<span class="sc">$</span>rating)</span></code></pre></div>
+<pre><code>## [1] 0.7941947</code></pre>
+<p>The plot below plots a histogram of prediction errors:</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="final-validation.html#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">cex =</span> <span class="fl">0.7</span>)</span>
+<span id="cb41-2"><a href="final-validation.html#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(predicted_ratings_FINAL_VALIDATION <span class="sc">-</span> validation<span class="sc">$</span>rating, <span class="dv">50</span>,</span>
+<span id="cb41-3"><a href="final-validation.html#cb41-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">&#39;Prediction Error&#39;</span>, <span class="at">main =</span> <span class="st">&#39;&#39;</span>)</span></code></pre></div>
+<p><img src="movielens_files/figure-html/Prediction-error-plot-1.png" width="576" /></p>
+<p>Below is a plot of the cumulative distribution of the absolute error:</p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="final-validation.html#cb42-1" aria-hidden="true" tabindex="-1"></a>the_ecdf <span class="ot">&lt;-</span> <span class="fu">ecdf</span>(predicted_ratings_FINAL_VALIDATION <span class="sc">-</span> validation<span class="sc">$</span>rating)</span>
+<span id="cb42-2"><a href="final-validation.html#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">cex =</span> <span class="fl">0.7</span>)</span>
+<span id="cb42-3"><a href="final-validation.html#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="fu">qplot</span>(<span class="fu">seq</span>(<span class="dv">0</span>,<span class="fl">4.5</span>,<span class="fl">0.001</span>), <span class="fu">the_ecdf</span>(<span class="fu">seq</span>(<span class="dv">0</span>,<span class="fl">4.5</span>,<span class="fl">0.001</span>)),</span>
+<span id="cb42-4"><a href="final-validation.html#cb42-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">&#39;Absoulute error of prediction&#39;</span>, <span class="at">ylab =</span> <span class="st">&#39;Empirical CDF&#39;</span>, <span class="at">geom =</span> <span class="st">&#39;line&#39;</span>)</span></code></pre></div>
+<p><img src="movielens_files/figure-html/Absolute-error-ECDF-1.png" width="432" /></p>
+<p>The proportion of predictions are within half a star of the actual rating is:</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="final-validation.html#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(<span class="fu">abs</span>(predicted_ratings_FINAL_VALIDATION <span class="sc">-</span> validation<span class="sc">$</span>rating) <span class="sc">&lt;</span> <span class="fl">0.5</span>)</span></code></pre></div>
+<pre><code>## [1] 0.5169635</code></pre>
+
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="funks-matrix-factorization-algorithm.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="concluding-remarks.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "sepia",
+"family": "serif",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/yinchi/harvardx-movielens/edit/main/88-validation.Rmdn",
+"text": "Edit"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["movielens.pdf"],
+"search": {
+"engine": "lunr",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

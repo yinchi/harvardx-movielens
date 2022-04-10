@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 1 Introduction | HarvardX PH125.9x: Movielens project</title>
+  <meta name="description" content="See also: _output.yml, _bookdown.yml" />
+  <meta name="generator" content="bookdown 0.25 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 1 Introduction | HarvardX PH125.9x: Movielens project" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="See also: _output.yml, _bookdown.yml" />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 1 Introduction | HarvardX PH125.9x: Movielens project" />
+  
+  <meta name="twitter:description" content="See also: _output.yml, _bookdown.yml" />
+  
+
+<meta name="author" content="Yin-Chi Chan" />
+
+
+<meta name="date" content="2022-04-10" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="index.html"/>
+<link rel="next" href="sec-linear-models.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+<script src="libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">HarvardX 125.9 - Movielens project</a></li>
+
+<li class="divider"></li>
+<li><a href="index.html#preface">Preface<span></span></a>
+<ul>
+<li class="chapter" data-level="0.1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>0.1</b> R setup<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="1" data-path="introduction.html"><a href="introduction.html"><i class="fa fa-check"></i><b>1</b> Introduction<span></span></a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="introduction.html"><a href="introduction.html#data-description"><i class="fa fa-check"></i><b>1.1</b> Data description<span></span></a>
+<ul>
+<li class="chapter" data-level="1.1.1" data-path="introduction.html"><a href="introduction.html#movie-genres"><i class="fa fa-check"></i><b>1.1.1</b> Movie genres<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="1.2" data-path="introduction.html"><a href="introduction.html#project-objective"><i class="fa fa-check"></i><b>1.2</b> Project Objective<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="sec-linear-models.html"><a href="sec-linear-models.html"><i class="fa fa-check"></i><b>2</b> Linear regression models<span></span></a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="sec-linear-models.html"><a href="sec-linear-models.html#sec-notation"><i class="fa fa-check"></i><b>2.1</b> Overview and notation<span></span></a></li>
+<li class="chapter" data-level="2.2" data-path="sec-linear-models.html"><a href="sec-linear-models.html#using-the-mean-rating-only"><i class="fa fa-check"></i><b>2.2</b> Using the mean rating only<span></span></a></li>
+<li class="chapter" data-level="2.3" data-path="sec-linear-models.html"><a href="sec-linear-models.html#modeling-movie-effects"><i class="fa fa-check"></i><b>2.3</b> Modeling movie effects<span></span></a>
+<ul>
+<li class="chapter" data-level="2.3.1" data-path="sec-linear-models.html"><a href="sec-linear-models.html#clamping-the-predictions"><i class="fa fa-check"></i><b>2.3.1</b> Clamping the predictions<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="2.4" data-path="sec-linear-models.html"><a href="sec-linear-models.html#modeling-movie-and-user-effects"><i class="fa fa-check"></i><b>2.4</b> Modeling movie and user effects<span></span></a></li>
+<li class="chapter" data-level="2.5" data-path="sec-linear-models.html"><a href="sec-linear-models.html#adding-genre-effects"><i class="fa fa-check"></i><b>2.5</b> Adding genre effects<span></span></a></li>
+<li class="chapter" data-level="2.6" data-path="sec-linear-models.html"><a href="sec-linear-models.html#adding-a-time-effect"><i class="fa fa-check"></i><b>2.6</b> Adding a time effect<span></span></a></li>
+<li class="chapter" data-level="2.7" data-path="sec-linear-models.html"><a href="sec-linear-models.html#sec-regularization"><i class="fa fa-check"></i><b>2.7</b> Adding <span class="math inline">\(L_2\)</span> regularization<span></span></a></li>
+<li class="chapter" data-level="2.8" data-path="sec-linear-models.html"><a href="sec-linear-models.html#section-summary"><i class="fa fa-check"></i><b>2.8</b> Section summary<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html"><i class="fa fa-check"></i><b>3</b> Funk’s matrix factorization algorithm<span></span></a></li>
+<li class="chapter" data-level="4" data-path="final-validation.html"><a href="final-validation.html"><i class="fa fa-check"></i><b>4</b> Final validation<span></span></a></li>
+<li class="chapter" data-level="5" data-path="concluding-remarks.html"><a href="concluding-remarks.html"><i class="fa fa-check"></i><b>5</b> Concluding remarks<span></span></a></li>
+<li><a href="references.html#references">References<span></span></a></li>
+<li class="appendix"><span><b>Appendices<span></span></b></span></li>
+<li class="chapter" data-level="A" data-path="sec-code.html"><a href="sec-code.html"><i class="fa fa-check"></i><b>A</b> Code listing: <span><code>svd.cpp</code></span><span></span></a></li>
+<li class="chapter" data-level="B" data-path="session-info.html"><a href="session-info.html"><i class="fa fa-check"></i><b>B</b> Session info<span></span></a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/yinchi/harvardx-movielens" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">HarvardX PH125.9x: Movielens project</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="introduction" class="section level1 hasAnchor" number="1">
+<h1><span class="header-section-number">Chapter 1</span> Introduction<a href="introduction.html#introduction" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>This report partially fulfills the requirements for the HarvardX course
+<a href="https://learning.edx.org/course/course-v1:HarvardX+PH125.9x+1T2022/home">PH125.9x: “Data Science: Capstone”</a>.
+The objective of this process is to build a movie recommendation system
+using the MovieLens dataset. The 10M version <span class="citation">(<a href="#ref-movielens10M" role="doc-biblioref">GroupLens 2009</a>)</span> of this dataset was used for
+this project.</p>
+<p>Using the code provided by the course, the 10 million records of the MovieLens 10M dataset are split
+into the <code>edx</code> partition, for building the movie recommendation system, and the <code>validation</code>
+partition, for evaluating the proposed system. The <code>validation</code> dataset contains roughly 10 percent
+of the records in the MovieLens 10M dataset. The code for generating these two datasets is provided
+below:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="introduction.html#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="do">##########################################################</span></span>
+<span id="cb2-2"><a href="introduction.html#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Create edx set, validation set (final hold-out test set)</span></span>
+<span id="cb2-3"><a href="introduction.html#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="do">##########################################################</span></span>
+<span id="cb2-4"><a href="introduction.html#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="introduction.html#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">NOTE</span><span class="co">: this code was modified from the course-provided version for speed.</span></span>
+<span id="cb2-6"><a href="introduction.html#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="introduction.html#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># MovieLens 10M dataset:</span></span>
+<span id="cb2-8"><a href="introduction.html#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># https://grouplens.org/datasets/movielens/10m/</span></span>
+<span id="cb2-9"><a href="introduction.html#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># http://files.grouplens.org/datasets/movielens/ml-10m.zip</span></span>
+<span id="cb2-10"><a href="introduction.html#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="introduction.html#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="introduction.html#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co"># STEP 1: download and unzip &#39;ml-10m.zip&#39; as necessary</span></span>
+<span id="cb2-13"><a href="introduction.html#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="introduction.html#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">dir.exists</span>(<span class="st">&quot;ml-10M100K&quot;</span>)) <span class="fu">dir.create</span>(<span class="st">&quot;ml-10M100K&quot;</span>)</span>
+<span id="cb2-15"><a href="introduction.html#cb2-15" aria-hidden="true" tabindex="-1"></a>dl <span class="ot">&lt;-</span> <span class="st">&quot;ml-10M100K/ratings.zip&quot;</span></span>
+<span id="cb2-16"><a href="introduction.html#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">file.exists</span>(dl))</span>
+<span id="cb2-17"><a href="introduction.html#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">download.file</span>(<span class="st">&quot;https://files.grouplens.org/datasets/movielens/ml-10m.zip&quot;</span>, dl)</span>
+<span id="cb2-18"><a href="introduction.html#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="introduction.html#cb2-19" aria-hidden="true" tabindex="-1"></a>ratings_file <span class="ot">&lt;-</span> <span class="st">&quot;ml-10M100K/ratings.dat&quot;</span></span>
+<span id="cb2-20"><a href="introduction.html#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">file.exists</span>(ratings_file)) <span class="fu">unzip</span>(dl, ratings_file)</span>
+<span id="cb2-21"><a href="introduction.html#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="introduction.html#cb2-22" aria-hidden="true" tabindex="-1"></a>movies_file <span class="ot">&lt;-</span> <span class="st">&quot;ml-10M100K/movies.dat&quot;</span></span>
+<span id="cb2-23"><a href="introduction.html#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">file.exists</span>(movies_file)) <span class="fu">unzip</span>(dl, movies_file)</span>
+<span id="cb2-24"><a href="introduction.html#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="introduction.html#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="introduction.html#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="co"># STEP 2a: Load the ratings file.  This file is delimited using double colons.</span></span>
+<span id="cb2-27"><a href="introduction.html#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="introduction.html#cb2-28" aria-hidden="true" tabindex="-1"></a>ratings <span class="ot">&lt;-</span> <span class="fu">str_split</span>(<span class="fu">read_lines</span>(ratings_file), <span class="fu">fixed</span>(<span class="st">&quot;::&quot;</span>), <span class="at">simplify =</span> T) <span class="sc">|&gt;</span> </span>
+<span id="cb2-29"><a href="introduction.html#cb2-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb2-30"><a href="introduction.html#cb2-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_colnames</span>(<span class="fu">c</span>(<span class="st">&quot;userId&quot;</span>, <span class="st">&quot;movieId&quot;</span>, <span class="st">&quot;rating&quot;</span>, <span class="st">&quot;timestamp&quot;</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb2-31"><a href="introduction.html#cb2-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">userId =</span> <span class="fu">as.integer</span>(userId),</span>
+<span id="cb2-32"><a href="introduction.html#cb2-32" aria-hidden="true" tabindex="-1"></a>         <span class="at">movieId =</span> <span class="fu">as.integer</span>(movieId),</span>
+<span id="cb2-33"><a href="introduction.html#cb2-33" aria-hidden="true" tabindex="-1"></a>         <span class="at">rating =</span> <span class="fu">as.numeric</span>(rating),</span>
+<span id="cb2-34"><a href="introduction.html#cb2-34" aria-hidden="true" tabindex="-1"></a>         <span class="at">timestamp =</span> <span class="fu">as_datetime</span>(<span class="fu">as.integer</span>(timestamp)))</span>
+<span id="cb2-35"><a href="introduction.html#cb2-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-36"><a href="introduction.html#cb2-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-37"><a href="introduction.html#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="co"># STEP 2b: Load the movies file.  Again, this file is delimited using double colons.</span></span>
+<span id="cb2-38"><a href="introduction.html#cb2-38" aria-hidden="true" tabindex="-1"></a>movies <span class="ot">&lt;-</span> <span class="fu">str_split</span>(<span class="fu">read_lines</span>(movies_file), <span class="fu">fixed</span>(<span class="st">&quot;::&quot;</span>), <span class="at">simplify =</span> T) <span class="sc">|&gt;</span> </span>
+<span id="cb2-39"><a href="introduction.html#cb2-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb2-40"><a href="introduction.html#cb2-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_colnames</span>(<span class="fu">c</span>(<span class="st">&quot;movieId&quot;</span>, <span class="st">&quot;title&quot;</span>, <span class="st">&quot;genres&quot;</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb2-41"><a href="introduction.html#cb2-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">movieId =</span> <span class="fu">as.integer</span>(movieId))</span>
+<span id="cb2-42"><a href="introduction.html#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-43"><a href="introduction.html#cb2-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-44"><a href="introduction.html#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="co"># STEP 3: Join the `ratings` and `movies` data tables and save to `movielens`.</span></span>
+<span id="cb2-45"><a href="introduction.html#cb2-45" aria-hidden="true" tabindex="-1"></a>movielens <span class="ot">&lt;-</span> <span class="fu">left_join</span>(ratings, movies, <span class="at">by =</span> <span class="st">&quot;movieId&quot;</span>)</span>
+<span id="cb2-46"><a href="introduction.html#cb2-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-47"><a href="introduction.html#cb2-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-48"><a href="introduction.html#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="co"># STEP 4: Split the `movielens` dataset into the `edx` and `validation` sets.</span></span>
+<span id="cb2-49"><a href="introduction.html#cb2-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-50"><a href="introduction.html#cb2-50" aria-hidden="true" tabindex="-1"></a><span class="co"># Validation set will be 10% of MovieLens data</span></span>
+<span id="cb2-51"><a href="introduction.html#cb2-51" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>, <span class="at">sample.kind=</span><span class="st">&quot;Rounding&quot;</span>)</span>
+<span id="cb2-52"><a href="introduction.html#cb2-52" aria-hidden="true" tabindex="-1"></a>test_index <span class="ot">&lt;-</span> <span class="fu">createDataPartition</span>(<span class="at">y =</span> movielens<span class="sc">$</span>rating, <span class="at">times =</span> <span class="dv">1</span>, <span class="at">p =</span> <span class="fl">0.1</span>, <span class="at">list =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-53"><a href="introduction.html#cb2-53" aria-hidden="true" tabindex="-1"></a>edx <span class="ot">&lt;-</span> movielens[<span class="sc">-</span>test_index,]</span>
+<span id="cb2-54"><a href="introduction.html#cb2-54" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> movielens[test_index,]</span>
+<span id="cb2-55"><a href="introduction.html#cb2-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-56"><a href="introduction.html#cb2-56" aria-hidden="true" tabindex="-1"></a><span class="co"># Make sure userId and movieId in validation set are also in edx set</span></span>
+<span id="cb2-57"><a href="introduction.html#cb2-57" aria-hidden="true" tabindex="-1"></a>validation <span class="ot">&lt;-</span> temp <span class="sc">|&gt;</span> <span class="fu">semi_join</span>(edx, <span class="at">by =</span> <span class="st">&quot;movieId&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">semi_join</span>(edx, <span class="at">by =</span> <span class="st">&quot;userId&quot;</span>)</span>
+<span id="cb2-58"><a href="introduction.html#cb2-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-59"><a href="introduction.html#cb2-59" aria-hidden="true" tabindex="-1"></a><span class="co"># Add rows removed from validation set back into edx set</span></span>
+<span id="cb2-60"><a href="introduction.html#cb2-60" aria-hidden="true" tabindex="-1"></a>removed <span class="ot">&lt;-</span> <span class="fu">anti_join</span>(temp, validation)</span>
+<span id="cb2-61"><a href="introduction.html#cb2-61" aria-hidden="true" tabindex="-1"></a>edx <span class="ot">&lt;-</span> <span class="fu">rbind</span>(edx, removed)</span>
+<span id="cb2-62"><a href="introduction.html#cb2-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-63"><a href="introduction.html#cb2-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-64"><a href="introduction.html#cb2-64" aria-hidden="true" tabindex="-1"></a><span class="co"># STEP 5; convert timestamps to datetime</span></span>
+<span id="cb2-65"><a href="introduction.html#cb2-65" aria-hidden="true" tabindex="-1"></a>edx <span class="ot">&lt;-</span> edx <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">timestamp =</span> <span class="fu">as_datetime</span>(timestamp)) <span class="sc">|&gt;</span> <span class="fu">as.data.table</span>()</span>
+<span id="cb2-66"><a href="introduction.html#cb2-66" aria-hidden="true" tabindex="-1"></a>validation <span class="ot">&lt;-</span> validation <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">timestamp =</span> <span class="fu">as_datetime</span>(timestamp)) <span class="sc">|&gt;</span> <span class="fu">as.data.table</span>()</span>
+<span id="cb2-67"><a href="introduction.html#cb2-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-68"><a href="introduction.html#cb2-68" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(dl, ratings, movies, test_index, temp, movielens, removed)</span></code></pre></div>
+<div id="data-description" class="section level2 hasAnchor" number="1.1">
+<h2><span class="header-section-number">1.1</span> Data description<a href="introduction.html#data-description" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>The data consists of ten million movie ratings, each expressed using six variables. The number
+of ratings in the <code>edx</code> and <code>validation</code> partitions are <code>nrow(edx)</code> and <code>nrow(validation)</code>,
+respectively, i.e., 9000055 and 999999. The six variables are:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="introduction.html#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(edx)</span></code></pre></div>
+<pre><code>## [1] &quot;userId&quot;    &quot;movieId&quot;   &quot;rating&quot;    &quot;timestamp&quot; &quot;title&quot;     &quot;genres&quot;</code></pre>
+<p>and are defined as follows:</p>
+<ul>
+<li><code>userId</code>: an integer from 1 to 71567 denoting the user who made the rating.</li>
+<li><code>movieId</code>: an integer from 1 to 65133 denoting which movie was rated.</li>
+<li><code>rating</code>: a multiple of 0.5, from 0.5 to 5.0.</li>
+<li><code>timestamp</code>: a <code>POSIXct</code> object representing the time at which the rating was made.</li>
+<li><code>title</code>: the name of the movie rated, suffixed which the year of release in parentheses.</li>
+<li><code>genres</code>: a list of genres for the rated movie, delimited by the pipe (‘|’) character.</li>
+</ul>
+<p>Note that only integer ratings were supported before February 2003; the earliest half-star rating
+is:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="introduction.html#cb5-1" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> edx[edx<span class="sc">$</span>rating <span class="sc">%%</span> <span class="dv">1</span> <span class="sc">==</span> <span class="fl">0.5</span>]</span>
+<span id="cb5-2"><a href="introduction.html#cb5-2" aria-hidden="true" tabindex="-1"></a>temp[<span class="fu">which.min</span>(temp<span class="sc">$</span>timestamp)] <span class="sc">|&gt;</span> <span class="fu">kable</span>(<span class="at">align=</span><span class="st">&#39;rrrrll&#39;</span>, <span class="at">booktabs =</span> T) <span class="sc">|&gt;</span> <span class="fu">row_spec</span>(<span class="dv">0</span>, <span class="at">bold =</span> T)</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align:right;font-weight: bold;">
+userId
+</th>
+<th style="text-align:right;font-weight: bold;">
+movieId
+</th>
+<th style="text-align:right;font-weight: bold;">
+rating
+</th>
+<th style="text-align:right;font-weight: bold;">
+timestamp
+</th>
+<th style="text-align:left;font-weight: bold;">
+title
+</th>
+<th style="text-align:left;font-weight: bold;">
+genres
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+53996
+</td>
+<td style="text-align:right;">
+4018
+</td>
+<td style="text-align:right;">
+3.5
+</td>
+<td style="text-align:right;">
+2003-02-12 17:31:34
+</td>
+<td style="text-align:left;">
+What Women Want (2000)
+</td>
+<td style="text-align:left;">
+Comedy|Romance
+</td>
+</tr>
+</tbody>
+</table>
+<p>The density of the rating matrix is:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="introduction.html#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(edx) <span class="sc">/</span> <span class="fu">max</span>(edx<span class="sc">$</span>userId) <span class="sc">/</span> <span class="fu">max</span>(edx<span class="sc">$</span>movieId)</span></code></pre></div>
+<pre><code>## [1] 0.001930773</code></pre>
+<p>The number of ratings per movie and per user in <code>edx</code> is plotted below.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="introduction.html#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count the number of ratings for each movie and rank the movies by ratings received</span></span>
+<span id="cb8-2"><a href="introduction.html#cb8-2" aria-hidden="true" tabindex="-1"></a>ratings_per_movie <span class="ot">&lt;-</span> edx <span class="sc">|&gt;</span></span>
+<span id="cb8-3"><a href="introduction.html#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(movieId) <span class="sc">|&gt;</span></span>
+<span id="cb8-4"><a href="introduction.html#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">title =</span> <span class="fu">first</span>(title), <span class="at">genres =</span> <span class="fu">first</span>(genres), <span class="at">n_ratings =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb8-5"><a href="introduction.html#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">rank =</span> <span class="fu">frank</span>(<span class="sc">-</span>n_ratings))</span>
+<span id="cb8-6"><a href="introduction.html#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="introduction.html#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Count the number of ratings for each user and rank the users by ratings given</span></span>
+<span id="cb8-8"><a href="introduction.html#cb8-8" aria-hidden="true" tabindex="-1"></a>ratings_per_user <span class="ot">&lt;-</span> edx <span class="sc">|&gt;</span></span>
+<span id="cb8-9"><a href="introduction.html#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(userId) <span class="sc">|&gt;</span></span>
+<span id="cb8-10"><a href="introduction.html#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">n_ratings =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb8-11"><a href="introduction.html#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">rank =</span> <span class="fu">frank</span>(<span class="sc">-</span>n_ratings))</span>
+<span id="cb8-12"><a href="introduction.html#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="introduction.html#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the number of ratings for each movie and user, sorted by rank</span></span>
+<span id="cb8-14"><a href="introduction.html#cb8-14" aria-hidden="true" tabindex="-1"></a>plot1 <span class="ot">&lt;-</span> ratings_per_movie <span class="sc">|&gt;</span></span>
+<span id="cb8-15"><a href="introduction.html#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(rank,n_ratings)) <span class="sc">+</span> <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb8-16"><a href="introduction.html#cb8-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>() <span class="sc">+</span> <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
+<span id="cb8-17"><a href="introduction.html#cb8-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&#39;Rank&#39;</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="st">&#39;Number of ratings&#39;</span>) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&#39;Ratings per movie&#39;</span>)</span>
+<span id="cb8-18"><a href="introduction.html#cb8-18" aria-hidden="true" tabindex="-1"></a>plot2 <span class="ot">&lt;-</span> ratings_per_user <span class="sc">|&gt;</span></span>
+<span id="cb8-19"><a href="introduction.html#cb8-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(rank,n_ratings)) <span class="sc">+</span> <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb8-20"><a href="introduction.html#cb8-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>() <span class="sc">+</span> <span class="fu">scale_y_log10</span>() <span class="sc">+</span></span>
+<span id="cb8-21"><a href="introduction.html#cb8-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&#39;Rank&#39;</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="st">&#39;Number of ratings&#39;</span>) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&#39;Ratings per user&#39;</span>)</span>
+<span id="cb8-22"><a href="introduction.html#cb8-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-23"><a href="introduction.html#cb8-23" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(ratings_per_movie, ratings_per_user)</span>
+<span id="cb8-24"><a href="introduction.html#cb8-24" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">cex =</span> <span class="fl">0.7</span>)</span>
+<span id="cb8-25"><a href="introduction.html#cb8-25" aria-hidden="true" tabindex="-1"></a>plot1 <span class="sc">+</span> plot2</span></code></pre></div>
+<p><img src="movielens_files/figure-html/Ratings-per-movie-and-user-1.png" width="864" /></p>
+<div id="movie-genres" class="section level3 hasAnchor" number="1.1.1">
+<h3><span class="header-section-number">1.1.1</span> Movie genres<a href="introduction.html#movie-genres" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>The list of possible genres, the number of movies in each genre, and the mean
+number of ratings per movie in each genre is given as follows:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="introduction.html#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the list of possible genres</span></span>
+<span id="cb9-2"><a href="introduction.html#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="introduction.html#cb9-3" aria-hidden="true" tabindex="-1"></a>genres <span class="ot">&lt;-</span> edx<span class="sc">$</span>genres <span class="sc">|&gt;</span> <span class="fu">unique</span>() <span class="sc">|&gt;</span> <span class="fu">str_split</span>(<span class="st">&#39;</span><span class="sc">\\</span><span class="st">|&#39;</span>) <span class="sc">|&gt;</span> <span class="fu">flatten_chr</span>() <span class="sc">|&gt;</span></span>
+<span id="cb9-4"><a href="introduction.html#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>() <span class="sc">|&gt;</span> <span class="fu">sort</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb9-5"><a href="introduction.html#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tail</span>(<span class="sc">-</span><span class="dv">1</span>) <span class="co"># remove &quot;(no genres listed)&quot;</span></span>
+<span id="cb9-6"><a href="introduction.html#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="introduction.html#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Construct a data.table with one entry per movie</span></span>
+<span id="cb9-8"><a href="introduction.html#cb9-8" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> edx <span class="sc">|&gt;</span> <span class="fu">group_by</span>(movieId) <span class="sc">|&gt;</span></span>
+<span id="cb9-9"><a href="introduction.html#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">title =</span> <span class="fu">first</span>(title), <span class="at">genres =</span> <span class="fu">first</span>(genres))</span>
+<span id="cb9-10"><a href="introduction.html#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="introduction.html#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Find the number of movies and ratings for each genre</span></span>
+<span id="cb9-12"><a href="introduction.html#cb9-12" aria-hidden="true" tabindex="-1"></a>genre_summary <span class="ot">&lt;-</span></span>
+<span id="cb9-13"><a href="introduction.html#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.table</span>(</span>
+<span id="cb9-14"><a href="introduction.html#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">Genre =</span> genres,</span>
+<span id="cb9-15"><a href="introduction.html#cb9-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">Movies =</span> <span class="fu">sapply</span>(genres, <span class="cf">function</span>(g)</span>
+<span id="cb9-16"><a href="introduction.html#cb9-16" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sum</span>(temp<span class="sc">$</span>genres <span class="sc">%flike%</span> g)),</span>
+<span id="cb9-17"><a href="introduction.html#cb9-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">Ratings =</span> <span class="fu">sapply</span>(genres, <span class="cf">function</span>(g)</span>
+<span id="cb9-18"><a href="introduction.html#cb9-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sum</span>(edx<span class="sc">$</span>genres <span class="sc">%flike%</span> g)),</span>
+<span id="cb9-19"><a href="introduction.html#cb9-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;Mean Rating&quot;</span> <span class="ot">=</span> <span class="fu">sapply</span>(genres, <span class="cf">function</span>(g) {</span>
+<span id="cb9-20"><a href="introduction.html#cb9-20" aria-hidden="true" tabindex="-1"></a>      edx[edx<span class="sc">$</span>genres <span class="sc">%flike%</span> g,<span class="st">&#39;rating&#39;</span>]<span class="sc">$</span>rating <span class="sc">|&gt;</span> <span class="fu">mean</span>()</span>
+<span id="cb9-21"><a href="introduction.html#cb9-21" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb9-22"><a href="introduction.html#cb9-22" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb9-23"><a href="introduction.html#cb9-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">&quot;Ratings per movie&quot;</span> <span class="ot">=</span> Ratings <span class="sc">/</span> Movies)</span>
+<span id="cb9-24"><a href="introduction.html#cb9-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-25"><a href="introduction.html#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(temp)</span>
+<span id="cb9-26"><a href="introduction.html#cb9-26" aria-hidden="true" tabindex="-1"></a>genre_summary <span class="sc">|&gt;</span> <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="st">`</span><span class="at">Mean Rating</span><span class="st">`</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb9-27"><a href="introduction.html#cb9-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">align=</span><span class="st">&#39;lrrrr&#39;</span>, <span class="at">digits =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">2</span>,<span class="dv">1</span>), <span class="at">booktabs =</span> T, <span class="at">linesep =</span> <span class="st">&quot;&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">row_spec</span>(<span class="dv">0</span>, <span class="at">bold =</span> T)</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;font-weight: bold;">
+Genre
+</th>
+<th style="text-align:right;font-weight: bold;">
+Movies
+</th>
+<th style="text-align:right;font-weight: bold;">
+Ratings
+</th>
+<th style="text-align:right;font-weight: bold;">
+Mean Rating
+</th>
+<th style="text-align:right;font-weight: bold;">
+Ratings per movie
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Film-Noir
+</td>
+<td style="text-align:right;">
+148
+</td>
+<td style="text-align:right;">
+118541
+</td>
+<td style="text-align:right;">
+4.01
+</td>
+<td style="text-align:right;">
+801.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Documentary
+</td>
+<td style="text-align:right;">
+481
+</td>
+<td style="text-align:right;">
+93066
+</td>
+<td style="text-align:right;">
+3.78
+</td>
+<td style="text-align:right;">
+193.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+War
+</td>
+<td style="text-align:right;">
+510
+</td>
+<td style="text-align:right;">
+511147
+</td>
+<td style="text-align:right;">
+3.78
+</td>
+<td style="text-align:right;">
+1002.2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IMAX
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+8181
+</td>
+<td style="text-align:right;">
+3.77
+</td>
+<td style="text-align:right;">
+282.1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Mystery
+</td>
+<td style="text-align:right;">
+509
+</td>
+<td style="text-align:right;">
+568332
+</td>
+<td style="text-align:right;">
+3.68
+</td>
+<td style="text-align:right;">
+1116.6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Drama
+</td>
+<td style="text-align:right;">
+5336
+</td>
+<td style="text-align:right;">
+3910127
+</td>
+<td style="text-align:right;">
+3.67
+</td>
+<td style="text-align:right;">
+732.8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Crime
+</td>
+<td style="text-align:right;">
+1117
+</td>
+<td style="text-align:right;">
+1327715
+</td>
+<td style="text-align:right;">
+3.67
+</td>
+<td style="text-align:right;">
+1188.6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Animation
+</td>
+<td style="text-align:right;">
+286
+</td>
+<td style="text-align:right;">
+467168
+</td>
+<td style="text-align:right;">
+3.60
+</td>
+<td style="text-align:right;">
+1633.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Musical
+</td>
+<td style="text-align:right;">
+436
+</td>
+<td style="text-align:right;">
+433080
+</td>
+<td style="text-align:right;">
+3.56
+</td>
+<td style="text-align:right;">
+993.3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Western
+</td>
+<td style="text-align:right;">
+275
+</td>
+<td style="text-align:right;">
+189394
+</td>
+<td style="text-align:right;">
+3.56
+</td>
+<td style="text-align:right;">
+688.7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Romance
+</td>
+<td style="text-align:right;">
+1685
+</td>
+<td style="text-align:right;">
+1712100
+</td>
+<td style="text-align:right;">
+3.55
+</td>
+<td style="text-align:right;">
+1016.1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Thriller
+</td>
+<td style="text-align:right;">
+1705
+</td>
+<td style="text-align:right;">
+2325899
+</td>
+<td style="text-align:right;">
+3.51
+</td>
+<td style="text-align:right;">
+1364.2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Fantasy
+</td>
+<td style="text-align:right;">
+543
+</td>
+<td style="text-align:right;">
+925637
+</td>
+<td style="text-align:right;">
+3.50
+</td>
+<td style="text-align:right;">
+1704.7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Adventure
+</td>
+<td style="text-align:right;">
+1025
+</td>
+<td style="text-align:right;">
+1908892
+</td>
+<td style="text-align:right;">
+3.49
+</td>
+<td style="text-align:right;">
+1862.3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Comedy
+</td>
+<td style="text-align:right;">
+3703
+</td>
+<td style="text-align:right;">
+3540930
+</td>
+<td style="text-align:right;">
+3.44
+</td>
+<td style="text-align:right;">
+956.2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Action
+</td>
+<td style="text-align:right;">
+1473
+</td>
+<td style="text-align:right;">
+2560545
+</td>
+<td style="text-align:right;">
+3.42
+</td>
+<td style="text-align:right;">
+1738.3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Children
+</td>
+<td style="text-align:right;">
+528
+</td>
+<td style="text-align:right;">
+737994
+</td>
+<td style="text-align:right;">
+3.42
+</td>
+<td style="text-align:right;">
+1397.7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Sci-Fi
+</td>
+<td style="text-align:right;">
+754
+</td>
+<td style="text-align:right;">
+1341183
+</td>
+<td style="text-align:right;">
+3.40
+</td>
+<td style="text-align:right;">
+1778.8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Horror
+</td>
+<td style="text-align:right;">
+1013
+</td>
+<td style="text-align:right;">
+691485
+</td>
+<td style="text-align:right;">
+3.27
+</td>
+<td style="text-align:right;">
+682.6
+</td>
+</tr>
+</tbody>
+</table>
+<p>The number of genres for each movie is plotted as a histogram below:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="introduction.html#cb10-1" aria-hidden="true" tabindex="-1"></a>genre_counts <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="fu">str_count</span>(edx<span class="sc">$</span>genres, <span class="st">&#39;</span><span class="sc">\\</span><span class="st">|&#39;</span>) <span class="sc">+</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fu">str_count</span>(edx<span class="sc">$</span>genres, <span class="st">&#39;no genres&#39;</span>))</span>
+<span id="cb10-2"><a href="introduction.html#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">cex =</span> <span class="fl">0.7</span>)</span>
+<span id="cb10-3"><a href="introduction.html#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">barplot</span>(genre_counts, <span class="at">xlab =</span> <span class="st">&#39;Number of genres&#39;</span>, <span class="at">ylab =</span> <span class="st">&#39;Count&#39;</span>, <span class="at">main =</span> <span class="st">&#39;Genres per movie&#39;</span>)</span></code></pre></div>
+<p><img src="movielens_files/figure-html/Genre-counts-hist-1.png" width="576" /></p>
+<p>Therefore it is likely better to analyze genre combinations rather than individual genres.
+The following code confirms that over half of all movies have either two or three genres:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="introduction.html#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(genre_counts[<span class="fu">c</span>(<span class="st">&#39;2&#39;</span>,<span class="st">&#39;3&#39;</span>)])<span class="sc">/</span><span class="fu">sum</span>(genre_counts)</span></code></pre></div>
+<pre><code>## [1] 0.595434</code></pre>
+</div>
+</div>
+<div id="project-objective" class="section level2 hasAnchor" number="1.2">
+<h2><span class="header-section-number">1.2</span> Project Objective<a href="introduction.html#project-objective" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>The objective of this project is to estimate movie ratings given the values of the other five
+variables. The goodness of the proposed recommender system is evaluated using the root mean squared
+error (RMSE):
+<span class="math display">\[
+\text{RMSE} = \sqrt{\frac{1}{\left|\mathcal{T}\right|}\sum_{(u,i)\in\mathcal{T}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2}
+\]</span>
+where <span class="math inline">\(y\)</span> denotes the true values of movie ratings in the test set <span class="math inline">\(\mathcal{T}\)</span>,
+<span class="math inline">\(\hat{y}\)</span> denotes the estimated values,
+and <span class="math inline">\(N\)</span> denotes the number of observations in the test set.</p>
+<p>The library function <code>caret::RSME</code> is used in this report for RSME evaluation.</p>
+<p>Note that minimizing the RMSE is equivalent to minimizing the sum of the square errors, i.e.,
+<span class="math display">\[
+\text{SE} = \sum_{(u,i)\in\mathcal{T}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2.
+\]</span>
+In matrix form, this can be thought of as the square of the
+<span class="math inline">\(L_{2,2}\)</span> or Frobenius norm of the prediction errors, i.e.,
+<span class="math display">\[
+\text{SE} = \left\Vert Y - \hat{Y} \right\Vert_{2,2}^2,
+\]</span>
+where <span class="math inline">\(Y - \hat{Y}\)</span> is defined as zero for user-movie pairs not in the test set.</p>
+
+</div>
+</div>
+<h3>References</h3>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-movielens10M" class="csl-entry">
+GroupLens. 2009. <span>“MovieLens 10<span>M</span> Dataset.”</span> <a href="https://grouplens.org/datasets/movielens/10m/">https://grouplens.org/datasets/movielens/10m/</a>.
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="index.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="sec-linear-models.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "sepia",
+"family": "serif",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/yinchi/harvardx-movielens/edit/main/01-intro.Rmdn",
+"text": "Edit"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["movielens.pdf"],
+"search": {
+"engine": "lunr",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

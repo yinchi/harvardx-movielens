@@ -108,6 +108,7 @@ Note that only integer ratings were supported before February 2003; the earliest
 is:
 
 ```{r Earliest-half-star-rating}
+
 temp <- edx[edx$rating %% 1 == 0.5]
 temp[which.min(temp$timestamp)] |> kable(align='rrrrll', booktabs = T) |> row_spec(0, bold = T)
 ```

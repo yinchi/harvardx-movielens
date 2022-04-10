@@ -1,0 +1,1054 @@
+--- 
+title: 'HarvardX PH125.9x: Movielens project'
+author: "Yin-Chi Chan"
+date: "`r Sys.Date()`"
+documentclass: article
+mainfont: Times New Roman
+mathfont: Cambria Math
+monofont: Cascadia Code
+geometry: margin=2.5cm
+bibliography: book.bib
+biblio-style: acm
+description: |
+  See also: _output.yml, _bookdown.yml
+link-citations: yes
+site: bookdown::bookdown_site
+---
+
+# Preface {-}
+
+This book is available in both [HTML gitbook](index.html) and [PDF](movielens.pdf) form.
+
+The source code in the PDF version of this report is typeset in
+[Cascadia Code](https://github.com/microsoft/cascadia-code), with code ligatures enabled.
+
+## R setup
+
+```{r Setup, include=FALSE, purl=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  dpi = 144
+)
+
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+if (knitr::is_latex_output()) {
+  knitr::knit_hooks$set(chunk = function(x, options) {
+    x <- def.chunk.hook(x, options)
+    paste0("\n \\", "small","\n\n", x, "\n\n \\normalsize")
+  })
+}
+```
+
+```{r Load-libraries}
+
+# R 4.1 key features: new pipe operator, \(x) as shortcut for function(x)
+# R 4.0 key features: stringsAsFactors = FALSE by default, raw character strings r"()"
+if (packageVersion('base') < '4.1.0') {
+  stop('This code requires R >= 4.1.0!')
+}
+
+if(!require("pacman")) install.packages("pacman")
+library(pacman)
+
+# Ensure packages are installed but do not load them
+p_install(Rcpp, force = F)
+p_install(RcppArmadillo, force = F)
+p_install(RcppProgress, force = F)
+p_install(mgcv, force = F)          # provides mgcv::gam and mgcv::predict.gam
+p_install(raster, force = F)        # provides raster::clamp
+
+# Load these packages
+p_load(magrittr, knitr, kableExtra, data.table, latex2exp, patchwork,
+       tidyverse, caret, lubridate)
+```
+
+<!--chapter:end:index.Rmd-->
+
+# Introduction
+
+This report partially fulfills the requirements for the HarvardX course
+[PH125.9x: "Data Science: Capstone"](https://learning.edx.org/course/course-v1:HarvardX+PH125.9x+1T2022/home).
+The objective of this process is to build a movie recommendation system
+using the MovieLens dataset.  The 10M version [@movielens10M] of this dataset was used for
+this project.
+
+Using the code provided by the course, the 10 million records of the MovieLens 10M dataset are split
+into the `edx` partition, for building the movie recommendation system, and the `validation`
+partition, for evaluating the proposed system.  The `validation` dataset contains roughly 10 percent
+of the records in the MovieLens 10M dataset. The code for generating these two datasets is provided
+below:
+
+```{r Create-edx-and-validation-sets}
+
+##########################################################
+# Create edx set, validation set (final hold-out test set)
+##########################################################
+
+# NOTE: this code was modified from the course-provided version for speed.
+
+# MovieLens 10M dataset:
+# https://grouplens.org/datasets/movielens/10m/
+# http://files.grouplens.org/datasets/movielens/ml-10m.zip
+
+
+# STEP 1: download and unzip 'ml-10m.zip' as necessary
+
+if(!dir.exists("ml-10M100K")) dir.create("ml-10M100K")
+dl <- "ml-10M100K/ratings.zip"
+if(!file.exists(dl))
+  download.file("https://files.grouplens.org/datasets/movielens/ml-10m.zip", dl)
+
+ratings_file <- "ml-10M100K/ratings.dat"
+if(!file.exists(ratings_file)) unzip(dl, ratings_file)
+
+movies_file <- "ml-10M100K/movies.dat"
+if(!file.exists(movies_file)) unzip(dl, movies_file)
+
+
+# STEP 2a: Load the ratings file.  This file is delimited using double colons.
+
+ratings <- str_split(read_lines(ratings_file), fixed("::"), simplify = T) |> 
+  as.data.frame() |> 
+  set_colnames(c("userId", "movieId", "rating", "timestamp")) |>
+  mutate(userId = as.integer(userId),
+         movieId = as.integer(movieId),
+         rating = as.numeric(rating),
+         timestamp = as_datetime(as.integer(timestamp)))
+
+
+# STEP 2b: Load the movies file.  Again, this file is delimited using double colons.
+movies <- str_split(read_lines(movies_file), fixed("::"), simplify = T) |> 
+  as.data.frame() |> 
+  set_colnames(c("movieId", "title", "genres")) |>
+  mutate(movieId = as.integer(movieId))
+
+
+# STEP 3: Join the `ratings` and `movies` data tables and save to `movielens`.
+movielens <- left_join(ratings, movies, by = "movieId")
+
+
+# STEP 4: Split the `movielens` dataset into the `edx` and `validation` sets.
+
+# Validation set will be 10% of MovieLens data
+set.seed(1, sample.kind="Rounding")
+test_index <- createDataPartition(y = movielens$rating, times = 1, p = 0.1, list = FALSE)
+edx <- movielens[-test_index,]
+temp <- movielens[test_index,]
+
+# Make sure userId and movieId in validation set are also in edx set
+validation <- temp |> semi_join(edx, by = "movieId") |> semi_join(edx, by = "userId")
+
+# Add rows removed from validation set back into edx set
+removed <- anti_join(temp, validation)
+edx <- rbind(edx, removed)
+
+
+# STEP 5; convert timestamps to datetime
+edx <- edx |> mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
+validation <- validation |> mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
+
+rm(dl, ratings, movies, test_index, temp, movielens, removed)
+```
+
+## Data description
+
+The data consists of ten million movie ratings, each expressed using six variables.  The number
+of ratings in the `edx` and `validation` partitions are `nrow(edx)` and `nrow(validation)`,
+respectively, i.e., `r nrow(edx)` and `r nrow(validation)`.  The six variables are:
+
+```{r Colnames}
+
+colnames(edx)
+```
+
+and are defined as follows:
+
+* `userId`: an integer from 1 to `r max(as.integer(edx$userId))` denoting the user who made the rating.
+* `movieId`: an integer from 1 to `r max(as.integer(edx$movieId))` denoting which movie was rated.
+* `rating`: a multiple of 0.5, from 0.5 to 5.0.
+* `timestamp`: a `POSIXct` object representing the time at which the rating was made.
+* `title`: the name of the movie rated, suffixed which the year of release in parentheses.
+* `genres`: a list of genres for the rated movie, delimited by the pipe ('|') character.
+
+Note that only integer ratings were supported before February 2003; the earliest half-star rating
+is:
+
+```{r Earliest-half-star-rating}
+temp <- edx[edx$rating %% 1 == 0.5]
+temp[which.min(temp$timestamp)] |> kable(align='rrrrll', booktabs = T) |> row_spec(0, bold = T)
+```
+
+
+The density of the rating matrix is:
+
+```{r Matrix-density}
+
+nrow(edx) / max(edx$userId) / max(edx$movieId)
+```
+
+The number of ratings per movie and per user in `edx` is plotted below.
+
+```{r Ratings-per-movie-and-user, fig.height=3, fig.width=6}
+
+# Count the number of ratings for each movie and rank the movies by ratings received
+ratings_per_movie <- edx |>
+  group_by(movieId) |>
+  summarise(title = first(title), genres = first(genres), n_ratings = n()) |>
+  mutate(rank = frank(-n_ratings))
+
+# Count the number of ratings for each user and rank the users by ratings given
+ratings_per_user <- edx |>
+  group_by(userId) |>
+  summarise(n_ratings = n()) |>
+  mutate(rank = frank(-n_ratings))
+
+# Plot the number of ratings for each movie and user, sorted by rank
+plot1 <- ratings_per_movie |>
+  ggplot(aes(rank,n_ratings)) + geom_line() +
+  scale_x_log10() + scale_y_log10() +
+  xlab('Rank') + ylab('Number of ratings') + labs(title = 'Ratings per movie')
+plot2 <- ratings_per_user |>
+  ggplot(aes(rank,n_ratings)) + geom_line() +
+  scale_x_log10() + scale_y_log10() +
+  xlab('Rank') + ylab('Number of ratings') + labs(title = 'Ratings per user')
+
+rm(ratings_per_movie, ratings_per_user)
+par(cex = 0.7)
+plot1 + plot2
+```
+
+### Movie genres
+
+The list of possible genres, the number of movies in each genre, and the mean
+number of ratings per movie in each genre is given as follows:
+
+```{r Genre-summary}
+
+# Get the list of possible genres
+
+genres <- edx$genres |> unique() |> str_split('\\|') |> flatten_chr() |>
+  unique() |> sort() |> 
+  tail(-1) # remove "(no genres listed)"
+
+# Construct a data.table with one entry per movie
+temp <- edx |> group_by(movieId) |>
+  summarise(title = first(title), genres = first(genres))
+
+# Find the number of movies and ratings for each genre
+genre_summary <-
+  data.table(
+    Genre = genres,
+    Movies = sapply(genres, function(g)
+      sum(temp$genres %flike% g)),
+    Ratings = sapply(genres, function(g)
+      sum(edx$genres %flike% g)),
+    "Mean Rating" = sapply(genres, function(g) {
+      edx[edx$genres %flike% g,'rating']$rating |> mean()
+    })
+  ) |>
+  mutate("Ratings per movie" = Ratings / Movies)
+
+rm(temp)
+genre_summary |> arrange(desc(`Mean Rating`)) |>
+  kable(align='lrrrr', digits = c(0,0,0,2,1), booktabs = T, linesep = "") |> row_spec(0, bold = T)
+```
+
+The number of genres for each movie is plotted as a histogram below:
+```{r Genre-counts-hist, fig.height=3, fig.width=4}
+
+genre_counts <- table(str_count(edx$genres, '\\|') + 1 - str_count(edx$genres, 'no genres'))
+par(cex = 0.7)
+barplot(genre_counts, xlab = 'Number of genres', ylab = 'Count', main = 'Genres per movie')
+```
+
+Therefore it is likely better to analyze genre combinations rather than individual genres.
+The following code confirms that over half of all movies have either two or three genres:
+```{r Genre-counts}
+
+sum(genre_counts[c('2','3')])/sum(genre_counts)
+```
+
+## Project Objective
+
+The objective of this project is to estimate movie ratings given the values of the other five
+variables. The goodness of the proposed recommender system is evaluated using the root mean squared
+error (RMSE):
+$$
+\text{RMSE} = \sqrt{\frac{1}{\left|\mathcal{T}\right|}\sum_{(u,i)\in\mathcal{T}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2}
+$$
+where $y$ denotes the true values of movie ratings in the test set $\mathcal{T}$,
+$\hat{y}$ denotes the estimated values,
+and $N$ denotes the number of observations in the test set.
+
+The library function `caret::RSME` is used in this report for RSME evaluation.
+
+Note that minimizing the RMSE is equivalent to minimizing the sum of the square errors, i.e.,
+$$
+\text{SE} = \sum_{(u,i)\in\mathcal{T}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2.
+$$
+In matrix form, this can be thought of as the square of the
+$L_{2,2}$ or Frobenius norm of the prediction errors, i.e.,
+$$
+\text{SE} = \left\Vert Y - \hat{Y} \right\Vert_{2,2}^2,
+$$
+where $Y - \hat{Y}$ is defined as zero for user-movie pairs not in the test set.
+
+<!--chapter:end:01-intro.Rmd-->
+
+# Linear regression models {#sec-linear-models}
+
+We start by splitting `edx` into a training and test set:
+
+```{r EDX-split, warning=FALSE}
+
+# Test set will be 10% of edx data
+set.seed(1, sample.kind="Rounding")
+test_index <- createDataPartition(y = edx$rating, times = 1, p = 0.1, list = FALSE)
+edx_train <- edx[-test_index,]
+temp <- edx[test_index,]
+
+# Make sure userId and movieId in edx_test set are also in edx_train set
+edx_test <- temp |>
+  semi_join(edx_train, by = "movieId") |>
+  semi_join(edx_train, by = "userId") |>
+  as.data.table()
+
+# Add rows removed from edx_test set back into edx_train set
+removed2 <- anti_join(temp, edx_test)
+edx_train <- rbind(edx_train, removed2) |> as.data.table()
+
+rm(removed2, temp, test_index)
+```
+
+## Overview and notation {#sec-notation}
+
+Let $Y$ be a $N_\mathrm{U}\times N_\mathrm{M}$ matrix of movie ratings, such that $Y_{u,i}$ is
+the rating user $u$ has given or would give movie $i$.
+Additionally, define $X_j$ such that $X_{u,i}$ denotes the $j$th attribute
+of user-movie pair $(u,i)$. Such attributes include $u$ and $i$
+themselves, the genres of movie $i$, and the timestamp at which the rating was made.
+Finally, only the indices $(u,i)$ in the training set, denoted $\mathcal{T}$, are observable.
+
+The goal is to
+estimate $Y$ given the observable elements of $Y$ (the actual ratings). Given a user-movie pair $(u,i)$,
+we model $Y_r$ using a multiple linear regression model:
+$$
+y_{u,i} \sim \mu + \left(\sum_j \beta_{j;u,i} \right) +\varepsilon_{u,i},
+$$
+where
+
+* $\mu$ represents the “true” rating for all movies,
+* $\beta_{j;u,i}$ is the $j$th bias term for pair $(u,i)$,
+* and $\varepsilon_{u,i}$ is random error, all independently sampled from the
+   same zero-mean distribution.
+
+We further define $b_j$ such that
+$$
+\left(X_{j;u,i} = n\right) \implies \left(\beta_{j;u,i} = b_{j;n}\right).
+$$
+
+We can write the above in matrix form:
+$$
+Y \sim \mu + \left( \sum_j \beta_j \right) + \varepsilon.
+$$
+
+The objective is to minimize the sum of the squared errors
+$$
+\text{SE} =
+\sum_{(u,i)\in\mathcal{T}} \left[Y_{u,i} - \mu - \sum_j \beta_{j;u,i} \right]^2
+$$
+where $\mathcal{T}$ represents the test set of observed movie ratings.
+
+The estimated value of $Y_{u,v}$ for $(u,v) \notin \mathcal{T}$ is
+$$
+\hat{Y}_{u,v} = \mu + \sum_j \beta_{j;u,v}.
+$$
+
+## Using the mean rating only
+
+Our first model is of the form
+$$
+Y_{u,i} \sim \mu + \varepsilon_{u,i}.
+$$
+The best estimate $\hat{\mu}$ of $\mu$ is the mean of all ratings in `edx_train`, or:
+
+```{r Mean-only-model}
+
+mu <- mean(edx_test$rating)
+mu
+```
+
+This model gives the following RMSE values when applied to `edx_test`:
+
+```{r Mean-only-RMSE}
+
+# When multiple effects (movie, user, genre) are added in our model, some predictions
+# may fall out of the valid range.  This function fixes these predictions to the range
+# [0.5, 5].
+clamp <- function(x) raster::clamp(as.numeric(x), 0.5, 5)
+
+# Compute RMSE and add to a tibble.
+RMSEs <- tibble(Method = c("Mean only"),
+                RMSE = RMSE(mu, edx_test$rating),
+                "RMSE (clamped estimates)" = RMSE(mu, edx_test$rating))
+RMSEs[[nrow(RMSEs),'RMSE']]
+```
+
+## Modeling movie effects
+
+We add a term to our model for movie effects:
+$$
+Y_{u,i} \sim \mu + b_{1;i}i + \varepsilon_{u,i},
+$$
+The least-squares estimate $\hat{b}_{1;i}$ of $b_{1;i}$ is the training-set mean of
+$Y_{u,i} - \hat{\mu}$ for each movie $i$. The following code computes $\hat{b}_{1;i}$ for each $i$ and
+plots these as a histogram:
+
+```{r Movie-effects, fig.height=3, fig.width=4}
+
+# Least-squares estimate of movie effect is the mean of (rating - mu) for all
+# ratings of that movie.
+movie_biases <- edx_train |> 
+  group_by(movieId) |> 
+  summarize(b_i = mean(rating - mu))
+
+# Plot a histogram of the movie effects
+par(cex = 0.7)
+hist(movie_biases$b_i, 30, xlab = TeX(r'[$\hat{b}_{1,i}$]'),
+     main = TeX(r'[Histogram of $\hat{b}_{1,i}$]'))
+```
+
+The new model gives the following RMSE values when applied to `edx_test`:
+
+```{r Movie-effects-RMSE}
+
+# Obtain predictions for the edx_test set
+predicted_ratings <- edx_test |> 
+  left_join(movie_biases, by='movieId') |>
+  mutate(pred = mu + b_i) |> pull(pred)
+
+# Compute RMSE and add to data.table
+RMSEs <- RMSEs |>
+  add_row(Method = "Movie effects",
+          RMSE = RMSE(predicted_ratings, edx_test$rating),
+          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), edx_test$rating))
+
+RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+```
+
+### Clamping the predictions
+
+In the above table, clamping means setting any predictions less than 0.5 to 0.5, and
+any predictions greater than 5.0 to 5.0, thus enforcing the limits of possible ratings.
+This slightly reduces the RMSE when multiple biases are added to the model, as we demonstrate below.
+
+## Modeling movie and user effects
+
+We add a term $b_u$ to our model for user effects:
+$$
+Y_{u,i} \sim \mu + b_{1;i}i + b_{2;u}u + \varepsilon_{u,i}.
+$$
+We approximate $b_{2,u}$ for each user $u$ as the mean of
+$\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1;i}$. The following code computes $\hat{b}_{2;u}$ for
+each $u$ and plots these as a histogram:
+
+```{r User-effects, fig.height=3, fig.width=4}
+
+# Estimate user effects
+user_biases <- edx_train |> 
+  left_join(movie_biases, by='movieId') |>
+  group_by(userId) |>
+  summarize(b_u = mean(rating - mu - b_i))
+
+# Plot a histogram of the user effects
+par(cex = 0.7)
+hist(user_biases$b_u, 30, xlab = TeX(r'[$\hat{b}_{2,u}$]'),
+     main = TeX(r'[Histogram of $\hat{b}_{2,u}$]'))
+```
+
+The new model gives the following RMSE values when applied to the `edx_test` set:
+
+```{r User-effects-RMSE}
+
+# Obtain predictions for the edx_test set
+predicted_ratings <- edx_test |> 
+  left_join(movie_biases, by='movieId') |>
+  left_join(user_biases, by='userId') |>
+  mutate(pred = mu + b_i + b_u) |> pull(pred)
+
+# Compute RMSE and add to data.table
+RMSEs <- RMSEs |>
+  add_row(Method = "Movie + user effects",
+          RMSE = RMSE(predicted_ratings, edx_test$rating),
+          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), edx_test$rating))
+RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+```
+
+## Adding genre effects
+
+We add another bias term $b_g$ to our model for genre effects:
+$$
+Y_{u,i} \sim \mu + b_{1;i} + b_{2;u} + b_{3;g(i)} + \varepsilon_{u,i},
+$$
+where $g(i)$ is the *combination* of genres for movie $i$.
+We approximate $b_{3;g}$ for each genre combination $g$ as the mean of
+$\hat{b}_u = Y_{u;i} - \hat{\mu} - \hat{b}_{1;i} - \hat{b}_{2;u}$, averaged over
+all ratings in the training set where $g(i) = g$. The following code computes
+$\hat{b}_{3,g}$ for each $g$ and plots these as a histogram:
+
+
+```{r Genre-effects, fig.height=3, fig.width=4}
+
+# Estimate genre effects
+genre_biases <- edx_train |> 
+  left_join(movie_biases, by='movieId') |>
+  left_join(user_biases, by='userId') |>
+  group_by(genres) |>
+  summarize(b_g = mean(rating - mu - b_i - b_u))
+
+# Plot a histogram of the genre effects
+par(cex = 0.7)
+hist(genre_biases$b_g, 30, xlab = TeX(r'[$\hat{b}_{3,g}$]'),
+     main = TeX(r'[Histogram of $\hat{b}_{3,g}$]'))
+```
+
+The new model gives the following RMSE values when applied to the `edx_test` set:
+
+```{r Genre-effects-RMSE}
+
+# Obtain predictions for the edx_test set
+predicted_ratings <- edx_test |> 
+  left_join(movie_biases, by='movieId') |>
+  left_join(user_biases, by='userId') |>
+  left_join(genre_biases, by='genres') |>
+  mutate(pred = mu + b_i + b_u + b_g) |> pull(pred)
+
+# Compute RMSE and add to data.table
+RMSEs <- RMSEs |>
+  add_row(Method = "Movie + user + genre effects",
+          RMSE = RMSE(predicted_ratings, edx_test$rating),
+          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), edx_test$rating))
+RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+```
+
+## Adding a time effect
+
+Consider a new model with the form
+$$
+Y_{u,i} \sim \mu + b_{1;i} + b_{2;u} + b_{3;g(i)} + f(t_{u,i}) + \varepsilon_{u,i}.
+$$
+where $t_{u,i}$ is a week index, such that the date of the oldest rating is defined as the
+start of Week 1.
+
+The new optimization problem minimizes
+$$
+\text{SE} =
+\sum_{(u,i)\in\mathcal{T}} \left[y_{u,i} - \mu - b_{1;i} - b_{2;u} - b_{3;g(i)} - f(t_{u,i})\right]^2.
+$$
+Note the addition of the $t$ subscript compared to the original problem formulation
+defined in Section \@ref(sec-notation), with 
+$\mu_{t;u,i} = \mu - f(t_{u,i})$.
+
+The following code defines $f(t)$ as the smoothed average rating on Week $t$, minus $\mu$:
+
+```{r Time-averages, fig.height=3, fig.width=4}
+
+# Add a week number to each rating in the edx_train and edx_test datasets
+edx_train <- edx_train |>
+  mutate(weekNum = (timestamp - min(timestamp)) |>
+           as.numeric(unit = "days") |> {\(x) floor(x/7) + 1}() )
+edx_test <- edx_test |>
+  mutate(weekNum = (timestamp - min(timestamp)) |>
+           as.numeric(unit = "days") |> {\(x) floor(x/7) + 1}() )
+
+# Fit a smooth curve to the ratings as a function of time
+fit <- mgcv::gam(rating ~ s(weekNum, bs = "cs"),
+                 family = gaussian(), data = edx_train) # apply smoothing
+
+# Evaluate the fitted curve for each week number
+r <- seq(1,max(edx_train$weekNum))
+f_t <- mgcv::predict.gam(fit, data.frame(weekNum = r)) - mu
+rm(fit)
+
+# Plot the fitted curve
+ggplot(data.frame(weekNum = r, f_t), aes(weekNum, f_t)) + geom_line() +
+  xlab(TeX(r'[$t_{u,i}$]')) + ylab(TeX(r'[$f\,(t_{u,i}\,)$]'))
+```
+
+We approximate $b_{t,g}$ for each genre combination $g$ as the mean of
+$\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1;i} - \hat{b}_{2;u} - b_{3;g(i)}$.
+Fitting the $b_{j;t}$'s $j=1,2,3$, for the new model, we obtain RMSE values of:
+
+```{r Time-effect-model-and-RMSE, fig.height=3, fig.width=4}
+
+# Compute the biases
+
+movie_biases_t <- edx_train |> 
+  mutate(f_t = f_t[weekNum]) |> 
+  group_by(movieId) |> 
+  summarize(b_i = mean(rating - mu - f_t))
+
+user_biases_t <- edx_train |> 
+  mutate(f_t = f_t[weekNum]) |> 
+  left_join(movie_biases_t, by='movieId') |>
+  group_by(userId) |>
+  summarize(b_u = mean(rating - mu - b_i - f_t))
+
+genre_biases_t <- edx_train |> 
+  mutate(f_t = f_t[weekNum]) |> 
+  left_join(movie_biases_t, by='movieId') |>
+  left_join(user_biases_t, by='userId') |>
+  group_by(genres) |>
+  summarize(b_g = mean(rating - mu - b_i - b_u - f_t))
+
+# Obtain predictions for the edx_test set
+predicted_ratings <- edx_test |> 
+  mutate(f_t = f_t[weekNum]) |> 
+  left_join(movie_biases_t, by='movieId') |>
+  left_join(user_biases_t, by='userId') |>
+  left_join(genre_biases_t, by='genres') |>
+  mutate(pred = mu + b_i + b_u + b_g + f_t) |>
+  pull(pred)
+
+# Compute RMSE and add to data.table
+RMSEs <- RMSEs |>
+  add_row(Method = "Movie + user + genre + time effects",
+          RMSE = RMSE(predicted_ratings, edx_test$rating),
+          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), edx_test$rating))
+RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+```
+
+## Adding $L_2$ regularization {#sec-regularization}
+
+To improve our model further, we can add $L_2$ regularization.  Whereas the previous model fitting
+procedure minimizes
+$$
+\text{SE} = \sum_{(u,i)\in\mathcal{T}} \left[y_{u,i} - \mu - b_{1;i} - b_{2;u} - b_{3;g(i)} - f(t_{u,i})\right]^2,
+$$
+in this section we add a penalty term such that the new expression to minimize is as follows:
+$$
+\text{SE} + \lambda\sum_j\left\Vert b_j\right\Vert_2^2.
+$$
+Fitting the regularized model to the training set for different $\lambda$, and
+using the test set for RMSE calculation, we obtain the following plot of RMSE against $\lambda$.
+
+```{r Regularization, fig.height=3, fig.width=4}
+
+# List of regularization parameter values to try.
+# Since I know the approximate optimal value, I added more points
+# in this range.
+lambdas <- c(0,1,2,3,4,seq(4.5,5.5,0.1),6,7,8,9,10)
+
+# Compute RMSE values for each lambda using the *test set.
+rmses <- sapply(lambdas, function(l){
+  message("lambda = ", l)
+  
+  # Compute movie, user, genre, and time effects using the test set.
+  # Note that f_t here refers to the variable f_t and not the f_t column in
+  # any of the data.tables.
+  movie_biases_reg <-
+    edx_train[, .(b_i = sum(rating - mu - f_t[weekNum])/(.N+l)), by = 'movieId']
+  
+  temp <- movie_biases_reg[edx_train, on = 'movieId']
+  user_biases_reg <-
+    temp[, .(b_u = sum(rating - mu - b_i - f_t[weekNum])/(.N+l)), by = 'userId']
+  
+  temp <- user_biases_reg[temp, on = 'userId']
+  genre_biases_reg <-
+    temp[, .(b_g = sum(rating - mu - b_i - b_u - f_t[weekNum])/(.N+l)), by = 'genres']
+  
+  # Generate predictions
+  predicted_ratings <- genre_biases_reg[
+    user_biases_reg[
+      movie_biases_reg[
+        edx_test, on = 'movieId'],
+      on = 'userId'],
+    on = 'genres'] |>
+    mutate(pred = mu + b_i + b_u + b_g + f_t[weekNum]) |> 
+    pull(pred)
+  
+  # Compute RMSE
+  return(RMSE(predicted_ratings, edx_test$rating))
+})
+
+# Plot RMSE against lambda
+par(cex = 0.7)
+qplot(lambdas, rmses, xlab = TeX(r'($\lambda)'), ylab = 'RMSE', geom = c('point', 'line'))
+```
+
+The optimal value of $\lambda$ is thus:
+
+```{r Optimal-lambda}
+
+lambda <- lambdas[which.min(rmses)]
+lambda
+```
+
+Fitting the regularized model one last time and computing the RMSE on `edx_test`, we
+obtain:
+
+```{r Regularized-model-and-RMSE}
+
+movie_biases_reg <-
+  edx_train[, .(b_i = sum(rating - mu - f_t[weekNum])/(.N+lambda)), by = 'movieId']
+
+temp <- movie_biases_reg[edx_train, on = 'movieId']
+user_biases_reg <-
+  temp[, .(b_u = sum(rating - mu - b_i - f_t[weekNum])/(.N+lambda)), by = 'userId']
+
+temp <- user_biases_reg[temp, on = 'userId']
+genre_biases_reg <-
+  temp[, .(b_g = sum(rating - mu - b_i - b_u - f_t[weekNum])/(.N+lambda)), by = 'genres']
+
+# Generate predictions for the *edx_test* set.
+predicted_ratings_reg <- genre_biases_reg[
+  user_biases_reg[
+    movie_biases_reg[
+      edx_test, on = 'movieId'],
+    on = 'userId'],
+  on = 'genres'] |> 
+  mutate(pred = mu + b_i + b_u + b_g + f_t[weekNum]) |> 
+  pull(pred)
+
+rm(temp)
+
+# Compute RMSE and add to data.table
+RMSEs <- RMSEs |>
+  add_row(Method = "Movie + user + genre + time effects (regularized)",
+          RMSE = RMSE(predicted_ratings_reg, edx_test$rating),
+          "RMSE (clamped estimates)" =
+            RMSE(clamp(predicted_ratings_reg), edx_test$rating))
+RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+```
+
+## Section summary
+
+The table of RMSEs for all models considered in this section is below.
+
+```{r RMSE-summary}
+
+RMSEs |> kable(align='lrr', booktabs = T, linesep = "") |> row_spec(0, bold = T)
+```
+
+The results demonstrate that each added feature has reduced the RMSE, as well as
+adding regularization and clamping; however, there are diminishing returns as each effect is added
+to the model.
+
+
+<!--chapter:end:02-linear-models.Rmd-->
+
+# Funk's matrix factorization algorithm
+
+In this section, we consider Funk's matrix factorization (MF)
+algorithm [@Funk2006; @Koren2009] for rating prediction.
+We use the model $Y \sim P + UV^\mathrm{T} + \varepsilon$
+where:
+
+- $Y$ is the $N_\mathrm{U}\times N_\mathrm{M}$
+rating matrix, i.e., with $N_u$ users and $N_i$ movies,
+- $P$ represents the predictions from best model of the previous section,
+- $U$ and $V$ are $N_\mathrm{U} \times k$ and $N_\mathrm{M} \times k$ matrices, respectively, where
+  $k$ is the number of *latent features* to be found.
+
+Unknown ratings $Y_{u,i}$ can thus be estimated as $P_{u,i} + U_u V_i^\mathrm{T}$.
+The parameter $k$ is also the *rank* of matrix $UV$; i.e. $UV$ is a
+rank-$k$ approximation of the residual matrix $Y-P$.
+
+Funk's MF estimates $U$ and $V$ using gradient descent,
+but operating only on the known ratings. First, $U$ and $V$ are seeded with random values.
+Then, for each epoch, the algorithm iterates over all known ratings $(i,j)$ in the training set
+and updates the feature matrices as follows:
+
+\[e_{ij} = Y_{ij} - P_{ij} - U_i V_j^\mathrm{T}\]
+\[U_i \gets U_i + \gamma(e_{ij} V_j - \lambda U_i)\]
+\[V_j \gets V_i + \gamma(e_{ij} U_i - \lambda V_j)\]
+
+where $\gamma$ is the learning rate and $\lambda$ is a regularization parameter.
+In this report, these are set to 0.02 and 0.001, respectively, in accordance to guidance from
+@Funk2006. The code for the Funk MF implementation used in this report can be found in
+Appendix \@ref(sec-code).
+
+```{r Funk-MF, fig.height=3, fig.width=3}
+
+# Residuals from previous best model
+previous_train <- genre_biases_reg[
+  user_biases_reg[
+    movie_biases_reg[
+      edx_train, on = 'movieId'],
+    on = 'userId'],
+  on = 'genres'] |> 
+  mutate(pred = mu + b_i + b_u + b_g + f_t[weekNum]) |> 
+  pull(pred)
+
+residuals_train <- edx_train$rating - previous_train
+
+# Test set predictions for previous best model
+previous_test <- genre_biases_reg[
+  user_biases_reg[
+    movie_biases_reg[
+      edx_test, on = 'movieId'],
+    on = 'userId'],
+  on = 'genres'] |> 
+  mutate(pred = mu + b_i + b_u + b_g + f_t[weekNum]) |> 
+  pull(pred)
+
+# Obtain new movie and user indices **without gaps**, and save the mappings
+Uidx <- numeric(max(edx_train$userId))
+Uidx[unique(edx_train$userId)] = seq(uniqueN(edx_train$userId))
+
+Vidx <- numeric(max(edx_train$movieId))
+Vidx[unique(edx_train$movieId)] = seq(uniqueN(edx_train$movieId))
+
+# Funk matrix factorization. See C++ source for full documentation.
+# Values for regCoef and learningRate are as suggested by [Funk 2006].
+Rcpp::sourceCpp("svd.cpp")
+funk <- function(Uidx, Vidx, residuals, nFeatures, steps = 500,
+                 regCoef = 0.02, learningRate = 1e-3) {
+  
+  # Change Uidx and Vidx to 0-based, for C++ only.
+  funkCpp(Uidx[edx_train$userId] - 1,
+          Vidx[edx_train$movieId] - 1,
+          residuals_train,
+          nFeatures, steps, regCoef, learningRate)
+}
+
+# Compute RMSE values for varying number of MF features.
+set.seed(1)
+if (!file.exists('funk_tuning.Rdata')) {
+  nFeatures <- c(1, 2, 4, 8, seq(12,20), 24, 28, 32)
+  rmses <- sapply(nFeatures, \(nF){
+    
+    message(nF, ' features')
+    
+    # Run Funk MF
+    set.seed(1)
+    funkResult <- funk(Uidx, Vidx, residuals_train, nFeatures = nF, steps = 500)
+    U <- funkResult$U
+    V <- funkResult$V
+    
+    # Uidx[u] is the row index of user u in matrix U
+    # Vidx[v] is the row index of movie v in matrix V
+    predicted_ratings_funk <- edx_test |>
+      mutate(pred = previous_test +
+               map2_dbl(userId, movieId, \(u,v) U[Uidx[u],] %*% V[Vidx[v],])) |>
+      pull(pred)
+    rmse <- RMSE(predicted_ratings_funk, edx_test$rating)
+    
+    message(rmse,'\n')
+    return(rmse)
+  })
+  
+  save(nFeatures,rmses, file = 'funk_tuning.Rdata')
+}
+set.seed(1)
+
+load('funk_tuning.Rdata')
+par(cex = 0.7)
+qplot(nFeatures, rmses, xlab = 'rank(UV)', ylab = 'RMSE', geom = c('point','line'))
+```
+
+```{r Optimal-num-features-Funk}
+
+nFeaturesOpt <- nFeatures[which.min(rmses)]
+nFeaturesOpt
+```
+
+
+Using the new model with $k=`r nFeaturesOpt`$ to predict ratings for the `edx_test` gives the following RMSE
+values:
+```{r Funk-MF-prediction}
+
+# Run Funk MF
+set.seed(1)
+if (!file.exists('funk.Rdata')) {
+funkResult <- funk(Uidx, Vidx, residuals_train, nFeatures = nFeaturesOpt, steps = 500)
+save(nFeaturesOpt, funkResult, file = 'funk.Rdata')
+}
+set.seed(1)
+
+load('funk.Rdata')
+U <- funkResult$U
+V <- funkResult$V
+
+
+# Uidx[u] is the row index of user u in matrix U
+# Vidx[v] is the row index of movie v in matrix V
+predicted_ratings_funk <- edx_test |>
+  mutate(pred = previous_test +
+           map2_dbl(userId, movieId, \(u,v) U[Uidx[u],] %*% V[Vidx[v],])) |>
+  pull(pred)
+rmse <- RMSE(predicted_ratings_funk, edx_test$rating)
+
+# Compute RMSE and add to data.table
+RMSEs <- RMSEs |>
+  add_row(Method = "Section 2 best model + Matrix factorization",
+          RMSE = RMSE(predicted_ratings_funk, edx_test$rating),
+          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings_funk), edx_test$rating))
+
+RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+```
+
+The RMSEs of all models in this report, evaluated using `edx_test`, are as follows:
+
+```{r RMSE-summary-2}
+
+RMSEs |> kable(align='lrr', booktabs = T, linesep = "") |> row_spec(0, bold = T)
+```
+
+We now "submit" our best model, i.e.
+\begin{equation}
+Y_{u,i} \sim \mu + b_{1;i} + b_{2;u} + b_{3;g(i)} + f(t_{u,i})
++ UV^\mathrm{T} + \varepsilon_{u,i}, (\#eq:final-model)
+\end{equation}
+
+with parameters `mu`, `movie_biases_reg`, `user_biases_reg`, `genre_biases_reg`,
+`f_t`, `U`, and `V`, for final validation.
+
+<!--chapter:end:03-funkSVD.Rmd-->
+
+# Final validation
+
+We select our best model \@ref(eq:final-model) for validation against the `validation` dataset.
+```{r Save-model}
+
+save(mu, movie_biases_reg, user_biases_reg, genre_biases_reg,
+     f_t, Uidx, Vidx, U, V, file = 'FINAL_model.Rdata')
+```
+
+The number of parameters in the model is:
+```{r Num-parameters}
+
+nrow(movie_biases_reg) + nrow(user_biases_reg) + nrow(genre_biases_reg) +
+  length(f_t) + length(U) + length(V)
+```
+
+The final RMSE computed with the `validation` set is:
+
+```{r Final-RMSE-validation-set}
+
+predicted_ratings_FINAL_VALIDATION <- validation |>
+  mutate(weekNum = (timestamp - min(timestamp)) |>
+           as.numeric(unit = "days") |> {\(x) floor(x/7) + 1}() ) |> 
+  mutate(f_t = f_t[weekNum]) |> 
+  left_join(movie_biases_reg, by='movieId') |>
+  left_join(user_biases_reg, by='userId') |>
+  left_join(genre_biases_reg, by='genres') |>
+  mutate(pred = mu + b_i + b_u + b_g + f_t +
+           map2_dbl(userId, movieId, \(u,v) U[Uidx[u],] %*% V[Vidx[v],])) |>
+  pull(pred) |> clamp()
+
+# Compute RMSE and add to data.table
+RMSE(predicted_ratings_FINAL_VALIDATION, validation$rating)
+```
+
+The plot below plots a histogram of prediction errors:
+
+```{r Prediction-error-plot, fig.height=3, fig.width=4}
+
+par(cex = 0.7)
+hist(predicted_ratings_FINAL_VALIDATION - validation$rating, 50,
+     xlab = 'Prediction Error', main = '')
+```
+
+Below is a plot of the cumulative distribution of the absolute error:
+```{r Absolute-error-ECDF, fig.height=3, fig.width=3}
+
+the_ecdf <- ecdf(predicted_ratings_FINAL_VALIDATION - validation$rating)
+par(cex = 0.7)
+qplot(seq(0,4.5,0.001), the_ecdf(seq(0,4.5,0.001)),
+     xlab = 'Absoulute error of prediction', ylab = 'Empirical CDF', geom = 'line')
+```
+
+The proportion of predictions are within half a star of the actual rating is:
+
+```{r Within-half-star}
+
+mean(abs(predicted_ratings_FINAL_VALIDATION - validation$rating) < 0.5)
+```
+
+
+
+<!--chapter:end:88-validation.Rmd-->
+
+# Concluding remarks
+
+In this project, we train a recommender system to predict movie ratings on a scale from 0.5 to 5,
+using the Movielens 10M [@movielens10M] dataset.  Our final model considers user, movie, genre,
+and time-based biases, and uses Funk's matrix factorization to approximate the residuals after
+these effects have been removed from the ratings. The RMSE achieved by our final model,
+as evaluated using the validation partition, is `r RMSEs[[nrow(RMSEs),3]]`.
+
+Note that the effect of adding genre and time-based biases was small.  In particular, the genres
+of a movie can be uniquely determined from its `movieID`, and most movies have been rated many times,
+decreasing the importance of genre information.  For the same reason, adding the year of release
+of each movie as a model feature is also unlikely to significantly improve the results.
+However, this is because the validation set for this project was deliberately constructed not to 
+contain any movies not in the training and test sets. In a live environment, adding
+genre and time-based information will prove useful for predicting ratings of *new*
+movies, where a movie bias cannot be computed (using a zero value is the likely best solution).
+In this case, adding the year of release as an additional model feature likely *would* improve
+prediction accuracy.  Another possible feature we could have used is the age of a movie
+*at the time it was rated*.
+
+A consideration is the fact that while this project attempts to minimize the error of the raw
+ratings, a possibly better approach may be binary: would a user like a movie they have not yet
+watched, if that movie were recommended to them? If we assume a user enjoys a movie if they
+rate it 3.5 stars or higher, then the confusion matrix as computed on the validation set is:
+
+```{r Confusion-matrix-3.5}
+
+confusionMatrix(as.factor(ifelse(predicted_ratings_FINAL_VALIDATION >= 3.5, 'Good', 'Bad')),
+                as.factor(ifelse(validation$rating >= 3.5, 'Good', 'Bad')),
+                positive = 'Good')
+```
+
+The accuracy of our model is about three-quarters, with approximately equal sensitivity and
+specificity.
+
+Furthermore, note that while the ratings in the Movielens dataset are discrete, the generated
+predictions are not. If only discrete predictions are allowed, then a series of thresholds may be
+fitted to our current model for binning (these thresholds do not have to be a half-star apart
+and can instead be based on the distribution of true and predicted ratings).  It remains to be seen
+how such an approach would affect the accuracy of our model, as while correct binning decreases the
+error of a prediction, incorrect binning may instead increase the error of a rating.
+For example, for a prediction of 3.6 that is binned to 3.5, the error decreases from 0.1 to 0
+given a true rating of 0.5, but increases from 0.4 to 0.5 given a true rating of 4.0.
+
+```{r Run-purl, eval=FALSE, purl=FALSE}
+
+# NOTRUN: generate R script from project
+knitr::purl('_merged.Rmd')
+```
+
+
+<!--chapter:end:89-conclusion.Rmd-->
+
+# References {-}
+
+<div id="refs"></div>
+
+<!--chapter:end:91-references.Rmd-->
+
+# (APPENDIX) Appendices {-} 
+
+# Code listing: [`svd.cpp`](https://github.com/yinchi/harvardx-movielens/blob/main/svd.cpp) {#sec-code}
+
+```{Rcpp eval=FALSE, file='svd.cpp', purl = F}
+```
+
+<!--chapter:end:92-code.Rmd-->
+
+# Session info
+
+```{r}
+sessionInfo()
+```
+
+```{r}
+tidyverse::tidyverse_conflicts()
+```
+
+<!--chapter:end:93-sessionInfo.Rmd-->
+

@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 3 Funk’s matrix factorization algorithm | HarvardX PH125.9x: Movielens project</title>
+  <meta name="description" content="See also: _output.yml, _bookdown.yml" />
+  <meta name="generator" content="bookdown 0.25 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 3 Funk’s matrix factorization algorithm | HarvardX PH125.9x: Movielens project" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="See also: _output.yml, _bookdown.yml" />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 3 Funk’s matrix factorization algorithm | HarvardX PH125.9x: Movielens project" />
+  
+  <meta name="twitter:description" content="See also: _output.yml, _bookdown.yml" />
+  
+
+<meta name="author" content="Yin-Chi Chan" />
+
+
+<meta name="date" content="2022-04-10" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="sec-linear-models.html"/>
+<link rel="next" href="final-validation.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+<script src="libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">HarvardX 125.9 - Movielens project</a></li>
+
+<li class="divider"></li>
+<li><a href="index.html#preface">Preface<span></span></a>
+<ul>
+<li class="chapter" data-level="0.1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>0.1</b> R setup<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="1" data-path="introduction.html"><a href="introduction.html"><i class="fa fa-check"></i><b>1</b> Introduction<span></span></a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="introduction.html"><a href="introduction.html#data-description"><i class="fa fa-check"></i><b>1.1</b> Data description<span></span></a>
+<ul>
+<li class="chapter" data-level="1.1.1" data-path="introduction.html"><a href="introduction.html#movie-genres"><i class="fa fa-check"></i><b>1.1.1</b> Movie genres<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="1.2" data-path="introduction.html"><a href="introduction.html#project-objective"><i class="fa fa-check"></i><b>1.2</b> Project Objective<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="sec-linear-models.html"><a href="sec-linear-models.html"><i class="fa fa-check"></i><b>2</b> Linear regression models<span></span></a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="sec-linear-models.html"><a href="sec-linear-models.html#sec-notation"><i class="fa fa-check"></i><b>2.1</b> Overview and notation<span></span></a></li>
+<li class="chapter" data-level="2.2" data-path="sec-linear-models.html"><a href="sec-linear-models.html#using-the-mean-rating-only"><i class="fa fa-check"></i><b>2.2</b> Using the mean rating only<span></span></a></li>
+<li class="chapter" data-level="2.3" data-path="sec-linear-models.html"><a href="sec-linear-models.html#modeling-movie-effects"><i class="fa fa-check"></i><b>2.3</b> Modeling movie effects<span></span></a>
+<ul>
+<li class="chapter" data-level="2.3.1" data-path="sec-linear-models.html"><a href="sec-linear-models.html#clamping-the-predictions"><i class="fa fa-check"></i><b>2.3.1</b> Clamping the predictions<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="2.4" data-path="sec-linear-models.html"><a href="sec-linear-models.html#modeling-movie-and-user-effects"><i class="fa fa-check"></i><b>2.4</b> Modeling movie and user effects<span></span></a></li>
+<li class="chapter" data-level="2.5" data-path="sec-linear-models.html"><a href="sec-linear-models.html#adding-genre-effects"><i class="fa fa-check"></i><b>2.5</b> Adding genre effects<span></span></a></li>
+<li class="chapter" data-level="2.6" data-path="sec-linear-models.html"><a href="sec-linear-models.html#adding-a-time-effect"><i class="fa fa-check"></i><b>2.6</b> Adding a time effect<span></span></a></li>
+<li class="chapter" data-level="2.7" data-path="sec-linear-models.html"><a href="sec-linear-models.html#sec-regularization"><i class="fa fa-check"></i><b>2.7</b> Adding <span class="math inline">\(L_2\)</span> regularization<span></span></a></li>
+<li class="chapter" data-level="2.8" data-path="sec-linear-models.html"><a href="sec-linear-models.html#section-summary"><i class="fa fa-check"></i><b>2.8</b> Section summary<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html"><i class="fa fa-check"></i><b>3</b> Funk’s matrix factorization algorithm<span></span></a></li>
+<li class="chapter" data-level="4" data-path="final-validation.html"><a href="final-validation.html"><i class="fa fa-check"></i><b>4</b> Final validation<span></span></a></li>
+<li class="chapter" data-level="5" data-path="concluding-remarks.html"><a href="concluding-remarks.html"><i class="fa fa-check"></i><b>5</b> Concluding remarks<span></span></a></li>
+<li><a href="references.html#references">References<span></span></a></li>
+<li class="appendix"><span><b>Appendices<span></span></b></span></li>
+<li class="chapter" data-level="A" data-path="sec-code.html"><a href="sec-code.html"><i class="fa fa-check"></i><b>A</b> Code listing: <span><code>svd.cpp</code></span><span></span></a></li>
+<li class="chapter" data-level="B" data-path="session-info.html"><a href="session-info.html"><i class="fa fa-check"></i><b>B</b> Session info<span></span></a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/yinchi/harvardx-movielens" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">HarvardX PH125.9x: Movielens project</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="funks-matrix-factorization-algorithm" class="section level1 hasAnchor" number="3">
+<h1><span class="header-section-number">Chapter 3</span> Funk’s matrix factorization algorithm<a href="funks-matrix-factorization-algorithm.html#funks-matrix-factorization-algorithm" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>In this section, we consider Funk’s matrix factorization (MF)
+algorithm <span class="citation">(<a href="#ref-Funk2006" role="doc-biblioref">Funk 2006</a>; <a href="#ref-Koren2009" role="doc-biblioref">Koren, Bell, and Volinsky 2009</a>)</span> for rating prediction.
+We use the model <span class="math inline">\(Y \sim P + UV^\mathrm{T} + \varepsilon\)</span>
+where:</p>
+<ul>
+<li><span class="math inline">\(Y\)</span> is the <span class="math inline">\(N_\mathrm{U}\times N_\mathrm{M}\)</span>
+rating matrix, i.e., with <span class="math inline">\(N_u\)</span> users and <span class="math inline">\(N_i\)</span> movies,</li>
+<li><span class="math inline">\(P\)</span> represents the predictions from best model of the previous section,</li>
+<li><span class="math inline">\(U\)</span> and <span class="math inline">\(V\)</span> are <span class="math inline">\(N_\mathrm{U} \times k\)</span> and <span class="math inline">\(N_\mathrm{M} \times k\)</span> matrices, respectively, where
+<span class="math inline">\(k\)</span> is the number of <em>latent features</em> to be found.</li>
+</ul>
+<p>Unknown ratings <span class="math inline">\(Y_{u,i}\)</span> can thus be estimated as <span class="math inline">\(P_{u,i} + U_u V_i^\mathrm{T}\)</span>.
+The parameter <span class="math inline">\(k\)</span> is also the <em>rank</em> of matrix <span class="math inline">\(UV\)</span>; i.e. <span class="math inline">\(UV\)</span> is a
+rank-<span class="math inline">\(k\)</span> approximation of the residual matrix <span class="math inline">\(Y-P\)</span>.</p>
+<p>Funk’s MF estimates <span class="math inline">\(U\)</span> and <span class="math inline">\(V\)</span> using gradient descent,
+but operating only on the known ratings. First, <span class="math inline">\(U\)</span> and <span class="math inline">\(V\)</span> are seeded with random values.
+Then, for each epoch, the algorithm iterates over all known ratings <span class="math inline">\((i,j)\)</span> in the training set
+and updates the feature matrices as follows:</p>
+<p><span class="math display">\[e_{ij} = Y_{ij} - P_{ij} - U_i V_j^\mathrm{T}\]</span>
+<span class="math display">\[U_i \gets U_i + \gamma(e_{ij} V_j - \lambda U_i)\]</span>
+<span class="math display">\[V_j \gets V_i + \gamma(e_{ij} U_i - \lambda V_j)\]</span></p>
+<p>where <span class="math inline">\(\gamma\)</span> is the learning rate and <span class="math inline">\(\lambda\)</span> is a regularization parameter.
+In this report, these are set to 0.02 and 0.001, respectively, in accordance to guidance from
+<span class="citation"><a href="#ref-Funk2006" role="doc-biblioref">Funk</a> (<a href="#ref-Funk2006" role="doc-biblioref">2006</a>)</span>. The code for the Funk MF implementation used in this report can be found in
+Appendix <a href="sec-code.html#sec-code">A</a>.</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="funks-matrix-factorization-algorithm.html#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Residuals from previous best model</span></span>
+<span id="cb31-2"><a href="funks-matrix-factorization-algorithm.html#cb31-2" aria-hidden="true" tabindex="-1"></a>previous_train <span class="ot">&lt;-</span> genre_biases_reg[</span>
+<span id="cb31-3"><a href="funks-matrix-factorization-algorithm.html#cb31-3" aria-hidden="true" tabindex="-1"></a>  user_biases_reg[</span>
+<span id="cb31-4"><a href="funks-matrix-factorization-algorithm.html#cb31-4" aria-hidden="true" tabindex="-1"></a>    movie_biases_reg[</span>
+<span id="cb31-5"><a href="funks-matrix-factorization-algorithm.html#cb31-5" aria-hidden="true" tabindex="-1"></a>      edx_train, on <span class="ot">=</span> <span class="st">&#39;movieId&#39;</span>],</span>
+<span id="cb31-6"><a href="funks-matrix-factorization-algorithm.html#cb31-6" aria-hidden="true" tabindex="-1"></a>    on <span class="ot">=</span> <span class="st">&#39;userId&#39;</span>],</span>
+<span id="cb31-7"><a href="funks-matrix-factorization-algorithm.html#cb31-7" aria-hidden="true" tabindex="-1"></a>  on <span class="ot">=</span> <span class="st">&#39;genres&#39;</span>] <span class="sc">|&gt;</span> </span>
+<span id="cb31-8"><a href="funks-matrix-factorization-algorithm.html#cb31-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pred =</span> mu <span class="sc">+</span> b_i <span class="sc">+</span> b_u <span class="sc">+</span> b_g <span class="sc">+</span> f_t[weekNum]) <span class="sc">|&gt;</span> </span>
+<span id="cb31-9"><a href="funks-matrix-factorization-algorithm.html#cb31-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(pred)</span>
+<span id="cb31-10"><a href="funks-matrix-factorization-algorithm.html#cb31-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-11"><a href="funks-matrix-factorization-algorithm.html#cb31-11" aria-hidden="true" tabindex="-1"></a>residuals_train <span class="ot">&lt;-</span> edx_train<span class="sc">$</span>rating <span class="sc">-</span> previous_train</span>
+<span id="cb31-12"><a href="funks-matrix-factorization-algorithm.html#cb31-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-13"><a href="funks-matrix-factorization-algorithm.html#cb31-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Test set predictions for previous best model</span></span>
+<span id="cb31-14"><a href="funks-matrix-factorization-algorithm.html#cb31-14" aria-hidden="true" tabindex="-1"></a>previous_test <span class="ot">&lt;-</span> genre_biases_reg[</span>
+<span id="cb31-15"><a href="funks-matrix-factorization-algorithm.html#cb31-15" aria-hidden="true" tabindex="-1"></a>  user_biases_reg[</span>
+<span id="cb31-16"><a href="funks-matrix-factorization-algorithm.html#cb31-16" aria-hidden="true" tabindex="-1"></a>    movie_biases_reg[</span>
+<span id="cb31-17"><a href="funks-matrix-factorization-algorithm.html#cb31-17" aria-hidden="true" tabindex="-1"></a>      edx_test, on <span class="ot">=</span> <span class="st">&#39;movieId&#39;</span>],</span>
+<span id="cb31-18"><a href="funks-matrix-factorization-algorithm.html#cb31-18" aria-hidden="true" tabindex="-1"></a>    on <span class="ot">=</span> <span class="st">&#39;userId&#39;</span>],</span>
+<span id="cb31-19"><a href="funks-matrix-factorization-algorithm.html#cb31-19" aria-hidden="true" tabindex="-1"></a>  on <span class="ot">=</span> <span class="st">&#39;genres&#39;</span>] <span class="sc">|&gt;</span> </span>
+<span id="cb31-20"><a href="funks-matrix-factorization-algorithm.html#cb31-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pred =</span> mu <span class="sc">+</span> b_i <span class="sc">+</span> b_u <span class="sc">+</span> b_g <span class="sc">+</span> f_t[weekNum]) <span class="sc">|&gt;</span> </span>
+<span id="cb31-21"><a href="funks-matrix-factorization-algorithm.html#cb31-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(pred)</span>
+<span id="cb31-22"><a href="funks-matrix-factorization-algorithm.html#cb31-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-23"><a href="funks-matrix-factorization-algorithm.html#cb31-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Obtain new movie and user indices **without gaps**, and save the mappings</span></span>
+<span id="cb31-24"><a href="funks-matrix-factorization-algorithm.html#cb31-24" aria-hidden="true" tabindex="-1"></a>Uidx <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">max</span>(edx_train<span class="sc">$</span>userId))</span>
+<span id="cb31-25"><a href="funks-matrix-factorization-algorithm.html#cb31-25" aria-hidden="true" tabindex="-1"></a>Uidx[<span class="fu">unique</span>(edx_train<span class="sc">$</span>userId)] <span class="ot">=</span> <span class="fu">seq</span>(<span class="fu">uniqueN</span>(edx_train<span class="sc">$</span>userId))</span>
+<span id="cb31-26"><a href="funks-matrix-factorization-algorithm.html#cb31-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-27"><a href="funks-matrix-factorization-algorithm.html#cb31-27" aria-hidden="true" tabindex="-1"></a>Vidx <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">max</span>(edx_train<span class="sc">$</span>movieId))</span>
+<span id="cb31-28"><a href="funks-matrix-factorization-algorithm.html#cb31-28" aria-hidden="true" tabindex="-1"></a>Vidx[<span class="fu">unique</span>(edx_train<span class="sc">$</span>movieId)] <span class="ot">=</span> <span class="fu">seq</span>(<span class="fu">uniqueN</span>(edx_train<span class="sc">$</span>movieId))</span>
+<span id="cb31-29"><a href="funks-matrix-factorization-algorithm.html#cb31-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-30"><a href="funks-matrix-factorization-algorithm.html#cb31-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Funk matrix factorization. See C++ source for full documentation.</span></span>
+<span id="cb31-31"><a href="funks-matrix-factorization-algorithm.html#cb31-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Values for regCoef and learningRate are as suggested by [Funk 2006].</span></span>
+<span id="cb31-32"><a href="funks-matrix-factorization-algorithm.html#cb31-32" aria-hidden="true" tabindex="-1"></a>Rcpp<span class="sc">::</span><span class="fu">sourceCpp</span>(<span class="st">&quot;svd.cpp&quot;</span>)</span>
+<span id="cb31-33"><a href="funks-matrix-factorization-algorithm.html#cb31-33" aria-hidden="true" tabindex="-1"></a>funk <span class="ot">&lt;-</span> <span class="cf">function</span>(Uidx, Vidx, residuals, nFeatures, <span class="at">steps =</span> <span class="dv">500</span>,</span>
+<span id="cb31-34"><a href="funks-matrix-factorization-algorithm.html#cb31-34" aria-hidden="true" tabindex="-1"></a>                 <span class="at">regCoef =</span> <span class="fl">0.02</span>, <span class="at">learningRate =</span> <span class="fl">1e-3</span>) {</span>
+<span id="cb31-35"><a href="funks-matrix-factorization-algorithm.html#cb31-35" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-36"><a href="funks-matrix-factorization-algorithm.html#cb31-36" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Change Uidx and Vidx to 0-based, for C++ only.</span></span>
+<span id="cb31-37"><a href="funks-matrix-factorization-algorithm.html#cb31-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">funkCpp</span>(Uidx[edx_train<span class="sc">$</span>userId] <span class="sc">-</span> <span class="dv">1</span>,</span>
+<span id="cb31-38"><a href="funks-matrix-factorization-algorithm.html#cb31-38" aria-hidden="true" tabindex="-1"></a>          Vidx[edx_train<span class="sc">$</span>movieId] <span class="sc">-</span> <span class="dv">1</span>,</span>
+<span id="cb31-39"><a href="funks-matrix-factorization-algorithm.html#cb31-39" aria-hidden="true" tabindex="-1"></a>          residuals_train,</span>
+<span id="cb31-40"><a href="funks-matrix-factorization-algorithm.html#cb31-40" aria-hidden="true" tabindex="-1"></a>          nFeatures, steps, regCoef, learningRate)</span>
+<span id="cb31-41"><a href="funks-matrix-factorization-algorithm.html#cb31-41" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb31-42"><a href="funks-matrix-factorization-algorithm.html#cb31-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-43"><a href="funks-matrix-factorization-algorithm.html#cb31-43" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute RMSE values for varying number of MF features.</span></span>
+<span id="cb31-44"><a href="funks-matrix-factorization-algorithm.html#cb31-44" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb31-45"><a href="funks-matrix-factorization-algorithm.html#cb31-45" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="st">&#39;funk_tuning.Rdata&#39;</span>)) {</span>
+<span id="cb31-46"><a href="funks-matrix-factorization-algorithm.html#cb31-46" aria-hidden="true" tabindex="-1"></a>  nFeatures <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">8</span>, <span class="fu">seq</span>(<span class="dv">12</span>,<span class="dv">20</span>), <span class="dv">24</span>, <span class="dv">28</span>, <span class="dv">32</span>)</span>
+<span id="cb31-47"><a href="funks-matrix-factorization-algorithm.html#cb31-47" aria-hidden="true" tabindex="-1"></a>  rmses <span class="ot">&lt;-</span> <span class="fu">sapply</span>(nFeatures, \(nF){</span>
+<span id="cb31-48"><a href="funks-matrix-factorization-algorithm.html#cb31-48" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb31-49"><a href="funks-matrix-factorization-algorithm.html#cb31-49" aria-hidden="true" tabindex="-1"></a>    <span class="fu">message</span>(nF, <span class="st">&#39; features&#39;</span>)</span>
+<span id="cb31-50"><a href="funks-matrix-factorization-algorithm.html#cb31-50" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb31-51"><a href="funks-matrix-factorization-algorithm.html#cb31-51" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Run Funk MF</span></span>
+<span id="cb31-52"><a href="funks-matrix-factorization-algorithm.html#cb31-52" aria-hidden="true" tabindex="-1"></a>    <span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb31-53"><a href="funks-matrix-factorization-algorithm.html#cb31-53" aria-hidden="true" tabindex="-1"></a>    funkResult <span class="ot">&lt;-</span> <span class="fu">funk</span>(Uidx, Vidx, residuals_train, <span class="at">nFeatures =</span> nF, <span class="at">steps =</span> <span class="dv">500</span>)</span>
+<span id="cb31-54"><a href="funks-matrix-factorization-algorithm.html#cb31-54" aria-hidden="true" tabindex="-1"></a>    U <span class="ot">&lt;-</span> funkResult<span class="sc">$</span>U</span>
+<span id="cb31-55"><a href="funks-matrix-factorization-algorithm.html#cb31-55" aria-hidden="true" tabindex="-1"></a>    V <span class="ot">&lt;-</span> funkResult<span class="sc">$</span>V</span>
+<span id="cb31-56"><a href="funks-matrix-factorization-algorithm.html#cb31-56" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb31-57"><a href="funks-matrix-factorization-algorithm.html#cb31-57" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Uidx[u] is the row index of user u in matrix U</span></span>
+<span id="cb31-58"><a href="funks-matrix-factorization-algorithm.html#cb31-58" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Vidx[v] is the row index of movie v in matrix V</span></span>
+<span id="cb31-59"><a href="funks-matrix-factorization-algorithm.html#cb31-59" aria-hidden="true" tabindex="-1"></a>    predicted_ratings_funk <span class="ot">&lt;-</span> edx_test <span class="sc">|&gt;</span></span>
+<span id="cb31-60"><a href="funks-matrix-factorization-algorithm.html#cb31-60" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">pred =</span> previous_test <span class="sc">+</span></span>
+<span id="cb31-61"><a href="funks-matrix-factorization-algorithm.html#cb31-61" aria-hidden="true" tabindex="-1"></a>               <span class="fu">map2_dbl</span>(userId, movieId, \(u,v) U[Uidx[u],] <span class="sc">%*%</span> V[Vidx[v],])) <span class="sc">|&gt;</span></span>
+<span id="cb31-62"><a href="funks-matrix-factorization-algorithm.html#cb31-62" aria-hidden="true" tabindex="-1"></a>      <span class="fu">pull</span>(pred)</span>
+<span id="cb31-63"><a href="funks-matrix-factorization-algorithm.html#cb31-63" aria-hidden="true" tabindex="-1"></a>    rmse <span class="ot">&lt;-</span> <span class="fu">RMSE</span>(predicted_ratings_funk, edx_test<span class="sc">$</span>rating)</span>
+<span id="cb31-64"><a href="funks-matrix-factorization-algorithm.html#cb31-64" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb31-65"><a href="funks-matrix-factorization-algorithm.html#cb31-65" aria-hidden="true" tabindex="-1"></a>    <span class="fu">message</span>(rmse,<span class="st">&#39;</span><span class="sc">\n</span><span class="st">&#39;</span>)</span>
+<span id="cb31-66"><a href="funks-matrix-factorization-algorithm.html#cb31-66" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(rmse)</span>
+<span id="cb31-67"><a href="funks-matrix-factorization-algorithm.html#cb31-67" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb31-68"><a href="funks-matrix-factorization-algorithm.html#cb31-68" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-69"><a href="funks-matrix-factorization-algorithm.html#cb31-69" aria-hidden="true" tabindex="-1"></a>  <span class="fu">save</span>(nFeatures,rmses, <span class="at">file =</span> <span class="st">&#39;funk_tuning.Rdata&#39;</span>)</span>
+<span id="cb31-70"><a href="funks-matrix-factorization-algorithm.html#cb31-70" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb31-71"><a href="funks-matrix-factorization-algorithm.html#cb31-71" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb31-72"><a href="funks-matrix-factorization-algorithm.html#cb31-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-73"><a href="funks-matrix-factorization-algorithm.html#cb31-73" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&#39;funk_tuning.Rdata&#39;</span>)</span>
+<span id="cb31-74"><a href="funks-matrix-factorization-algorithm.html#cb31-74" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">cex =</span> <span class="fl">0.7</span>)</span>
+<span id="cb31-75"><a href="funks-matrix-factorization-algorithm.html#cb31-75" aria-hidden="true" tabindex="-1"></a><span class="fu">qplot</span>(nFeatures, rmses, <span class="at">xlab =</span> <span class="st">&#39;rank(UV)&#39;</span>, <span class="at">ylab =</span> <span class="st">&#39;RMSE&#39;</span>, <span class="at">geom =</span> <span class="fu">c</span>(<span class="st">&#39;point&#39;</span>,<span class="st">&#39;line&#39;</span>))</span></code></pre></div>
+<p><img src="movielens_files/figure-html/Funk-MF-1.png" width="432" /></p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="funks-matrix-factorization-algorithm.html#cb32-1" aria-hidden="true" tabindex="-1"></a>nFeaturesOpt <span class="ot">&lt;-</span> nFeatures[<span class="fu">which.min</span>(rmses)]</span>
+<span id="cb32-2"><a href="funks-matrix-factorization-algorithm.html#cb32-2" aria-hidden="true" tabindex="-1"></a>nFeaturesOpt</span></code></pre></div>
+<pre><code>## [1] 14</code></pre>
+<p>Using the new model with <span class="math inline">\(k=14\)</span> to predict ratings for the <code>edx_test</code> gives the following RMSE
+values:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="funks-matrix-factorization-algorithm.html#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run Funk MF</span></span>
+<span id="cb34-2"><a href="funks-matrix-factorization-algorithm.html#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb34-3"><a href="funks-matrix-factorization-algorithm.html#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="st">&#39;funk.Rdata&#39;</span>)) {</span>
+<span id="cb34-4"><a href="funks-matrix-factorization-algorithm.html#cb34-4" aria-hidden="true" tabindex="-1"></a>funkResult <span class="ot">&lt;-</span> <span class="fu">funk</span>(Uidx, Vidx, residuals_train, <span class="at">nFeatures =</span> nFeaturesOpt, <span class="at">steps =</span> <span class="dv">500</span>)</span>
+<span id="cb34-5"><a href="funks-matrix-factorization-algorithm.html#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(nFeaturesOpt, funkResult, <span class="at">file =</span> <span class="st">&#39;funk.Rdata&#39;</span>)</span>
+<span id="cb34-6"><a href="funks-matrix-factorization-algorithm.html#cb34-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb34-7"><a href="funks-matrix-factorization-algorithm.html#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb34-8"><a href="funks-matrix-factorization-algorithm.html#cb34-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-9"><a href="funks-matrix-factorization-algorithm.html#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&#39;funk.Rdata&#39;</span>)</span>
+<span id="cb34-10"><a href="funks-matrix-factorization-algorithm.html#cb34-10" aria-hidden="true" tabindex="-1"></a>U <span class="ot">&lt;-</span> funkResult<span class="sc">$</span>U</span>
+<span id="cb34-11"><a href="funks-matrix-factorization-algorithm.html#cb34-11" aria-hidden="true" tabindex="-1"></a>V <span class="ot">&lt;-</span> funkResult<span class="sc">$</span>V</span>
+<span id="cb34-12"><a href="funks-matrix-factorization-algorithm.html#cb34-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-13"><a href="funks-matrix-factorization-algorithm.html#cb34-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-14"><a href="funks-matrix-factorization-algorithm.html#cb34-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Uidx[u] is the row index of user u in matrix U</span></span>
+<span id="cb34-15"><a href="funks-matrix-factorization-algorithm.html#cb34-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Vidx[v] is the row index of movie v in matrix V</span></span>
+<span id="cb34-16"><a href="funks-matrix-factorization-algorithm.html#cb34-16" aria-hidden="true" tabindex="-1"></a>predicted_ratings_funk <span class="ot">&lt;-</span> edx_test <span class="sc">|&gt;</span></span>
+<span id="cb34-17"><a href="funks-matrix-factorization-algorithm.html#cb34-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pred =</span> previous_test <span class="sc">+</span></span>
+<span id="cb34-18"><a href="funks-matrix-factorization-algorithm.html#cb34-18" aria-hidden="true" tabindex="-1"></a>           <span class="fu">map2_dbl</span>(userId, movieId, \(u,v) U[Uidx[u],] <span class="sc">%*%</span> V[Vidx[v],])) <span class="sc">|&gt;</span></span>
+<span id="cb34-19"><a href="funks-matrix-factorization-algorithm.html#cb34-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(pred)</span>
+<span id="cb34-20"><a href="funks-matrix-factorization-algorithm.html#cb34-20" aria-hidden="true" tabindex="-1"></a>rmse <span class="ot">&lt;-</span> <span class="fu">RMSE</span>(predicted_ratings_funk, edx_test<span class="sc">$</span>rating)</span>
+<span id="cb34-21"><a href="funks-matrix-factorization-algorithm.html#cb34-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-22"><a href="funks-matrix-factorization-algorithm.html#cb34-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute RMSE and add to data.table</span></span>
+<span id="cb34-23"><a href="funks-matrix-factorization-algorithm.html#cb34-23" aria-hidden="true" tabindex="-1"></a>RMSEs <span class="ot">&lt;-</span> RMSEs <span class="sc">|&gt;</span></span>
+<span id="cb34-24"><a href="funks-matrix-factorization-algorithm.html#cb34-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_row</span>(<span class="at">Method =</span> <span class="st">&quot;Section 2 best model + Matrix factorization&quot;</span>,</span>
+<span id="cb34-25"><a href="funks-matrix-factorization-algorithm.html#cb34-25" aria-hidden="true" tabindex="-1"></a>          <span class="at">RMSE =</span> <span class="fu">RMSE</span>(predicted_ratings_funk, edx_test<span class="sc">$</span>rating),</span>
+<span id="cb34-26"><a href="funks-matrix-factorization-algorithm.html#cb34-26" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;RMSE (clamped estimates)&quot;</span> <span class="ot">=</span> <span class="fu">RMSE</span>(<span class="fu">clamp</span>(predicted_ratings_funk), edx_test<span class="sc">$</span>rating))</span>
+<span id="cb34-27"><a href="funks-matrix-factorization-algorithm.html#cb34-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-28"><a href="funks-matrix-factorization-algorithm.html#cb34-28" aria-hidden="true" tabindex="-1"></a>RMSEs[<span class="fu">nrow</span>(RMSEs),] <span class="sc">|&gt;</span> <span class="fu">kable</span>(<span class="at">align=</span><span class="st">&#39;lrr&#39;</span>, <span class="at">booktabs =</span> T) <span class="sc">|&gt;</span> <span class="fu">row_spec</span>(<span class="dv">0</span>, <span class="at">bold =</span> T)</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;font-weight: bold;">
+Method
+</th>
+<th style="text-align:right;font-weight: bold;">
+RMSE
+</th>
+<th style="text-align:right;font-weight: bold;">
+RMSE (clamped estimates)
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Section 2 best model + Matrix factorization
+</td>
+<td style="text-align:right;">
+0.7949206
+</td>
+<td style="text-align:right;">
+0.7939817
+</td>
+</tr>
+</tbody>
+</table>
+<p>The RMSEs of all models in this report, evaluated using <code>edx_test</code>, are as follows:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="funks-matrix-factorization-algorithm.html#cb35-1" aria-hidden="true" tabindex="-1"></a>RMSEs <span class="sc">|&gt;</span> <span class="fu">kable</span>(<span class="at">align=</span><span class="st">&#39;lrr&#39;</span>, <span class="at">booktabs =</span> T, <span class="at">linesep =</span> <span class="st">&quot;&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">row_spec</span>(<span class="dv">0</span>, <span class="at">bold =</span> T)</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;font-weight: bold;">
+Method
+</th>
+<th style="text-align:right;font-weight: bold;">
+RMSE
+</th>
+<th style="text-align:right;font-weight: bold;">
+RMSE (clamped estimates)
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Mean only
+</td>
+<td style="text-align:right;">
+1.0600537
+</td>
+<td style="text-align:right;">
+1.0600537
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Movie effects
+</td>
+<td style="text-align:right;">
+0.9429615
+</td>
+<td style="text-align:right;">
+0.9429615
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Movie + user effects
+</td>
+<td style="text-align:right;">
+0.8646843
+</td>
+<td style="text-align:right;">
+0.8644818
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Movie + user + genre effects
+</td>
+<td style="text-align:right;">
+0.8643241
+</td>
+<td style="text-align:right;">
+0.8641138
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Movie + user + genre + time effects
+</td>
+<td style="text-align:right;">
+0.8641266
+</td>
+<td style="text-align:right;">
+0.8639174
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Movie + user + genre + time effects (regularized)
+</td>
+<td style="text-align:right;">
+0.8636151
+</td>
+<td style="text-align:right;">
+0.8634932
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Section 2 best model + Matrix factorization
+</td>
+<td style="text-align:right;">
+0.7949206
+</td>
+<td style="text-align:right;">
+0.7939817
+</td>
+</tr>
+</tbody>
+</table>
+<p>We now “submit” our best model, i.e.
+<span class="math display" id="eq:final-model">\[\begin{equation}
+Y_{u,i} \sim \mu + b_{1;i} + b_{2;u} + b_{3;g(i)} + f(t_{u,i})
++ UV^\mathrm{T} + \varepsilon_{u,i}, \tag{3.1}
+\end{equation}\]</span></p>
+<p>with parameters <code>mu</code>, <code>movie_biases_reg</code>, <code>user_biases_reg</code>, <code>genre_biases_reg</code>,
+<code>f_t</code>, <code>U</code>, and <code>V</code>, for final validation.</p>
+
+</div>
+<h3>References</h3>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-Funk2006" class="csl-entry">
+Funk, Simon. 2006. <span>“Netflix Update: Try This at Home.”</span> <a href="http://sifter.org/~simon/journal/20061211.html">http://sifter.org/~simon/journal/20061211.html</a>.
+</div>
+<div id="ref-Koren2009" class="csl-entry">
+Koren, Yehuda, Robert Bell, and Chris Volinsky. 2009. <span>“Matrix Factorization Techniques for Recommender Systems.”</span> <em>Computer</em> 42 (8): 30–37. <a href="https://doi.org/10.1109/mc.2009.263">https://doi.org/10.1109/mc.2009.263</a>.
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="sec-linear-models.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="final-validation.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "sepia",
+"family": "serif",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/yinchi/harvardx-movielens/edit/main/03-funkSVD.Rmdn",
+"text": "Edit"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["movielens.pdf"],
+"search": {
+"engine": "lunr",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>
