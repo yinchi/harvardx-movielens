@@ -1,6 +1,6 @@
 # (APPENDIX) Appendices {-} 
 
-# Code listing: `svd.cpp` {#sec:code}
+# Code listing: [`svd.cpp`](https://github.com/yinchi/harvardx-movielens/blob/main/svd.cpp) {#sec-code}
 
 ```{Rcpp eval=FALSE, file='svd.cpp', purl = F}
 ```

@@ -1,4 +1,4 @@
-# Linear regression models {#sec:linear}
+# Linear regression models {#sec-linear-models}
 
 We start by splitting `edx` into a training and test set:
 
@@ -23,7 +23,7 @@ edx_train <- rbind(edx_train, removed2) |> as.data.table()
 rm(removed2, temp, test_index)
 ```
 
-## Overview and notation {#sec:notation}
+## Overview and notation {#sec-notation}
 
 Let $Y$ be a $N_\mathrm{U}\times N_\mathrm{M}$ matrix of movie ratings, such that $Y_{u,i}$ is
 the rating user $u$ has given or would give movie $i$.
@@ -41,7 +41,7 @@ $$
 where
 
 * $\mu$ represents the “true” rating for all movies,
-* $\beta_j;u,i$ is the $j$th bias term for pair $(u,i)$,
+* $\beta_{j;u,i}$ is the $j$th bias term for pair $(u,i)$,
 * and $\varepsilon_{u,i}$ is random error, all independently sampled from the
    same zero-mean distribution.
 
@@ -249,7 +249,7 @@ $$
 \sum_{(u,i)\in\mathcal{T}} \left[y_{u,i} - \mu - b_{1;i} - b_{2;u} - b_{3;g(i)} - f(t_{u,i})\right]^2.
 $$
 Note the addition of the $t$ subscript compared to the original problem formulation
-defined in Section \@ref(sec:notation), with 
+defined in Section \@ref(sec-notation), with 
 $\mu_{t;u,i} = \mu - f(t_{u,i})$.
 
 The following code defines $f(t)$ as the smoothed average rating on Week $t$, minus $\mu$:
@@ -321,7 +321,7 @@ RMSEs <- RMSEs |>
 RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
-## Adding $L_2$ regularization {#sec:regularization}
+## Adding $L_2$ regularization {#sec-regularization}
 
 To improve our model further, we can add $L_2$ regularization.  Whereas the previous model fitting
 procedure minimizes

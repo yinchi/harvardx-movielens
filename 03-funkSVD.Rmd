@@ -2,13 +2,13 @@
 
 In this section, we consider Funk's matrix factorization (MF)
 algorithm [@Funk2006; @Koren2009] for rating prediction.
-We use the model $Y \sim P + \sim UV^\mathrm{T} + \varepsilon$
+We use the model $Y \sim P + UV^\mathrm{T} + \varepsilon$
 where:
 
 - $Y$ is the $N_\mathrm{U}\times N_\mathrm{M}$
 rating matrix, i.e., with $N_u$ users and $N_i$ movies,
 - $P$ represents the predictions from best model of the previous section,
-- $U$ and $V$ are $N_u \times k$ and $N_i \times k$ matrices, respectively, where
+- $U$ and $V$ are $N_\mathrm{U} \times k$ and $N_\mathrm{M} \times k$ matrices, respectively, where
   $k$ is the number of *latent features* to be found.
 
 Unknown ratings $Y_{u,i}$ can thus be estimated as $P_{u,i} + U_u V_i^\mathrm{T}$.
@@ -27,7 +27,7 @@ and updates the feature matrices as follows:
 where $\gamma$ is the learning rate and $\lambda$ is a regularization parameter.
 In this report, these are set to 0.02 and 0.001, respectively, in accordance to guidance from
 @Funk2006. The code for the Funk MF implementation used in this report can be found in
-Appendix \@ref(sec:code).
+Appendix \@ref(sec-code).
 
 ```{r Funk-MF, fig.height=3, fig.width=3}
 
@@ -121,13 +121,16 @@ values:
 
 # Run Funk MF
 set.seed(1)
+if (!file.exists('funk.Rdata')) {
 funkResult <- funk(Uidx, Vidx, residuals_train, nFeatures = nFeaturesOpt, steps = 500)
-U <- funkResult$U
-V <- funkResult$V
 save(nFeaturesOpt, funkResult, file = 'funk.Rdata')
+}
 set.seed(1)
 
 load('funk.Rdata')
+U <- funkResult$U
+V <- funkResult$V
+
 
 # Uidx[u] is the row index of user u in matrix U
 # Vidx[v] is the row index of movie v in matrix V
