@@ -3,13 +3,16 @@
 In this section, we consider Funk's matrix factorization (MF)
 algorithm [@Funk2006; @Koren2009] for rating prediction.
 We use the model $Y \sim P + \sim UV^\mathrm{T} + \varepsilon$
-where $Y$ is the $N_\mathrm{U}\times N_\mathrm{M}$
+where:
+
+- $Y$ is the $N_\mathrm{U}\times N_\mathrm{M}$
 rating matrix, i.e., with $N_u$ users and $N_i$ movies,
-$P$ represents the predictions from best model of the previous section, and
-and $U$ and $V$ are $N_u \times k$ and $N_i \times k$
-**feature matrices**, respectively.
+- $P$ represents the predictions from best model of the previous section,
+- $U$ and $V$ are $N_u \times k$ and $N_i \times k$ matrices, respectively, where
+  $k$ is the number of *latent features* to be found.
+
 Unknown ratings $Y_{u,i}$ can thus be estimated as $P_{u,i} + U_u V_i^\mathrm{T}$.
-The parameter $k$ is known as the **rank** of matrix $UV$; i.e. $UV$ is a
+The parameter $k$ is also the *rank* of matrix $UV$; i.e. $UV$ is a
 rank-$k$ approximation of the residual matrix $Y-P$.
 
 Funk's MF estimates $U$ and $V$ using gradient descent,

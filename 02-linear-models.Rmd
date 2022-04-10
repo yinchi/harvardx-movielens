@@ -193,7 +193,7 @@ We add another bias term $b_g$ to our model for genre effects:
 $$
 Y_{u,i} \sim \mu + b_{1;i} + b_{2;u} + b_{3;g(i)} + \varepsilon_{u,i},
 $$
-where $g(i)$ is the **combination** of genres for movie $i$.
+where $g(i)$ is the *combination* of genres for movie $i$.
 We approximate $b_{3;g}$ for each genre combination $g$ as the mean of
 $\hat{b}_u = Y_{u;i} - \hat{\mu} - \hat{b}_{1;i} - \hat{b}_{2;u}$, averaged over
 all ratings in the training set where $g(i) = g$. The following code computes

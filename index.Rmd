@@ -62,7 +62,7 @@ p_load(magrittr, knitr, kableExtra, data.table, latex2exp, patchwork,
 
 # Introduction
 
-This report partially fulfils the requirements for the HarvardX course
+This report partially fulfills the requirements for the HarvardX course
 [PH125.9x: "Data Science: Capstone"](https://learning.edx.org/course/course-v1:HarvardX+PH125.9x+1T2022/home).
 The objective of this process is to build a movie recommendation system
 using the MovieLens dataset.  The 10M version [@movielens10M] of this dataset was used for

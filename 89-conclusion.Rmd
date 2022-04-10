@@ -3,7 +3,7 @@
 In this project, we train a recommender system to predict movie ratings on a scale from 0.5 to 5,
 using the Movielens 10M [@movielens10M] dataset.  Our final model considers user, movie, genre,
 and time-based biases, and uses Funk's matrix factorization to approximate the residuals after
-these effects have been removed from the ratings. The RMSE acheived by our final model,
+these effects have been removed from the ratings. The RMSE achieved by our final model,
 as evaluated using the validation partition, is `r RMSEs[[nrow(RMSEs),3]]`.
 
 Note that the effect of adding genre and time-based biases was small.  In particular, the genres
@@ -13,7 +13,8 @@ of each movie as a model feature is also unlikely to significantly improve the r
 However, genre and time-based information will prove useful for predicting ratings of *new*
 movies, where a movie bias cannot be computed (using a zero value is the likely best solution).
 In this case, adding the year of release as an additional model feature likely *would* improve
-prediction accuracy.
+prediction accuracy.  Another possible feature we could have used is the age of a movie
+*at the time it was rated*.
 
 A consideration is the fact that while this project attempts to minimize the error of the raw
 ratings, a possibly better approach may be binary: would a user like a movie they have not yet
