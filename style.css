@@ -15,10 +15,12 @@ pre code {
 }
 .book .book-body .page-wrapper .page-inner section.normal code {
   font-family: 'Fira Code', monospace;
+  font-feature-settings: "liga", "calt";
 }
 @supports (font-variation-settings: normal) {
   .book .book-body .page-wrapper .page-inner section.normal code {
     font-family: 'Fira Code VF', monospace;
+    font-feature-settings: "liga", "calt";
   }
 }
 .hanging-indent {
