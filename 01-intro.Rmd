@@ -196,7 +196,7 @@ par(cex = 0.7)
 barplot(genre_counts, xlab = 'Number of genres', ylab = 'Count', main = 'Genres per movie')
 ```
 
-Therefore it is likely better to analyze genre combinations rather than individual genres.
+Therefore, it is likely better to analyze genre combinations rather than individual genres.
 The following code confirms that over half of all movies have either two or three genres:
 ```{r Genre-counts}
 

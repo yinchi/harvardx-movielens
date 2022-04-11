@@ -40,11 +40,5 @@ and can instead be based on the distribution of true and predicted ratings).  It
 how such an approach would affect the accuracy of our model, as while correct binning decreases the
 error of a prediction, incorrect binning may instead increase the error of a rating.
 For example, for a prediction of 3.6 that is binned to 3.5, the error decreases from 0.1 to 0
-given a true rating of 0.5, but increases from 0.4 to 0.5 given a true rating of 4.0.
-
-```{r Run-purl, eval=FALSE, purl=FALSE}
-
-# NOTRUN: generate R script from project
-knitr::purl('_merged.Rmd')
-```
+given a true rating of 3.5, but increases from 0.4 to 0.5 given a true rating of 4.0.
 
