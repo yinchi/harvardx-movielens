@@ -23,7 +23,7 @@
 <meta name="author" content="Yin-Chi Chan" />
 
 
-<meta name="date" content="2022-04-10" />
+<meta name="date" content="2022-04-11" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -219,7 +219,7 @@ div.csl-indent {
 using the Movielens 10M <span class="citation">(<a href="#ref-movielens10M" role="doc-biblioref">GroupLens 2009</a>)</span> dataset. Our final model considers user, movie, genre,
 and time-based biases, and uses Funk’s matrix factorization to approximate the residuals after
 these effects have been removed from the ratings. The RMSE achieved by our final model,
-as evaluated using the validation partition, is 0.7939817.</p>
+as evaluated using the validation partition, is <strong>0.7939817</strong>.</p>
 <p>Note that the effect of adding genre and time-based biases was small. In particular, the genres
 of a movie can be uniquely determined from its <code>movieID</code>, and most movies have been rated many times,
 decreasing the importance of genre information. For the same reason, adding the year of release
@@ -274,9 +274,7 @@ and can instead be based on the distribution of true and predicted ratings). It 
 how such an approach would affect the accuracy of our model, as while correct binning decreases the
 error of a prediction, incorrect binning may instead increase the error of a rating.
 For example, for a prediction of 3.6 that is binned to 3.5, the error decreases from 0.1 to 0
-given a true rating of 0.5, but increases from 0.4 to 0.5 given a true rating of 4.0.</p>
-<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="concluding-remarks.html#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># NOTRUN: generate R script from project</span></span>
-<span id="cb47-2"><a href="concluding-remarks.html#cb47-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">purl</span>(<span class="st">&#39;_merged.Rmd&#39;</span>)</span></code></pre></div>
+given a true rating of 3.5, but increases from 0.4 to 0.5 given a true rating of 4.0.</p>
 
 </div>
 <h3>References</h3>

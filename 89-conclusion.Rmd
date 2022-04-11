@@ -4,7 +4,7 @@ In this project, we train a recommender system to predict movie ratings on a sca
 using the Movielens 10M [@movielens10M] dataset.  Our final model considers user, movie, genre,
 and time-based biases, and uses Funk's matrix factorization to approximate the residuals after
 these effects have been removed from the ratings. The RMSE achieved by our final model,
-as evaluated using the validation partition, is `r RMSEs[[nrow(RMSEs),3]]`.
+as evaluated using the validation partition, is **`r RMSEs[[nrow(RMSEs),3]]`**.
 
 Note that the effect of adding genre and time-based biases was small.  In particular, the genres
 of a movie can be uniquely determined from its `movieID`, and most movies have been rated many times,

@@ -23,7 +23,7 @@
 <meta name="author" content="Yin-Chi Chan" />
 
 
-<meta name="date" content="2022-04-10" />
+<meta name="date" content="2022-04-11" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -771,7 +771,7 @@ Horror
 <span id="cb10-2"><a href="introduction.html#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">cex =</span> <span class="fl">0.7</span>)</span>
 <span id="cb10-3"><a href="introduction.html#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">barplot</span>(genre_counts, <span class="at">xlab =</span> <span class="st">&#39;Number of genres&#39;</span>, <span class="at">ylab =</span> <span class="st">&#39;Count&#39;</span>, <span class="at">main =</span> <span class="st">&#39;Genres per movie&#39;</span>)</span></code></pre></div>
 <p><img src="movielens_files/figure-html/Genre-counts-hist-1.png" width="576" /></p>
-<p>Therefore it is likely better to analyze genre combinations rather than individual genres.
+<p>Therefore, it is likely better to analyze genre combinations rather than individual genres.
 The following code confirms that over half of all movies have either two or three genres:</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="introduction.html#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(genre_counts[<span class="fu">c</span>(<span class="st">&#39;2&#39;</span>,<span class="st">&#39;3&#39;</span>)])<span class="sc">/</span><span class="fu">sum</span>(genre_counts)</span></code></pre></div>
 <pre><code>## [1] 0.595434</code></pre>

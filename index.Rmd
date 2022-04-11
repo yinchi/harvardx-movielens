@@ -23,6 +23,7 @@ This book is available in both
 
 The source code in the PDF version of this report is typeset in
 [Cascadia Code](https://github.com/microsoft/cascadia-code), with code ligatures enabled.
+A similar font, [Fira Code](https://github.com/tonsky/FiraCode), is used in the HTML version.
 
 ## R setup
 

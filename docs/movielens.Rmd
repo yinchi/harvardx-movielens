@@ -23,6 +23,7 @@ This book is available in both
 
 The source code in the PDF version of this report is typeset in
 [Cascadia Code](https://github.com/microsoft/cascadia-code), with code ligatures enabled.
+A similar font, [Fira Code](https://github.com/tonsky/FiraCode), is used in the HTML version.
 
 ## R setup
 
@@ -266,7 +267,7 @@ par(cex = 0.7)
 barplot(genre_counts, xlab = 'Number of genres', ylab = 'Count', main = 'Genres per movie')
 ```
 
-Therefore it is likely better to analyze genre combinations rather than individual genres.
+Therefore, it is likely better to analyze genre combinations rather than individual genres.
 The following code confirms that over half of all movies have either two or three genres:
 ```{r Genre-counts}
 
@@ -981,7 +982,7 @@ In this project, we train a recommender system to predict movie ratings on a sca
 using the Movielens 10M [@movielens10M] dataset.  Our final model considers user, movie, genre,
 and time-based biases, and uses Funk's matrix factorization to approximate the residuals after
 these effects have been removed from the ratings. The RMSE achieved by our final model,
-as evaluated using the validation partition, is `r RMSEs[[nrow(RMSEs),3]]`.
+as evaluated using the validation partition, is **`r RMSEs[[nrow(RMSEs),3]]`**.
 
 Note that the effect of adding genre and time-based biases was small.  In particular, the genres
 of a movie can be uniquely determined from its `movieID`, and most movies have been rated many times,
@@ -1017,13 +1018,7 @@ and can instead be based on the distribution of true and predicted ratings).  It
 how such an approach would affect the accuracy of our model, as while correct binning decreases the
 error of a prediction, incorrect binning may instead increase the error of a rating.
 For example, for a prediction of 3.6 that is binned to 3.5, the error decreases from 0.1 to 0
-given a true rating of 0.5, but increases from 0.4 to 0.5 given a true rating of 4.0.
-
-```{r Run-purl, eval=FALSE, purl=FALSE}
-
-# NOTRUN: generate R script from project
-knitr::purl('_merged.Rmd')
-```
+given a true rating of 3.5, but increases from 0.4 to 0.5 given a true rating of 4.0.
 
 
 <!--chapter:end:89-conclusion.Rmd-->
