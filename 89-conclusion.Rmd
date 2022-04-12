@@ -43,3 +43,19 @@ error of a prediction, incorrect binning may instead increase the error of a rat
 For example, for a prediction of 3.6 that is binned to 3.5, the error decreases from 0.1 to 0
 given a true rating of 3.5, but increases from 0.4 to 0.5 given a true rating of 4.0.
 
+## The [`cmfrec`](https://cran.r-project.org/package=cmfrec) package and benchmarks
+
+After completing this project, I discovered another R package called `cmfrec` [@R-cmfrec]
+which can handle the size of the Movielens 10M dataset and in fact uses it for benchmarking
+[@cmfrec-benchmarks].  The best reported result among the R implementations
+has a RMSE of **0.782465**, somewhat better than that achieved here.
+
+There are two reasons why `cmfrec` outperforms our method in this project.
+First, the `cmfrec` algorithms *update* user and movie biases during each iteration, rather than the
+static method used here.  The benchmarks shown in @cmfrec-benchmarks show that such static methods
+generally perform worse than methods with iterative bias updates. Second, methods in `cmfrec` also use
+alternating least squares (ALS) by default rather than the gradient descent method used here,
+which improves numerical stability.  Another benefit of ALS is the possibility of
+massive paralellization [@Koren2009].
+
+

@@ -23,7 +23,7 @@
 <meta name="author" content="Yin-Chi Chan" />
 
 
-<meta name="date" content="2022-04-11" />
+<meta name="date" content="2022-04-12" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -186,9 +186,20 @@ div.csl-indent {
 <li class="chapter" data-level="2.7" data-path="sec-linear-models.html"><a href="sec-linear-models.html#sec-regularization"><i class="fa fa-check"></i><b>2.7</b> Adding <span class="math inline">\(L_2\)</span> regularization<span></span></a></li>
 <li class="chapter" data-level="2.8" data-path="sec-linear-models.html"><a href="sec-linear-models.html#section-summary"><i class="fa fa-check"></i><b>2.8</b> Section summary<span></span></a></li>
 </ul></li>
-<li class="chapter" data-level="3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html"><i class="fa fa-check"></i><b>3</b> Funk’s matrix factorization algorithm<span></span></a></li>
+<li class="chapter" data-level="3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html"><i class="fa fa-check"></i><b>3</b> Funk’s matrix factorization algorithm<span></span></a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#computing-the-residuals"><i class="fa fa-check"></i><b>3.1</b> Computing the residuals<span></span></a></li>
+<li class="chapter" data-level="3.2" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#the-recommenderlab-package-first-failure"><i class="fa fa-check"></i><b>3.2</b> The <span><code>recommenderlab</code></span> package: first failure<span></span></a></li>
+<li class="chapter" data-level="3.3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#the-rrecsys-package-second-failure"><i class="fa fa-check"></i><b>3.3</b> The <span><code>rrecsys</code></span> package: second failure<span></span></a></li>
+<li class="chapter" data-level="3.4" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#writing-our-own-funk-mf-algorithm"><i class="fa fa-check"></i><b>3.4</b> Writing our own Funk MF algorithm<span></span></a></li>
+<li class="chapter" data-level="3.5" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#computing-the-optimal-rank-of-matrix-uv"><i class="fa fa-check"></i><b>3.5</b> Computing the optimal rank of matrix <span class="math inline">\(UV\)</span><span></span></a></li>
+<li class="chapter" data-level="3.6" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#final-matrix-factorization-and-rmse-values"><i class="fa fa-check"></i><b>3.6</b> Final matrix factorization and RMSE values<span></span></a></li>
+</ul></li>
 <li class="chapter" data-level="4" data-path="final-validation.html"><a href="final-validation.html"><i class="fa fa-check"></i><b>4</b> Final validation<span></span></a></li>
-<li class="chapter" data-level="5" data-path="concluding-remarks.html"><a href="concluding-remarks.html"><i class="fa fa-check"></i><b>5</b> Concluding remarks<span></span></a></li>
+<li class="chapter" data-level="5" data-path="concluding-remarks.html"><a href="concluding-remarks.html"><i class="fa fa-check"></i><b>5</b> Concluding remarks<span></span></a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="concluding-remarks.html"><a href="concluding-remarks.html#the-cmfrec-package-and-benchmarks"><i class="fa fa-check"></i><b>5.1</b> The <span><code>cmfrec</code></span> package and benchmarks<span></span></a></li>
+</ul></li>
 <li><a href="references.html#references">References<span></span></a></li>
 <li class="appendix"><span><b>Appendices<span></span></b></span></li>
 <li class="chapter" data-level="A" data-path="sec-code.html"><a href="sec-code.html"><i class="fa fa-check"></i><b>A</b> Code listing: <span><code>svd.cpp</code></span><span></span></a></li>
@@ -219,7 +230,8 @@ div.csl-indent {
 using the Movielens 10M <span class="citation">(<a href="#ref-movielens10M" role="doc-biblioref">GroupLens 2009</a>)</span> dataset. Our final model considers user, movie, genre,
 and time-based biases, and uses Funk’s matrix factorization to approximate the residuals after
 these effects have been removed from the ratings. The RMSE achieved by our final model,
-as evaluated using the validation partition, is <strong>0.7939817</strong>.</p>
+as evaluated using the validation partition, is
+<strong>0.7941947</strong>.</p>
 <p>Note that the effect of adding genre and time-based biases was small. In particular, the genres
 of a movie can be uniquely determined from its <code>movieID</code>, and most movies have been rated many times,
 decreasing the importance of genre information. For the same reason, adding the year of release
@@ -235,9 +247,9 @@ prediction accuracy. Another possible feature we could have used is the age of a
 ratings, a possibly better approach may be binary: would a user like a movie they have not yet
 watched, if that movie were recommended to them? If we assume a user enjoys a movie if they
 rate it 3.5 stars or higher, then the confusion matrix as computed on the validation set is:</p>
-<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="concluding-remarks.html#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">confusionMatrix</span>(<span class="fu">as.factor</span>(<span class="fu">ifelse</span>(predicted_ratings_FINAL_VALIDATION <span class="sc">&gt;=</span> <span class="fl">3.5</span>, <span class="st">&#39;Good&#39;</span>, <span class="st">&#39;Bad&#39;</span>)),</span>
-<span id="cb45-2"><a href="concluding-remarks.html#cb45-2" aria-hidden="true" tabindex="-1"></a>                <span class="fu">as.factor</span>(<span class="fu">ifelse</span>(validation<span class="sc">$</span>rating <span class="sc">&gt;=</span> <span class="fl">3.5</span>, <span class="st">&#39;Good&#39;</span>, <span class="st">&#39;Bad&#39;</span>)),</span>
-<span id="cb45-3"><a href="concluding-remarks.html#cb45-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">positive =</span> <span class="st">&#39;Good&#39;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="concluding-remarks.html#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">confusionMatrix</span>(<span class="fu">as.factor</span>(<span class="fu">ifelse</span>(predicted_ratings_FINAL_VALIDATION <span class="sc">&gt;=</span> <span class="fl">3.5</span>, <span class="st">&#39;Good&#39;</span>, <span class="st">&#39;Bad&#39;</span>)),</span>
+<span id="cb51-2"><a href="concluding-remarks.html#cb51-2" aria-hidden="true" tabindex="-1"></a>                <span class="fu">as.factor</span>(<span class="fu">ifelse</span>(validation<span class="sc">$</span>rating <span class="sc">&gt;=</span> <span class="fl">3.5</span>, <span class="st">&#39;Good&#39;</span>, <span class="st">&#39;Bad&#39;</span>)),</span>
+<span id="cb51-3"><a href="concluding-remarks.html#cb51-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">positive =</span> <span class="st">&#39;Good&#39;</span>)</span></code></pre></div>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
@@ -275,12 +287,35 @@ how such an approach would affect the accuracy of our model, as while correct bi
 error of a prediction, incorrect binning may instead increase the error of a rating.
 For example, for a prediction of 3.6 that is binned to 3.5, the error decreases from 0.1 to 0
 given a true rating of 3.5, but increases from 0.4 to 0.5 given a true rating of 4.0.</p>
+<div id="the-cmfrec-package-and-benchmarks" class="section level2 hasAnchor" number="5.1">
+<h2><span class="header-section-number">5.1</span> The <a href="https://cran.r-project.org/package=cmfrec"><code>cmfrec</code></a> package and benchmarks<a href="concluding-remarks.html#the-cmfrec-package-and-benchmarks" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>After completing this project, I discovered another R package called <code>cmfrec</code> <span class="citation">(<a href="#ref-R-cmfrec" role="doc-biblioref">Cortes 2022a</a>)</span>
+which can handle the size of the Movielens 10M dataset and in fact uses it for benchmarking
+<span class="citation">(<a href="#ref-cmfrec-benchmarks" role="doc-biblioref">Cortes 2022b</a>)</span>. The best reported result among the R implementations
+has a RMSE of <strong>0.782465</strong>, somewhat better than that achieved here.</p>
+<p>There are two reasons why <code>cmfrec</code> outperforms our method in this project.
+Firstly, the <code>cmfrec</code> algorithms <em>update</em> user and movie biases during each iteration, rather than the
+static method used here. The benchmarks shown in <span class="citation"><a href="#ref-cmfrec-benchmarks" role="doc-biblioref">Cortes</a> (<a href="#ref-cmfrec-benchmarks" role="doc-biblioref">2022b</a>)</span> show that such static methods
+generally perform worse than methods with iterative bias updates. The methods in <code>cmfrec</code> also use
+alternating least squares (ALS) by default rather than the gradient descent method used here,
+which improves numerical stability. Another benefit of ALS is the possibility of
+massive paralellization <span class="citation">(<a href="#ref-Koren2009" role="doc-biblioref">Koren, Bell, and Volinsky 2009</a>)</span>.</p>
 
+</div>
 </div>
 <h3>References</h3>
 <div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-R-cmfrec" class="csl-entry">
+Cortes, David. 2022a. <em>Cmfrec: Collective Matrix Factorization for Recommender Systems</em>. <a href="https://cran.r-project.org/package=cmfrec">https://cran.r-project.org/package=cmfrec</a>.
+</div>
+<div id="ref-cmfrec-benchmarks" class="csl-entry">
+———. 2022b. <span>“Matrix Factorization Benchmarks.”</span> <a href="https://github.com/david-cortes/cmfrec/tree/master/benchmark">https://github.com/david-cortes/cmfrec/tree/master/benchmark</a>.
+</div>
 <div id="ref-movielens10M" class="csl-entry">
 GroupLens. 2009. <span>“MovieLens 10<span>M</span> Dataset.”</span> <a href="https://grouplens.org/datasets/movielens/10m/">https://grouplens.org/datasets/movielens/10m/</a>.
+</div>
+<div id="ref-Koren2009" class="csl-entry">
+Koren, Yehuda, Robert Bell, and Chris Volinsky. 2009. <span>“Matrix Factorization Techniques for Recommender Systems.”</span> <em>Computer</em> 42 (8): 30–37. <a href="https://doi.org/10.1109/mc.2009.263">https://doi.org/10.1109/mc.2009.263</a>.
 </div>
 </div>
             </section>

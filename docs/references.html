@@ -23,7 +23,7 @@
 <meta name="author" content="Yin-Chi Chan" />
 
 
-<meta name="date" content="2022-04-11" />
+<meta name="date" content="2022-04-12" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -186,9 +186,20 @@ div.csl-indent {
 <li class="chapter" data-level="2.7" data-path="sec-linear-models.html"><a href="sec-linear-models.html#sec-regularization"><i class="fa fa-check"></i><b>2.7</b> Adding <span class="math inline">\(L_2\)</span> regularization<span></span></a></li>
 <li class="chapter" data-level="2.8" data-path="sec-linear-models.html"><a href="sec-linear-models.html#section-summary"><i class="fa fa-check"></i><b>2.8</b> Section summary<span></span></a></li>
 </ul></li>
-<li class="chapter" data-level="3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html"><i class="fa fa-check"></i><b>3</b> Funk’s matrix factorization algorithm<span></span></a></li>
+<li class="chapter" data-level="3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html"><i class="fa fa-check"></i><b>3</b> Funk’s matrix factorization algorithm<span></span></a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#computing-the-residuals"><i class="fa fa-check"></i><b>3.1</b> Computing the residuals<span></span></a></li>
+<li class="chapter" data-level="3.2" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#the-recommenderlab-package-first-failure"><i class="fa fa-check"></i><b>3.2</b> The <span><code>recommenderlab</code></span> package: first failure<span></span></a></li>
+<li class="chapter" data-level="3.3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#the-rrecsys-package-second-failure"><i class="fa fa-check"></i><b>3.3</b> The <span><code>rrecsys</code></span> package: second failure<span></span></a></li>
+<li class="chapter" data-level="3.4" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#writing-our-own-funk-mf-algorithm"><i class="fa fa-check"></i><b>3.4</b> Writing our own Funk MF algorithm<span></span></a></li>
+<li class="chapter" data-level="3.5" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#computing-the-optimal-rank-of-matrix-uv"><i class="fa fa-check"></i><b>3.5</b> Computing the optimal rank of matrix <span class="math inline">\(UV\)</span><span></span></a></li>
+<li class="chapter" data-level="3.6" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#final-matrix-factorization-and-rmse-values"><i class="fa fa-check"></i><b>3.6</b> Final matrix factorization and RMSE values<span></span></a></li>
+</ul></li>
 <li class="chapter" data-level="4" data-path="final-validation.html"><a href="final-validation.html"><i class="fa fa-check"></i><b>4</b> Final validation<span></span></a></li>
-<li class="chapter" data-level="5" data-path="concluding-remarks.html"><a href="concluding-remarks.html"><i class="fa fa-check"></i><b>5</b> Concluding remarks<span></span></a></li>
+<li class="chapter" data-level="5" data-path="concluding-remarks.html"><a href="concluding-remarks.html"><i class="fa fa-check"></i><b>5</b> Concluding remarks<span></span></a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="concluding-remarks.html"><a href="concluding-remarks.html#the-cmfrec-package-and-benchmarks"><i class="fa fa-check"></i><b>5.1</b> The <span><code>cmfrec</code></span> package and benchmarks<span></span></a></li>
+</ul></li>
 <li><a href="references.html#references">References<span></span></a></li>
 <li class="appendix"><span><b>Appendices<span></span></b></span></li>
 <li class="chapter" data-level="A" data-path="sec-code.html"><a href="sec-code.html"><i class="fa fa-check"></i><b>A</b> Code listing: <span><code>svd.cpp</code></span><span></span></a></li>
@@ -217,10 +228,22 @@ div.csl-indent {
 <h1>References<a href="references.html#references" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <div id="refs" class="references csl-bib-body hanging-indent">
 <div class="csl-entry">
+Çoba, Ludovik. 2019. <em>Rrecsys: Environment for Evaluating Recommender Systems</em>. <a href="https://cran.r-project.org/package=rrecsys">https://cran.r-project.org/package=rrecsys</a>.
+</div>
+<div class="csl-entry">
+Cortes, David. 2022a. <em>Cmfrec: Collective Matrix Factorization for Recommender Systems</em>. <a href="https://cran.r-project.org/package=cmfrec">https://cran.r-project.org/package=cmfrec</a>.
+</div>
+<div class="csl-entry">
+———. 2022b. <span>“Matrix Factorization Benchmarks.”</span> <a href="https://github.com/david-cortes/cmfrec/tree/master/benchmark">https://github.com/david-cortes/cmfrec/tree/master/benchmark</a>.
+</div>
+<div class="csl-entry">
 Funk, Simon. 2006. <span>“Netflix Update: Try This at Home.”</span> <a href="http://sifter.org/~simon/journal/20061211.html">http://sifter.org/~simon/journal/20061211.html</a>.
 </div>
 <div class="csl-entry">
 GroupLens. 2009. <span>“MovieLens 10<span>M</span> Dataset.”</span> <a href="https://grouplens.org/datasets/movielens/10m/">https://grouplens.org/datasets/movielens/10m/</a>.
+</div>
+<div class="csl-entry">
+Hahsler, Michael. 2021. <em>Recommenderlab: Lab for Developing and Testing Recommender Algorithms</em>. <a href="https://cran.r-project.org/package=recommenderlab">https://cran.r-project.org/package=recommenderlab</a>.
 </div>
 <div class="csl-entry">
 Koren, Yehuda, Robert Bell, and Chris Volinsky. 2009. <span>“Matrix Factorization Techniques for Recommender Systems.”</span> <em>Computer</em> 42 (8): 30–37. <a href="https://doi.org/10.1109/mc.2009.263">https://doi.org/10.1109/mc.2009.263</a>.

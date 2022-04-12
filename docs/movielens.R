@@ -1,4 +1,4 @@
-## ----Load-libraries-------------------------------------------------------------------------------------------------------------------------
+## ----Load-libraries------------------------------------------------------------------------------------------------------------
 
 # R 4.1 key features: new pipe operator, \(x) as shortcut for function(x)
 # R 4.0 key features: stringsAsFactors = FALSE by default, raw character strings r"()"
@@ -13,15 +13,22 @@ library(pacman)
 p_install(Rcpp, force = F)
 p_install(RcppArmadillo, force = F)
 p_install(RcppProgress, force = F)
+p_install(recommenderlab, force = F)
+p_install(rrecsys, force = F)
 p_install(mgcv, force = F)          # provides mgcv::gam and mgcv::predict.gam
 p_install(raster, force = F)        # provides raster::clamp
 
 # Load these packages
-p_load(magrittr, knitr, kableExtra, data.table, latex2exp, patchwork,
+p_load(conflicted, magrittr, knitr, kableExtra, data.table, latex2exp, patchwork,
        tidyverse, caret, lubridate)
 
+# For functions with identical names in different packages, ensure the
+# right one is chosen
+conflict_prefer('RMSE', 'caret')
+conflict_prefer("first", "dplyr")
 
-## ----Create-edx-and-validation-sets---------------------------------------------------------------------------------------------------------
+
+## ----Create-edx-and-validation-sets--------------------------------------------------------------------------------------------
 
 ##########################################################
 # Create edx set, validation set (final hold-out test set)
@@ -93,23 +100,23 @@ validation <- validation |> mutate(timestamp = as_datetime(timestamp)) |> as.dat
 rm(dl, ratings, movies, test_index, temp, movielens, removed)
 
 
-## ----Colnames-------------------------------------------------------------------------------------------------------------------------------
+## ----Colnames------------------------------------------------------------------------------------------------------------------
 
 colnames(edx)
 
 
-## ----Earliest-half-star-rating--------------------------------------------------------------------------------------------------------------
+## ----Earliest-half-star-rating-------------------------------------------------------------------------------------------------
 
 temp <- edx[edx$rating %% 1 == 0.5]
 temp[which.min(temp$timestamp)] |> kable(align='rrrrll', booktabs = T) |> row_spec(0, bold = T)
 
 
-## ----Matrix-density-------------------------------------------------------------------------------------------------------------------------
+## ----Matrix-density------------------------------------------------------------------------------------------------------------
 
 nrow(edx) / max(edx$userId) / max(edx$movieId)
 
 
-## ----Ratings-per-movie-and-user, fig.height=3, fig.width=6----------------------------------------------------------------------------------
+## ----Ratings-per-movie-and-user, fig.height=3, fig.width=6---------------------------------------------------------------------
 
 # Count the number of ratings for each movie and rank the movies by ratings received
 ratings_per_movie <- edx |>
@@ -138,7 +145,7 @@ par(cex = 0.7)
 plot1 + plot2
 
 
-## ----Genre-summary--------------------------------------------------------------------------------------------------------------------------
+## ----Genre-summary-------------------------------------------------------------------------------------------------------------
 
 # Get the list of possible genres
 
@@ -169,19 +176,19 @@ genre_summary |> arrange(desc(`Mean Rating`)) |>
   kable(align='lrrrr', digits = c(0,0,0,2,1), booktabs = T, linesep = "") |> row_spec(0, bold = T)
 
 
-## ----Genre-counts-hist, fig.height=3, fig.width=4-------------------------------------------------------------------------------------------
+## ----Genre-counts-hist, fig.height=3, fig.width=4------------------------------------------------------------------------------
 
 genre_counts <- table(str_count(edx$genres, '\\|') + 1 - str_count(edx$genres, 'no genres'))
 par(cex = 0.7)
 barplot(genre_counts, xlab = 'Number of genres', ylab = 'Count', main = 'Genres per movie')
 
 
-## ----Genre-counts---------------------------------------------------------------------------------------------------------------------------
+## ----Genre-counts--------------------------------------------------------------------------------------------------------------
 
 sum(genre_counts[c('2','3')])/sum(genre_counts)
 
 
-## ----EDX-split, warning=FALSE---------------------------------------------------------------------------------------------------------------
+## ----EDX-split, warning=FALSE--------------------------------------------------------------------------------------------------
 
 # Test set will be 10% of edx data
 set.seed(1, sample.kind="Rounding")
@@ -202,13 +209,13 @@ edx_train <- rbind(edx_train, removed2) |> as.data.table()
 rm(removed2, temp, test_index)
 
 
-## ----Mean-only-model------------------------------------------------------------------------------------------------------------------------
+## ----Mean-only-model-----------------------------------------------------------------------------------------------------------
 
 mu <- mean(edx_test$rating)
 mu
 
 
-## ----Mean-only-RMSE-------------------------------------------------------------------------------------------------------------------------
+## ----Mean-only-RMSE------------------------------------------------------------------------------------------------------------
 
 # When multiple effects (movie, user, genre) are added in our model, some predictions
 # may fall out of the valid range.  This function fixes these predictions to the range
@@ -222,7 +229,7 @@ RMSEs <- tibble(Method = c("Mean only"),
 RMSEs[[nrow(RMSEs),'RMSE']]
 
 
-## ----Movie-effects, fig.height=3, fig.width=4-----------------------------------------------------------------------------------------------
+## ----Movie-effects, fig.height=3, fig.width=4----------------------------------------------------------------------------------
 
 # Least-squares estimate of movie effect is the mean of (rating - mu) for all
 # ratings of that movie.
@@ -236,7 +243,7 @@ hist(movie_biases$b_i, 30, xlab = TeX(r'[$\hat{b}_{1,i}$]'),
      main = TeX(r'[Histogram of $\hat{b}_{1,i}$]'))
 
 
-## ----Movie-effects-RMSE---------------------------------------------------------------------------------------------------------------------
+## ----Movie-effects-RMSE--------------------------------------------------------------------------------------------------------
 
 # Obtain predictions for the edx_test set
 predicted_ratings <- edx_test |> 
@@ -252,7 +259,7 @@ RMSEs <- RMSEs |>
 RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 
 
-## ----User-effects, fig.height=3, fig.width=4------------------------------------------------------------------------------------------------
+## ----User-effects, fig.height=3, fig.width=4-----------------------------------------------------------------------------------
 
 # Estimate user effects
 user_biases <- edx_train |> 
@@ -266,7 +273,7 @@ hist(user_biases$b_u, 30, xlab = TeX(r'[$\hat{b}_{2,u}$]'),
      main = TeX(r'[Histogram of $\hat{b}_{2,u}$]'))
 
 
-## ----User-effects-RMSE----------------------------------------------------------------------------------------------------------------------
+## ----User-effects-RMSE---------------------------------------------------------------------------------------------------------
 
 # Obtain predictions for the edx_test set
 predicted_ratings <- edx_test |> 
@@ -282,7 +289,7 @@ RMSEs <- RMSEs |>
 RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 
 
-## ----Genre-effects, fig.height=3, fig.width=4-----------------------------------------------------------------------------------------------
+## ----Genre-effects, fig.height=3, fig.width=4----------------------------------------------------------------------------------
 
 # Estimate genre effects
 genre_biases <- edx_train |> 
@@ -297,7 +304,7 @@ hist(genre_biases$b_g, 30, xlab = TeX(r'[$\hat{b}_{3,g}$]'),
      main = TeX(r'[Histogram of $\hat{b}_{3,g}$]'))
 
 
-## ----Genre-effects-RMSE---------------------------------------------------------------------------------------------------------------------
+## ----Genre-effects-RMSE--------------------------------------------------------------------------------------------------------
 
 # Obtain predictions for the edx_test set
 predicted_ratings <- edx_test |> 
@@ -314,7 +321,7 @@ RMSEs <- RMSEs |>
 RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 
 
-## ----Time-averages, fig.height=3, fig.width=4-----------------------------------------------------------------------------------------------
+## ----Time-averages, fig.height=3, fig.width=4----------------------------------------------------------------------------------
 
 # Add a week number to each rating in the edx_train and edx_test datasets
 edx_train <- edx_train |>
@@ -338,7 +345,7 @@ ggplot(data.frame(weekNum = r, f_t), aes(weekNum, f_t)) + geom_line() +
   xlab(TeX(r'[$t_{u,i}$]')) + ylab(TeX(r'[$f\,(t_{u,i}\,)$]'))
 
 
-## ----Time-effect-model-and-RMSE, fig.height=3, fig.width=4----------------------------------------------------------------------------------
+## ----Time-effect-model-and-RMSE, fig.height=3, fig.width=4---------------------------------------------------------------------
 
 # Compute the biases
 
@@ -377,7 +384,7 @@ RMSEs <- RMSEs |>
 RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 
 
-## ----Regularization, fig.height=3, fig.width=4----------------------------------------------------------------------------------------------
+## ----Regularization, fig.height=3, fig.width=4---------------------------------------------------------------------------------
 
 # List of regularization parameter values to try.
 # Since I know the approximate optimal value, I added more points
@@ -421,13 +428,13 @@ par(cex = 0.7)
 qplot(lambdas, rmses, xlab = TeX(r'($\lambda)'), ylab = 'RMSE', geom = c('point', 'line'))
 
 
-## ----Optimal-lambda-------------------------------------------------------------------------------------------------------------------------
+## ----Optimal-lambda------------------------------------------------------------------------------------------------------------
 
 lambda <- lambdas[which.min(rmses)]
 lambda
 
 
-## ----Regularized-model-and-RMSE-------------------------------------------------------------------------------------------------------------
+## ----Regularized-model-and-RMSE------------------------------------------------------------------------------------------------
 
 movie_biases_reg <-
   edx_train[, .(b_i = sum(rating - mu - f_t[weekNum])/(.N+lambda)), by = 'movieId']
@@ -461,13 +468,12 @@ RMSEs <- RMSEs |>
 RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 
 
-## ----RMSE-summary---------------------------------------------------------------------------------------------------------------------------
+## ----RMSE-summary--------------------------------------------------------------------------------------------------------------
 
 RMSEs |> kable(align='lrr', booktabs = T, linesep = "") |> row_spec(0, bold = T)
 
 
-## ----Funk-MF, fig.height=3, fig.width=3-----------------------------------------------------------------------------------------------------
-
+## ----Computing the residuals, fig.height=3, fig.width=3------------------------------------------------------------------------
 # Residuals from previous best model
 previous_train <- genre_biases_reg[
   user_biases_reg[
@@ -478,7 +484,7 @@ previous_train <- genre_biases_reg[
   mutate(pred = mu + b_i + b_u + b_g + f_t[weekNum]) |> 
   pull(pred)
 
-residuals_train <- edx_train$rating - previous_train
+residuals_train <- as.numeric(edx_train$rating - previous_train)
 
 # Test set predictions for previous best model
 previous_test <- genre_biases_reg[
@@ -497,6 +503,22 @@ Uidx[unique(edx_train$userId)] = seq(uniqueN(edx_train$userId))
 Vidx <- numeric(max(edx_train$movieId))
 Vidx[unique(edx_train$movieId)] = seq(uniqueN(edx_train$movieId))
 
+
+## ------------------------------------------------------------------------------------------------------------------------------
+mat <- new(
+  className("realRatingMatrix", "recommenderlab"),
+  data = sparseMatrix(Uidx[edx_train$userId],
+                      Vidx[edx_train$movieId],
+                      x = edx_train$rating)
+)
+object.size(mat)
+
+
+
+
+
+
+## ----Funk-MF-implemenation, fig.height=3, fig.width=3--------------------------------------------------------------------------
 # Funk matrix factorization. See C++ source for full documentation.
 # Values for regCoef and learningRate are as suggested by [Funk 2006].
 Rcpp::sourceCpp("svd.cpp")
@@ -510,6 +532,8 @@ funk <- function(Uidx, Vidx, residuals, nFeatures, steps = 500,
           nFeatures, steps, regCoef, learningRate)
 }
 
+
+## ----Funk-MF, fig.height=3, fig.width=3----------------------------------------------------------------------------------------
 # Compute RMSE values for varying number of MF features.
 set.seed(1)
 if (!file.exists('funk_tuning.Rdata')) {
@@ -545,13 +569,13 @@ par(cex = 0.7)
 qplot(nFeatures, rmses, xlab = 'rank(UV)', ylab = 'RMSE', geom = c('point','line'))
 
 
-## ----Optimal-num-features-Funk--------------------------------------------------------------------------------------------------------------
+## ----Optimal-num-features-Funk-------------------------------------------------------------------------------------------------
 
 nFeaturesOpt <- nFeatures[which.min(rmses)]
 nFeaturesOpt
 
 
-## ----Funk-MF-prediction---------------------------------------------------------------------------------------------------------------------
+## ----Funk-MF-prediction--------------------------------------------------------------------------------------------------------
 
 # Run Funk MF
 set.seed(1)
@@ -583,24 +607,24 @@ RMSEs <- RMSEs |>
 RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 
 
-## ----RMSE-summary-2-------------------------------------------------------------------------------------------------------------------------
+## ----RMSE-summary-2------------------------------------------------------------------------------------------------------------
 
 RMSEs |> kable(align='lrr', booktabs = T, linesep = "") |> row_spec(0, bold = T)
 
 
-## ----Save-model-----------------------------------------------------------------------------------------------------------------------------
+## ----Save-model----------------------------------------------------------------------------------------------------------------
 
 save(mu, movie_biases_reg, user_biases_reg, genre_biases_reg,
      f_t, Uidx, Vidx, U, V, file = 'FINAL_model.Rdata')
 
 
-## ----Num-parameters-------------------------------------------------------------------------------------------------------------------------
+## ----Num-parameters------------------------------------------------------------------------------------------------------------
 
 nrow(movie_biases_reg) + nrow(user_biases_reg) + nrow(genre_biases_reg) +
   length(f_t) + length(U) + length(V)
 
 
-## ----Final-RMSE-validation-set--------------------------------------------------------------------------------------------------------------
+## ----Final-RMSE-validation-set-------------------------------------------------------------------------------------------------
 
 predicted_ratings_FINAL_VALIDATION <- validation |>
   mutate(weekNum = (timestamp - min(timestamp)) |>
@@ -617,14 +641,14 @@ predicted_ratings_FINAL_VALIDATION <- validation |>
 RMSE(predicted_ratings_FINAL_VALIDATION, validation$rating)
 
 
-## ----Prediction-error-plot, fig.height=3, fig.width=4---------------------------------------------------------------------------------------
+## ----Prediction-error-plot, fig.height=3, fig.width=4--------------------------------------------------------------------------
 
 par(cex = 0.7)
 hist(predicted_ratings_FINAL_VALIDATION - validation$rating, 50,
      xlab = 'Prediction Error', main = '')
 
 
-## ----Absolute-error-ECDF, fig.height=3, fig.width=3-----------------------------------------------------------------------------------------
+## ----Absolute-error-ECDF, fig.height=3, fig.width=3----------------------------------------------------------------------------
 
 the_ecdf <- ecdf(predicted_ratings_FINAL_VALIDATION - validation$rating)
 par(cex = 0.7)
@@ -632,12 +656,12 @@ qplot(seq(0,4.5,0.001), the_ecdf(seq(0,4.5,0.001)),
      xlab = 'Absoulute error of prediction', ylab = 'Empirical CDF', geom = 'line')
 
 
-## ----Within-half-star-----------------------------------------------------------------------------------------------------------------------
+## ----Within-half-star----------------------------------------------------------------------------------------------------------
 
 mean(abs(predicted_ratings_FINAL_VALIDATION - validation$rating) < 0.5)
 
 
-## ----Confusion-matrix-3.5-------------------------------------------------------------------------------------------------------------------
+## ----Confusion-matrix-3.5------------------------------------------------------------------------------------------------------
 
 confusionMatrix(as.factor(ifelse(predicted_ratings_FINAL_VALIDATION >= 3.5, 'Good', 'Bad')),
                 as.factor(ifelse(validation$rating >= 3.5, 'Good', 'Bad')),
@@ -646,10 +670,10 @@ confusionMatrix(as.factor(ifelse(predicted_ratings_FINAL_VALIDATION >= 3.5, 'Goo
 
 
 
-## -------------------------------------------------------------------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------------------------------------------------------
 sessionInfo()
 
 
-## -------------------------------------------------------------------------------------------------------------------------------------------
+## ------------------------------------------------------------------------------------------------------------------------------
 tidyverse::tidyverse_conflicts()
 

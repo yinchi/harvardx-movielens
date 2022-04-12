@@ -23,7 +23,7 @@
 <meta name="author" content="Yin-Chi Chan" />
 
 
-<meta name="date" content="2022-04-11" />
+<meta name="date" content="2022-04-12" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -186,9 +186,20 @@ div.csl-indent {
 <li class="chapter" data-level="2.7" data-path="sec-linear-models.html"><a href="sec-linear-models.html#sec-regularization"><i class="fa fa-check"></i><b>2.7</b> Adding <span class="math inline">\(L_2\)</span> regularization<span></span></a></li>
 <li class="chapter" data-level="2.8" data-path="sec-linear-models.html"><a href="sec-linear-models.html#section-summary"><i class="fa fa-check"></i><b>2.8</b> Section summary<span></span></a></li>
 </ul></li>
-<li class="chapter" data-level="3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html"><i class="fa fa-check"></i><b>3</b> Funk’s matrix factorization algorithm<span></span></a></li>
+<li class="chapter" data-level="3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html"><i class="fa fa-check"></i><b>3</b> Funk’s matrix factorization algorithm<span></span></a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#computing-the-residuals"><i class="fa fa-check"></i><b>3.1</b> Computing the residuals<span></span></a></li>
+<li class="chapter" data-level="3.2" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#the-recommenderlab-package-first-failure"><i class="fa fa-check"></i><b>3.2</b> The <span><code>recommenderlab</code></span> package: first failure<span></span></a></li>
+<li class="chapter" data-level="3.3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#the-rrecsys-package-second-failure"><i class="fa fa-check"></i><b>3.3</b> The <span><code>rrecsys</code></span> package: second failure<span></span></a></li>
+<li class="chapter" data-level="3.4" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#writing-our-own-funk-mf-algorithm"><i class="fa fa-check"></i><b>3.4</b> Writing our own Funk MF algorithm<span></span></a></li>
+<li class="chapter" data-level="3.5" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#computing-the-optimal-rank-of-matrix-uv"><i class="fa fa-check"></i><b>3.5</b> Computing the optimal rank of matrix <span class="math inline">\(UV\)</span><span></span></a></li>
+<li class="chapter" data-level="3.6" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#final-matrix-factorization-and-rmse-values"><i class="fa fa-check"></i><b>3.6</b> Final matrix factorization and RMSE values<span></span></a></li>
+</ul></li>
 <li class="chapter" data-level="4" data-path="final-validation.html"><a href="final-validation.html"><i class="fa fa-check"></i><b>4</b> Final validation<span></span></a></li>
-<li class="chapter" data-level="5" data-path="concluding-remarks.html"><a href="concluding-remarks.html"><i class="fa fa-check"></i><b>5</b> Concluding remarks<span></span></a></li>
+<li class="chapter" data-level="5" data-path="concluding-remarks.html"><a href="concluding-remarks.html"><i class="fa fa-check"></i><b>5</b> Concluding remarks<span></span></a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="concluding-remarks.html"><a href="concluding-remarks.html#the-cmfrec-package-and-benchmarks"><i class="fa fa-check"></i><b>5.1</b> The <span><code>cmfrec</code></span> package and benchmarks<span></span></a></li>
+</ul></li>
 <li><a href="references.html#references">References<span></span></a></li>
 <li class="appendix"><span><b>Appendices<span></span></b></span></li>
 <li class="chapter" data-level="A" data-path="sec-code.html"><a href="sec-code.html"><i class="fa fa-check"></i><b>A</b> Code listing: <span><code>svd.cpp</code></span><span></span></a></li>
@@ -215,90 +226,90 @@ div.csl-indent {
             <section class="normal" id="section-">
 <div id="sec-code" class="section level1 hasAnchor" number="6">
 <h1><span class="header-section-number">A</span> Code listing: <a href="https://github.com/yinchi/harvardx-movielens/blob/main/svd.cpp"><code>svd.cpp</code></a><a href="sec-code.html#sec-code" class="anchor-section" aria-label="Anchor link to header"></a></h1>
-<div class="sourceCode" id="cb47"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb47-1"><a href="sec-code.html#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co">// [[Rcpp::depends(RcppArmadillo)]]</span></span>
-<span id="cb47-2"><a href="sec-code.html#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="co">// [[Rcpp::depends(RcppProgress)]]</span></span>
-<span id="cb47-3"><a href="sec-code.html#cb47-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-4"><a href="sec-code.html#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;RcppArmadillo.h&gt;</span></span>
-<span id="cb47-5"><a href="sec-code.html#cb47-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;progress.hpp&gt;</span></span>
-<span id="cb47-6"><a href="sec-code.html#cb47-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;progress_bar.hpp&gt;</span></span>
-<span id="cb47-7"><a href="sec-code.html#cb47-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-8"><a href="sec-code.html#cb47-8" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
-<span id="cb47-9"><a href="sec-code.html#cb47-9" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@brief</span><span class="co"> Simon Funk&#39;s Matrix Factorization.</span></span>
-<span id="cb47-10"><a href="sec-code.html#cb47-10" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
-<span id="cb47-11"><a href="sec-code.html#cb47-11" aria-hidden="true" tabindex="-1"></a><span class="co"> * Approximate Y as U*V^T where U and V each have </span><span class="an">@p</span><span class="co"> </span><span class="cv">nFeatures</span><span class="co"> columns.</span></span>
-<span id="cb47-12"><a href="sec-code.html#cb47-12" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
-<span id="cb47-13"><a href="sec-code.html#cb47-13" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param</span><span class="co"> </span><span class="cv">coo_i</span><span class="co"> User indexes of the rating matrix Y.</span></span>
-<span id="cb47-14"><a href="sec-code.html#cb47-14" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param</span><span class="co"> </span><span class="cv">coo_j</span><span class="co"> Movie indexes of the rating matrix Y.</span></span>
-<span id="cb47-15"><a href="sec-code.html#cb47-15" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param</span><span class="co"> </span><span class="cv">coo_x</span><span class="co"> Ratings in the rating matrix Y.  Note Y is a sparse matrix, where</span></span>
-<span id="cb47-16"><a href="sec-code.html#cb47-16" aria-hidden="true" tabindex="-1"></a><span class="co"> *     a zero represents no rating given.</span></span>
-<span id="cb47-17"><a href="sec-code.html#cb47-17" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param</span><span class="co"> </span><span class="cv">nFeatures</span><span class="co"> the number of features to use, i.e. the number of columns in U and V.</span></span>
-<span id="cb47-18"><a href="sec-code.html#cb47-18" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@steps</span><span class="co"> Number of epochs. Each epoch refines the U and V estimates by iterating</span></span>
-<span id="cb47-19"><a href="sec-code.html#cb47-19" aria-hidden="true" tabindex="-1"></a><span class="co"> *     through all known ratings once.</span></span>
-<span id="cb47-20"><a href="sec-code.html#cb47-20" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@regCoef</span><span class="co"> Regularization coefficient, prevents overfitting.</span></span>
-<span id="cb47-21"><a href="sec-code.html#cb47-21" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@learningRate</span><span class="co"> learning rate of gradient descent.</span></span>
-<span id="cb47-22"><a href="sec-code.html#cb47-22" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span></span>
-<span id="cb47-23"><a href="sec-code.html#cb47-23" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@return</span><span class="co"> An </span><span class="an">@c</span><span class="co"> </span><span class="cv">RCpp::list</span><span class="co"> object containing U and V.</span></span>
-<span id="cb47-24"><a href="sec-code.html#cb47-24" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span></span>
-<span id="cb47-25"><a href="sec-code.html#cb47-25" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@see</span><span class="co"> https://sifter.org/~simon/journal/20061211.html</span></span>
-<span id="cb47-26"><a href="sec-code.html#cb47-26" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@see</span><span class="co"> https://github.com/ludovikcoba/rrecsys/</span></span>
-<span id="cb47-27"><a href="sec-code.html#cb47-27" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
-<span id="cb47-28"><a href="sec-code.html#cb47-28" aria-hidden="true" tabindex="-1"></a><span class="co">// [[Rcpp::export]]</span></span>
-<span id="cb47-29"><a href="sec-code.html#cb47-29" aria-hidden="true" tabindex="-1"></a>Rcpp<span class="op">::</span>List funkCpp<span class="op">(</span></span>
-<span id="cb47-30"><a href="sec-code.html#cb47-30" aria-hidden="true" tabindex="-1"></a>    Rcpp<span class="op">::</span>NumericVector coo_i<span class="op">,</span></span>
-<span id="cb47-31"><a href="sec-code.html#cb47-31" aria-hidden="true" tabindex="-1"></a>    Rcpp<span class="op">::</span>NumericVector coo_j<span class="op">,</span></span>
-<span id="cb47-32"><a href="sec-code.html#cb47-32" aria-hidden="true" tabindex="-1"></a>    Rcpp<span class="op">::</span>NumericVector coo_x<span class="op">,</span></span>
-<span id="cb47-33"><a href="sec-code.html#cb47-33" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> nFeatures<span class="op">,</span></span>
-<span id="cb47-34"><a href="sec-code.html#cb47-34" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> steps<span class="op">,</span></span>
-<span id="cb47-35"><a href="sec-code.html#cb47-35" aria-hidden="true" tabindex="-1"></a>    <span class="dt">double</span> regCoef<span class="op">,</span></span>
-<span id="cb47-36"><a href="sec-code.html#cb47-36" aria-hidden="true" tabindex="-1"></a>    <span class="dt">double</span> learningRate</span>
-<span id="cb47-37"><a href="sec-code.html#cb47-37" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span>
-<span id="cb47-38"><a href="sec-code.html#cb47-38" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb47-39"><a href="sec-code.html#cb47-39" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> nUsers <span class="op">=</span> Rcpp<span class="op">::</span>max<span class="op">(</span>coo_i<span class="op">)+</span><span class="dv">1</span><span class="op">;</span> <span class="co">// number of users</span></span>
-<span id="cb47-40"><a href="sec-code.html#cb47-40" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> nItems <span class="op">=</span> Rcpp<span class="op">::</span>max<span class="op">(</span>coo_j<span class="op">)+</span><span class="dv">1</span><span class="op">;</span> <span class="co">// number of movies (items)</span></span>
-<span id="cb47-41"><a href="sec-code.html#cb47-41" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> nRatings <span class="op">=</span> coo_x<span class="op">.</span>size<span class="op">();</span>     <span class="co">// number of known ratings</span></span>
-<span id="cb47-42"><a href="sec-code.html#cb47-42" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb47-43"><a href="sec-code.html#cb47-43" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Seed U and V with random values</span></span>
-<span id="cb47-44"><a href="sec-code.html#cb47-44" aria-hidden="true" tabindex="-1"></a>  arma<span class="op">::</span>mat U<span class="op">(</span>nUsers<span class="op">,</span> nFeatures<span class="op">,</span> arma<span class="op">::</span>fill<span class="op">::</span>randu<span class="op">);</span></span>
-<span id="cb47-45"><a href="sec-code.html#cb47-45" aria-hidden="true" tabindex="-1"></a>  arma<span class="op">::</span>mat V<span class="op">(</span>nItems<span class="op">,</span> nFeatures<span class="op">,</span> arma<span class="op">::</span>fill<span class="op">::</span>randu<span class="op">);</span></span>
-<span id="cb47-46"><a href="sec-code.html#cb47-46" aria-hidden="true" tabindex="-1"></a>  U <span class="op">*=</span> sqrt<span class="op">(</span><span class="fl">0.5</span><span class="op">/</span>nFeatures<span class="op">);</span></span>
-<span id="cb47-47"><a href="sec-code.html#cb47-47" aria-hidden="true" tabindex="-1"></a>  V <span class="op">*=</span> sqrt<span class="op">(</span><span class="fl">0.5</span><span class="op">/</span>nFeatures<span class="op">);</span></span>
-<span id="cb47-48"><a href="sec-code.html#cb47-48" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb47-49"><a href="sec-code.html#cb47-49" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Diagnostics logging</span></span>
-<span id="cb47-50"><a href="sec-code.html#cb47-50" aria-hidden="true" tabindex="-1"></a>  Rcpp<span class="op">::</span>Rcerr <span class="op">&lt;&lt;</span> <span class="st">&quot;nUsers:&quot;</span> <span class="op">&lt;&lt;</span> nUsers <span class="op">&lt;&lt;</span> <span class="st">&quot;, &quot;</span><span class="op">;</span></span>
-<span id="cb47-51"><a href="sec-code.html#cb47-51" aria-hidden="true" tabindex="-1"></a>  Rcpp<span class="op">::</span>Rcerr <span class="op">&lt;&lt;</span> <span class="st">&quot;nItems:&quot;</span> <span class="op">&lt;&lt;</span> nItems <span class="op">&lt;&lt;</span> <span class="st">&quot;, &quot;</span><span class="op">;</span></span>
-<span id="cb47-52"><a href="sec-code.html#cb47-52" aria-hidden="true" tabindex="-1"></a>  Rcpp<span class="op">::</span>Rcerr <span class="op">&lt;&lt;</span> <span class="st">&quot;nRatings:&quot;</span> <span class="op">&lt;&lt;</span> nRatings <span class="op">&lt;&lt;</span> <span class="bu">std::</span>endl<span class="op">;</span></span>
-<span id="cb47-53"><a href="sec-code.html#cb47-53" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb47-54"><a href="sec-code.html#cb47-54" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Progress bar for R console</span></span>
-<span id="cb47-55"><a href="sec-code.html#cb47-55" aria-hidden="true" tabindex="-1"></a>  Progress p<span class="op">(</span>steps<span class="op">,</span> <span class="kw">true</span><span class="op">);</span></span>
-<span id="cb47-56"><a href="sec-code.html#cb47-56" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb47-57"><a href="sec-code.html#cb47-57" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Main loop</span></span>
-<span id="cb47-58"><a href="sec-code.html#cb47-58" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> ss <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> ss <span class="op">&lt;</span> steps<span class="op">;</span> ss<span class="op">++)</span> <span class="op">{</span></span>
-<span id="cb47-59"><a href="sec-code.html#cb47-59" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb47-60"><a href="sec-code.html#cb47-60" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Kill program if user has requested it (Ctrl+C in most consoles)</span></span>
-<span id="cb47-61"><a href="sec-code.html#cb47-61" aria-hidden="true" tabindex="-1"></a>    Rcpp<span class="op">::</span>checkUserInterrupt<span class="op">();</span></span>
-<span id="cb47-62"><a href="sec-code.html#cb47-62" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb47-63"><a href="sec-code.html#cb47-63" aria-hidden="true" tabindex="-1"></a>    <span class="co">// iterate over known ratings</span></span>
-<span id="cb47-64"><a href="sec-code.html#cb47-64" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> r <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> r <span class="op">&lt;</span> nRatings<span class="op">;</span> r<span class="op">++)</span> <span class="op">{</span></span>
-<span id="cb47-65"><a href="sec-code.html#cb47-65" aria-hidden="true" tabindex="-1"></a>      <span class="dt">int</span> i <span class="op">=</span> coo_i<span class="op">[</span>r<span class="op">];</span> <span class="co">// user index</span></span>
-<span id="cb47-66"><a href="sec-code.html#cb47-66" aria-hidden="true" tabindex="-1"></a>      <span class="dt">int</span> j <span class="op">=</span> coo_j<span class="op">[</span>r<span class="op">];</span> <span class="co">// item index</span></span>
-<span id="cb47-67"><a href="sec-code.html#cb47-67" aria-hidden="true" tabindex="-1"></a>      <span class="dt">double</span> err <span class="op">=</span> coo_x<span class="op">[</span>r<span class="op">]</span> <span class="op">-</span> arma<span class="op">::</span>dot<span class="op">(</span>U<span class="op">.</span>row<span class="op">(</span>i<span class="op">),</span> V<span class="op">.</span>row<span class="op">(</span>j<span class="op">));</span> <span class="co">// prediction error</span></span>
-<span id="cb47-68"><a href="sec-code.html#cb47-68" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb47-69"><a href="sec-code.html#cb47-69" aria-hidden="true" tabindex="-1"></a>      <span class="co">// update features</span></span>
-<span id="cb47-70"><a href="sec-code.html#cb47-70" aria-hidden="true" tabindex="-1"></a>      U<span class="op">.</span>row<span class="op">(</span>i<span class="op">)</span> <span class="op">+=</span> learningRate <span class="op">*</span> <span class="op">(</span>err<span class="op">*</span>V<span class="op">.</span>row<span class="op">(</span>j<span class="op">)</span> <span class="op">-</span> regCoef<span class="op">*</span>U<span class="op">.</span>row<span class="op">(</span>i<span class="op">));</span></span>
-<span id="cb47-71"><a href="sec-code.html#cb47-71" aria-hidden="true" tabindex="-1"></a>      V<span class="op">.</span>row<span class="op">(</span>j<span class="op">)</span> <span class="op">+=</span> learningRate <span class="op">*</span> <span class="op">(</span>err<span class="op">*</span>U<span class="op">.</span>row<span class="op">(</span>i<span class="op">)</span> <span class="op">-</span> regCoef<span class="op">*</span>V<span class="op">.</span>row<span class="op">(</span>j<span class="op">));</span></span>
-<span id="cb47-72"><a href="sec-code.html#cb47-72" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb47-73"><a href="sec-code.html#cb47-73" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb47-74"><a href="sec-code.html#cb47-74" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Report progress</span></span>
-<span id="cb47-75"><a href="sec-code.html#cb47-75" aria-hidden="true" tabindex="-1"></a>    p<span class="op">.</span>increment<span class="op">();</span></span>
-<span id="cb47-76"><a href="sec-code.html#cb47-76" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb47-77"><a href="sec-code.html#cb47-77" aria-hidden="true" tabindex="-1"></a>  Rcpp<span class="op">::</span>Rcerr <span class="op">&lt;&lt;</span> <span class="bu">std::</span>endl<span class="op">;</span> <span class="co">// add gap between progress bars of multiple runs</span></span>
-<span id="cb47-78"><a href="sec-code.html#cb47-78" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb47-79"><a href="sec-code.html#cb47-79" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Return list(U,V)</span></span>
-<span id="cb47-80"><a href="sec-code.html#cb47-80" aria-hidden="true" tabindex="-1"></a>  Rcpp<span class="op">::</span>List ret<span class="op">;</span></span>
-<span id="cb47-81"><a href="sec-code.html#cb47-81" aria-hidden="true" tabindex="-1"></a>  ret<span class="op">[</span><span class="st">&quot;U&quot;</span><span class="op">]</span> <span class="op">=</span> U<span class="op">;</span></span>
-<span id="cb47-82"><a href="sec-code.html#cb47-82" aria-hidden="true" tabindex="-1"></a>  ret<span class="op">[</span><span class="st">&quot;V&quot;</span><span class="op">]</span> <span class="op">=</span> V<span class="op">;</span></span>
-<span id="cb47-83"><a href="sec-code.html#cb47-83" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> ret<span class="op">;</span></span>
-<span id="cb47-84"><a href="sec-code.html#cb47-84" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb53"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb53-1"><a href="sec-code.html#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co">// [[Rcpp::depends(RcppArmadillo)]]</span></span>
+<span id="cb53-2"><a href="sec-code.html#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="co">// [[Rcpp::depends(RcppProgress)]]</span></span>
+<span id="cb53-3"><a href="sec-code.html#cb53-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-4"><a href="sec-code.html#cb53-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;RcppArmadillo.h&gt;</span></span>
+<span id="cb53-5"><a href="sec-code.html#cb53-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;progress.hpp&gt;</span></span>
+<span id="cb53-6"><a href="sec-code.html#cb53-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;progress_bar.hpp&gt;</span></span>
+<span id="cb53-7"><a href="sec-code.html#cb53-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-8"><a href="sec-code.html#cb53-8" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb53-9"><a href="sec-code.html#cb53-9" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@brief</span><span class="co"> Simon Funk&#39;s Matrix Factorization.</span></span>
+<span id="cb53-10"><a href="sec-code.html#cb53-10" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb53-11"><a href="sec-code.html#cb53-11" aria-hidden="true" tabindex="-1"></a><span class="co"> * Approximate Y as U*V^T where U and V each have </span><span class="an">@p</span><span class="co"> </span><span class="cv">nFeatures</span><span class="co"> columns.</span></span>
+<span id="cb53-12"><a href="sec-code.html#cb53-12" aria-hidden="true" tabindex="-1"></a><span class="co"> *</span></span>
+<span id="cb53-13"><a href="sec-code.html#cb53-13" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param</span><span class="co"> </span><span class="cv">coo_i</span><span class="co"> User indexes of the rating matrix Y.</span></span>
+<span id="cb53-14"><a href="sec-code.html#cb53-14" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param</span><span class="co"> </span><span class="cv">coo_j</span><span class="co"> Movie indexes of the rating matrix Y.</span></span>
+<span id="cb53-15"><a href="sec-code.html#cb53-15" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param</span><span class="co"> </span><span class="cv">coo_x</span><span class="co"> Ratings in the rating matrix Y.  Note Y is a sparse matrix, where</span></span>
+<span id="cb53-16"><a href="sec-code.html#cb53-16" aria-hidden="true" tabindex="-1"></a><span class="co"> *     a zero represents no rating given.</span></span>
+<span id="cb53-17"><a href="sec-code.html#cb53-17" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@param</span><span class="co"> </span><span class="cv">nFeatures</span><span class="co"> the number of features to use, i.e. the number of columns in U and V.</span></span>
+<span id="cb53-18"><a href="sec-code.html#cb53-18" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@steps</span><span class="co"> Number of epochs. Each epoch refines the U and V estimates by iterating</span></span>
+<span id="cb53-19"><a href="sec-code.html#cb53-19" aria-hidden="true" tabindex="-1"></a><span class="co"> *     through all known ratings once.</span></span>
+<span id="cb53-20"><a href="sec-code.html#cb53-20" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@regCoef</span><span class="co"> Regularization coefficient, prevents overfitting.</span></span>
+<span id="cb53-21"><a href="sec-code.html#cb53-21" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@learningRate</span><span class="co"> learning rate of gradient descent.</span></span>
+<span id="cb53-22"><a href="sec-code.html#cb53-22" aria-hidden="true" tabindex="-1"></a><span class="co"> *  </span></span>
+<span id="cb53-23"><a href="sec-code.html#cb53-23" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@return</span><span class="co"> An </span><span class="an">@c</span><span class="co"> </span><span class="cv">RCpp::list</span><span class="co"> object containing U and V.</span></span>
+<span id="cb53-24"><a href="sec-code.html#cb53-24" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span></span>
+<span id="cb53-25"><a href="sec-code.html#cb53-25" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@see</span><span class="co"> https://sifter.org/~simon/journal/20061211.html</span></span>
+<span id="cb53-26"><a href="sec-code.html#cb53-26" aria-hidden="true" tabindex="-1"></a><span class="co"> * </span><span class="an">@see</span><span class="co"> https://github.com/ludovikcoba/rrecsys/</span></span>
+<span id="cb53-27"><a href="sec-code.html#cb53-27" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb53-28"><a href="sec-code.html#cb53-28" aria-hidden="true" tabindex="-1"></a><span class="co">// [[Rcpp::export]]</span></span>
+<span id="cb53-29"><a href="sec-code.html#cb53-29" aria-hidden="true" tabindex="-1"></a>Rcpp<span class="op">::</span>List funkCpp<span class="op">(</span></span>
+<span id="cb53-30"><a href="sec-code.html#cb53-30" aria-hidden="true" tabindex="-1"></a>    Rcpp<span class="op">::</span>NumericVector coo_i<span class="op">,</span></span>
+<span id="cb53-31"><a href="sec-code.html#cb53-31" aria-hidden="true" tabindex="-1"></a>    Rcpp<span class="op">::</span>NumericVector coo_j<span class="op">,</span></span>
+<span id="cb53-32"><a href="sec-code.html#cb53-32" aria-hidden="true" tabindex="-1"></a>    Rcpp<span class="op">::</span>NumericVector coo_x<span class="op">,</span></span>
+<span id="cb53-33"><a href="sec-code.html#cb53-33" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> nFeatures<span class="op">,</span></span>
+<span id="cb53-34"><a href="sec-code.html#cb53-34" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> steps<span class="op">,</span></span>
+<span id="cb53-35"><a href="sec-code.html#cb53-35" aria-hidden="true" tabindex="-1"></a>    <span class="dt">double</span> regCoef<span class="op">,</span></span>
+<span id="cb53-36"><a href="sec-code.html#cb53-36" aria-hidden="true" tabindex="-1"></a>    <span class="dt">double</span> learningRate</span>
+<span id="cb53-37"><a href="sec-code.html#cb53-37" aria-hidden="true" tabindex="-1"></a><span class="op">)</span></span>
+<span id="cb53-38"><a href="sec-code.html#cb53-38" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb53-39"><a href="sec-code.html#cb53-39" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> nUsers <span class="op">=</span> Rcpp<span class="op">::</span>max<span class="op">(</span>coo_i<span class="op">)+</span><span class="dv">1</span><span class="op">;</span> <span class="co">// number of users</span></span>
+<span id="cb53-40"><a href="sec-code.html#cb53-40" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> nItems <span class="op">=</span> Rcpp<span class="op">::</span>max<span class="op">(</span>coo_j<span class="op">)+</span><span class="dv">1</span><span class="op">;</span> <span class="co">// number of movies (items)</span></span>
+<span id="cb53-41"><a href="sec-code.html#cb53-41" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> nRatings <span class="op">=</span> coo_x<span class="op">.</span>size<span class="op">();</span>     <span class="co">// number of known ratings</span></span>
+<span id="cb53-42"><a href="sec-code.html#cb53-42" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb53-43"><a href="sec-code.html#cb53-43" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Seed U and V with random values</span></span>
+<span id="cb53-44"><a href="sec-code.html#cb53-44" aria-hidden="true" tabindex="-1"></a>  arma<span class="op">::</span>mat U<span class="op">(</span>nUsers<span class="op">,</span> nFeatures<span class="op">,</span> arma<span class="op">::</span>fill<span class="op">::</span>randu<span class="op">);</span></span>
+<span id="cb53-45"><a href="sec-code.html#cb53-45" aria-hidden="true" tabindex="-1"></a>  arma<span class="op">::</span>mat V<span class="op">(</span>nItems<span class="op">,</span> nFeatures<span class="op">,</span> arma<span class="op">::</span>fill<span class="op">::</span>randu<span class="op">);</span></span>
+<span id="cb53-46"><a href="sec-code.html#cb53-46" aria-hidden="true" tabindex="-1"></a>  U <span class="op">*=</span> sqrt<span class="op">(</span><span class="fl">0.5</span><span class="op">/</span>nFeatures<span class="op">);</span></span>
+<span id="cb53-47"><a href="sec-code.html#cb53-47" aria-hidden="true" tabindex="-1"></a>  V <span class="op">*=</span> sqrt<span class="op">(</span><span class="fl">0.5</span><span class="op">/</span>nFeatures<span class="op">);</span></span>
+<span id="cb53-48"><a href="sec-code.html#cb53-48" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb53-49"><a href="sec-code.html#cb53-49" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Diagnostics logging</span></span>
+<span id="cb53-50"><a href="sec-code.html#cb53-50" aria-hidden="true" tabindex="-1"></a>  Rcpp<span class="op">::</span>Rcerr <span class="op">&lt;&lt;</span> <span class="st">&quot;nUsers:&quot;</span> <span class="op">&lt;&lt;</span> nUsers <span class="op">&lt;&lt;</span> <span class="st">&quot;, &quot;</span><span class="op">;</span></span>
+<span id="cb53-51"><a href="sec-code.html#cb53-51" aria-hidden="true" tabindex="-1"></a>  Rcpp<span class="op">::</span>Rcerr <span class="op">&lt;&lt;</span> <span class="st">&quot;nItems:&quot;</span> <span class="op">&lt;&lt;</span> nItems <span class="op">&lt;&lt;</span> <span class="st">&quot;, &quot;</span><span class="op">;</span></span>
+<span id="cb53-52"><a href="sec-code.html#cb53-52" aria-hidden="true" tabindex="-1"></a>  Rcpp<span class="op">::</span>Rcerr <span class="op">&lt;&lt;</span> <span class="st">&quot;nRatings:&quot;</span> <span class="op">&lt;&lt;</span> nRatings <span class="op">&lt;&lt;</span> <span class="bu">std::</span>endl<span class="op">;</span></span>
+<span id="cb53-53"><a href="sec-code.html#cb53-53" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb53-54"><a href="sec-code.html#cb53-54" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Progress bar for R console</span></span>
+<span id="cb53-55"><a href="sec-code.html#cb53-55" aria-hidden="true" tabindex="-1"></a>  Progress p<span class="op">(</span>steps<span class="op">,</span> <span class="kw">true</span><span class="op">);</span></span>
+<span id="cb53-56"><a href="sec-code.html#cb53-56" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb53-57"><a href="sec-code.html#cb53-57" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Main loop</span></span>
+<span id="cb53-58"><a href="sec-code.html#cb53-58" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> ss <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> ss <span class="op">&lt;</span> steps<span class="op">;</span> ss<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb53-59"><a href="sec-code.html#cb53-59" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb53-60"><a href="sec-code.html#cb53-60" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Kill program if user has requested it (Ctrl+C in most consoles)</span></span>
+<span id="cb53-61"><a href="sec-code.html#cb53-61" aria-hidden="true" tabindex="-1"></a>    Rcpp<span class="op">::</span>checkUserInterrupt<span class="op">();</span></span>
+<span id="cb53-62"><a href="sec-code.html#cb53-62" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb53-63"><a href="sec-code.html#cb53-63" aria-hidden="true" tabindex="-1"></a>    <span class="co">// iterate over known ratings</span></span>
+<span id="cb53-64"><a href="sec-code.html#cb53-64" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> r <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> r <span class="op">&lt;</span> nRatings<span class="op">;</span> r<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb53-65"><a href="sec-code.html#cb53-65" aria-hidden="true" tabindex="-1"></a>      <span class="dt">int</span> i <span class="op">=</span> coo_i<span class="op">[</span>r<span class="op">];</span> <span class="co">// user index</span></span>
+<span id="cb53-66"><a href="sec-code.html#cb53-66" aria-hidden="true" tabindex="-1"></a>      <span class="dt">int</span> j <span class="op">=</span> coo_j<span class="op">[</span>r<span class="op">];</span> <span class="co">// item index</span></span>
+<span id="cb53-67"><a href="sec-code.html#cb53-67" aria-hidden="true" tabindex="-1"></a>      <span class="dt">double</span> err <span class="op">=</span> coo_x<span class="op">[</span>r<span class="op">]</span> <span class="op">-</span> arma<span class="op">::</span>dot<span class="op">(</span>U<span class="op">.</span>row<span class="op">(</span>i<span class="op">),</span> V<span class="op">.</span>row<span class="op">(</span>j<span class="op">));</span> <span class="co">// prediction error</span></span>
+<span id="cb53-68"><a href="sec-code.html#cb53-68" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb53-69"><a href="sec-code.html#cb53-69" aria-hidden="true" tabindex="-1"></a>      <span class="co">// update features</span></span>
+<span id="cb53-70"><a href="sec-code.html#cb53-70" aria-hidden="true" tabindex="-1"></a>      U<span class="op">.</span>row<span class="op">(</span>i<span class="op">)</span> <span class="op">+=</span> learningRate <span class="op">*</span> <span class="op">(</span>err<span class="op">*</span>V<span class="op">.</span>row<span class="op">(</span>j<span class="op">)</span> <span class="op">-</span> regCoef<span class="op">*</span>U<span class="op">.</span>row<span class="op">(</span>i<span class="op">));</span></span>
+<span id="cb53-71"><a href="sec-code.html#cb53-71" aria-hidden="true" tabindex="-1"></a>      V<span class="op">.</span>row<span class="op">(</span>j<span class="op">)</span> <span class="op">+=</span> learningRate <span class="op">*</span> <span class="op">(</span>err<span class="op">*</span>U<span class="op">.</span>row<span class="op">(</span>i<span class="op">)</span> <span class="op">-</span> regCoef<span class="op">*</span>V<span class="op">.</span>row<span class="op">(</span>j<span class="op">));</span></span>
+<span id="cb53-72"><a href="sec-code.html#cb53-72" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb53-73"><a href="sec-code.html#cb53-73" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb53-74"><a href="sec-code.html#cb53-74" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Report progress</span></span>
+<span id="cb53-75"><a href="sec-code.html#cb53-75" aria-hidden="true" tabindex="-1"></a>    p<span class="op">.</span>increment<span class="op">();</span></span>
+<span id="cb53-76"><a href="sec-code.html#cb53-76" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb53-77"><a href="sec-code.html#cb53-77" aria-hidden="true" tabindex="-1"></a>  Rcpp<span class="op">::</span>Rcerr <span class="op">&lt;&lt;</span> <span class="bu">std::</span>endl<span class="op">;</span> <span class="co">// add gap between progress bars of multiple runs</span></span>
+<span id="cb53-78"><a href="sec-code.html#cb53-78" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb53-79"><a href="sec-code.html#cb53-79" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Return list(U,V)</span></span>
+<span id="cb53-80"><a href="sec-code.html#cb53-80" aria-hidden="true" tabindex="-1"></a>  Rcpp<span class="op">::</span>List ret<span class="op">;</span></span>
+<span id="cb53-81"><a href="sec-code.html#cb53-81" aria-hidden="true" tabindex="-1"></a>  ret<span class="op">[</span><span class="st">&quot;U&quot;</span><span class="op">]</span> <span class="op">=</span> U<span class="op">;</span></span>
+<span id="cb53-82"><a href="sec-code.html#cb53-82" aria-hidden="true" tabindex="-1"></a>  ret<span class="op">[</span><span class="st">&quot;V&quot;</span><span class="op">]</span> <span class="op">=</span> V<span class="op">;</span></span>
+<span id="cb53-83"><a href="sec-code.html#cb53-83" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> ret<span class="op">;</span></span>
+<span id="cb53-84"><a href="sec-code.html#cb53-84" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 
 </div>
             </section>

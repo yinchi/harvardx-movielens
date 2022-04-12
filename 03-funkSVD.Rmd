@@ -29,8 +29,12 @@ In this report, these are set to 0.02 and 0.001, respectively, in accordance to 
 @Funk2006. The code for the Funk MF implementation used in this report can be found in
 Appendix \@ref(sec-code).
 
-```{r Funk-MF, fig.height=3, fig.width=3}
+## Computing the residuals
 
+The following code computes $Y_{u,i} - P_{u,i}$ for all $(u,i)$ in the training set,
+and creates an index mapping eliminating users and movies with no rating pairs.
+
+```{r Computing the residuals, fig.height=3, fig.width=3}
 # Residuals from previous best model
 previous_train <- genre_biases_reg[
   user_biases_reg[
@@ -41,7 +45,7 @@ previous_train <- genre_biases_reg[
   mutate(pred = mu + b_i + b_u + b_g + f_t[weekNum]) |> 
   pull(pred)
 
-residuals_train <- edx_train$rating - previous_train
+residuals_train <- as.numeric(edx_train$rating - previous_train)
 
 # Test set predictions for previous best model
 previous_test <- genre_biases_reg[
@@ -59,7 +63,73 @@ Uidx[unique(edx_train$userId)] = seq(uniqueN(edx_train$userId))
 
 Vidx <- numeric(max(edx_train$movieId))
 Vidx[unique(edx_train$movieId)] = seq(uniqueN(edx_train$movieId))
+```
 
+## The [`recommenderlab`](https://cran.r-project.org/package=recommenderlab) package: first failure
+
+The `recommenderlab` package [@R-recommenderlab] contains an `funkSVD` function that accepts a
+`realRatingMatrix` object as input.  Note that this object is expected to contain the actual
+ratings rather than a residual matrix.
+This object is easy to create and does not consume too much memory:
+
+```{r}
+mat <- new(
+  className("realRatingMatrix", "recommenderlab"),
+  data = sparseMatrix(Uidx[edx_train$userId],
+                      Vidx[edx_train$movieId],
+                      x = edx_train$rating)
+)
+object.size(mat)
+```
+
+However, attempting to factor this matrix as follows returns an error. Note that this
+is just one of several memory allocation requests; there is 32GB of RAM on the laptop used to
+run this project code.  This suggests that `recommenderlab` uses dense matrices in its
+internal functions.
+
+```{r recommnder-lab-fail, eval=FALSE, purl=FALSE}
+
+# NOT RUN
+
+# returns:
+#   <simpleError: cannot allocate vector of size 5.6 Gb>
+
+tryCatch(recommenderlab::funkSVD(mat), error = print)
+```
+
+## The [`rrecsys`](https://cran.r-project.org/package=rrecsys) package: second failure
+
+Like `recommenderlab`, the `rrecsys` package [@R-rrecsys]  also contains an implementation of the
+Funk MF algorithm, again accepting the raw ratings as input. However,
+the following attempt to convert the training set into a format the `rrecsys` package can
+understand results in many GB of memory being requested, suggesting that while
+`rrecsys::defineData` understands sparse matrix input in coordinate form, the package
+does not use sparse matrix representations internally:
+
+```{r rrecsys-fail, eval=FALSE, purl=FALSE}
+
+# NOT RUN
+
+mat <- rrecsys::defineData(cbind(Uidx[edx_train$userId],
+                                        Vidx[edx_train$movieId],
+                                        x = edx_train$rating),
+                           sparseMatrix = T,
+                           binary = F,
+                           minimum = 0.5,
+                           maximum = 5,
+                           intScale = TRUE)
+```
+
+The above operation did not complete after several minutes and was aborted.
+
+## Writing our own Funk MF algorithm
+
+In light of the above failures, a fresh implementation of the Funk MF algorithm, using
+`RCpp`, was written.  The C++ source code is available at
+https://yinchi.github.io/harvardx-movielens/svd.cpp
+and is loaded into the R environment below:
+
+```{r Funk-MF-implemenation, fig.height=3, fig.width=3}
 # Funk matrix factorization. See C++ source for full documentation.
 # Values for regCoef and learningRate are as suggested by [Funk 2006].
 Rcpp::sourceCpp("svd.cpp")
@@ -72,7 +142,14 @@ funk <- function(Uidx, Vidx, residuals, nFeatures, steps = 500,
           residuals_train,
           nFeatures, steps, regCoef, learningRate)
 }
+```
 
+## Computing the optimal rank of matrix $UV$
+
+The following code plots the prediction error of the new model against the number of latent features
+in the Funk matrix factorization, i.e. the rank of matrix $UV$:
+
+```{r Funk-MF, fig.height=3, fig.width=3}
 # Compute RMSE values for varying number of MF features.
 set.seed(1)
 if (!file.exists('funk_tuning.Rdata')) {
@@ -108,12 +185,15 @@ par(cex = 0.7)
 qplot(nFeatures, rmses, xlab = 'rank(UV)', ylab = 'RMSE', geom = c('point','line'))
 ```
 
+The optimal number of latent features is:
+
 ```{r Optimal-num-features-Funk}
 
 nFeaturesOpt <- nFeatures[which.min(rmses)]
 nFeaturesOpt
 ```
 
+## Final matrix factorization and RMSE values
 
 Using the new model with $k=`r nFeaturesOpt`$ to predict ratings for the `edx_test` gives the following RMSE
 values:

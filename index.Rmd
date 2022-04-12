@@ -59,10 +59,17 @@ library(pacman)
 p_install(Rcpp, force = F)
 p_install(RcppArmadillo, force = F)
 p_install(RcppProgress, force = F)
+p_install(recommenderlab, force = F)
+p_install(rrecsys, force = F)
 p_install(mgcv, force = F)          # provides mgcv::gam and mgcv::predict.gam
 p_install(raster, force = F)        # provides raster::clamp
 
 # Load these packages
-p_load(magrittr, knitr, kableExtra, data.table, latex2exp, patchwork,
+p_load(conflicted, magrittr, knitr, kableExtra, data.table, latex2exp, patchwork,
        tidyverse, caret, lubridate)
+
+# For functions with identical names in different packages, ensure the
+# right one is chosen
+conflict_prefer('RMSE', 'caret')
+conflict_prefer("first", "dplyr")
 ```

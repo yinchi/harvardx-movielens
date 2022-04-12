@@ -23,7 +23,7 @@
 <meta name="author" content="Yin-Chi Chan" />
 
 
-<meta name="date" content="2022-04-11" />
+<meta name="date" content="2022-04-12" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -186,9 +186,20 @@ div.csl-indent {
 <li class="chapter" data-level="2.7" data-path="sec-linear-models.html"><a href="sec-linear-models.html#sec-regularization"><i class="fa fa-check"></i><b>2.7</b> Adding <span class="math inline">\(L_2\)</span> regularization<span></span></a></li>
 <li class="chapter" data-level="2.8" data-path="sec-linear-models.html"><a href="sec-linear-models.html#section-summary"><i class="fa fa-check"></i><b>2.8</b> Section summary<span></span></a></li>
 </ul></li>
-<li class="chapter" data-level="3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html"><i class="fa fa-check"></i><b>3</b> Funk’s matrix factorization algorithm<span></span></a></li>
+<li class="chapter" data-level="3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html"><i class="fa fa-check"></i><b>3</b> Funk’s matrix factorization algorithm<span></span></a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#computing-the-residuals"><i class="fa fa-check"></i><b>3.1</b> Computing the residuals<span></span></a></li>
+<li class="chapter" data-level="3.2" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#the-recommenderlab-package-first-failure"><i class="fa fa-check"></i><b>3.2</b> The <span><code>recommenderlab</code></span> package: first failure<span></span></a></li>
+<li class="chapter" data-level="3.3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#the-rrecsys-package-second-failure"><i class="fa fa-check"></i><b>3.3</b> The <span><code>rrecsys</code></span> package: second failure<span></span></a></li>
+<li class="chapter" data-level="3.4" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#writing-our-own-funk-mf-algorithm"><i class="fa fa-check"></i><b>3.4</b> Writing our own Funk MF algorithm<span></span></a></li>
+<li class="chapter" data-level="3.5" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#computing-the-optimal-rank-of-matrix-uv"><i class="fa fa-check"></i><b>3.5</b> Computing the optimal rank of matrix <span class="math inline">\(UV\)</span><span></span></a></li>
+<li class="chapter" data-level="3.6" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#final-matrix-factorization-and-rmse-values"><i class="fa fa-check"></i><b>3.6</b> Final matrix factorization and RMSE values<span></span></a></li>
+</ul></li>
 <li class="chapter" data-level="4" data-path="final-validation.html"><a href="final-validation.html"><i class="fa fa-check"></i><b>4</b> Final validation<span></span></a></li>
-<li class="chapter" data-level="5" data-path="concluding-remarks.html"><a href="concluding-remarks.html"><i class="fa fa-check"></i><b>5</b> Concluding remarks<span></span></a></li>
+<li class="chapter" data-level="5" data-path="concluding-remarks.html"><a href="concluding-remarks.html"><i class="fa fa-check"></i><b>5</b> Concluding remarks<span></span></a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="concluding-remarks.html"><a href="concluding-remarks.html#the-cmfrec-package-and-benchmarks"><i class="fa fa-check"></i><b>5.1</b> The <span><code>cmfrec</code></span> package and benchmarks<span></span></a></li>
+</ul></li>
 <li><a href="references.html#references">References<span></span></a></li>
 <li class="appendix"><span><b>Appendices<span></span></b></span></li>
 <li class="chapter" data-level="A" data-path="sec-code.html"><a href="sec-code.html"><i class="fa fa-check"></i><b>A</b> Code listing: <span><code>svd.cpp</code></span><span></span></a></li>
@@ -216,7 +227,7 @@ div.csl-indent {
 <div id="header">
 <h1 class="title">HarvardX PH125.9x: Movielens project</h1>
 <p class="author"><em>Yin-Chi Chan</em></p>
-<p class="date"><em>2022-04-11</em></p>
+<p class="date"><em>2022-04-12</em></p>
 </div>
 <div id="preface" class="section level1 unnumbered hasAnchor">
 <h1>Preface<a href="index.html#preface" class="anchor-section" aria-label="Anchor link to header"></a></h1>
@@ -241,12 +252,19 @@ A similar font, <a href="https://github.com/tonsky/FiraCode">Fira Code</a>, is u
 <span id="cb1-11"><a href="index.html#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">p_install</span>(Rcpp, <span class="at">force =</span> F)</span>
 <span id="cb1-12"><a href="index.html#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">p_install</span>(RcppArmadillo, <span class="at">force =</span> F)</span>
 <span id="cb1-13"><a href="index.html#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">p_install</span>(RcppProgress, <span class="at">force =</span> F)</span>
-<span id="cb1-14"><a href="index.html#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="fu">p_install</span>(mgcv, <span class="at">force =</span> F)          <span class="co"># provides mgcv::gam and mgcv::predict.gam</span></span>
-<span id="cb1-15"><a href="index.html#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">p_install</span>(raster, <span class="at">force =</span> F)        <span class="co"># provides raster::clamp</span></span>
-<span id="cb1-16"><a href="index.html#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-17"><a href="index.html#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Load these packages</span></span>
-<span id="cb1-18"><a href="index.html#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="fu">p_load</span>(magrittr, knitr, kableExtra, data.table, latex2exp, patchwork,</span>
-<span id="cb1-19"><a href="index.html#cb1-19" aria-hidden="true" tabindex="-1"></a>       tidyverse, caret, lubridate)</span></code></pre></div>
+<span id="cb1-14"><a href="index.html#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="fu">p_install</span>(recommenderlab, <span class="at">force =</span> F)</span>
+<span id="cb1-15"><a href="index.html#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">p_install</span>(rrecsys, <span class="at">force =</span> F)</span>
+<span id="cb1-16"><a href="index.html#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">p_install</span>(mgcv, <span class="at">force =</span> F)          <span class="co"># provides mgcv::gam and mgcv::predict.gam</span></span>
+<span id="cb1-17"><a href="index.html#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">p_install</span>(raster, <span class="at">force =</span> F)        <span class="co"># provides raster::clamp</span></span>
+<span id="cb1-18"><a href="index.html#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="index.html#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Load these packages</span></span>
+<span id="cb1-20"><a href="index.html#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="fu">p_load</span>(conflicted, magrittr, knitr, kableExtra, data.table, latex2exp, patchwork,</span>
+<span id="cb1-21"><a href="index.html#cb1-21" aria-hidden="true" tabindex="-1"></a>       tidyverse, caret, lubridate)</span>
+<span id="cb1-22"><a href="index.html#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="index.html#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="co"># For functions with identical names in different packages, ensure the</span></span>
+<span id="cb1-24"><a href="index.html#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="co"># right one is chosen</span></span>
+<span id="cb1-25"><a href="index.html#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="fu">conflict_prefer</span>(<span class="st">&#39;RMSE&#39;</span>, <span class="st">&#39;caret&#39;</span>)</span>
+<span id="cb1-26"><a href="index.html#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="fu">conflict_prefer</span>(<span class="st">&quot;first&quot;</span>, <span class="st">&quot;dplyr&quot;</span>)</span></code></pre></div>
 
 </div>
 </div>

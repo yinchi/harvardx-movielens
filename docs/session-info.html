@@ -23,7 +23,7 @@
 <meta name="author" content="Yin-Chi Chan" />
 
 
-<meta name="date" content="2022-04-11" />
+<meta name="date" content="2022-04-12" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -186,9 +186,20 @@ div.csl-indent {
 <li class="chapter" data-level="2.7" data-path="sec-linear-models.html"><a href="sec-linear-models.html#sec-regularization"><i class="fa fa-check"></i><b>2.7</b> Adding <span class="math inline">\(L_2\)</span> regularization<span></span></a></li>
 <li class="chapter" data-level="2.8" data-path="sec-linear-models.html"><a href="sec-linear-models.html#section-summary"><i class="fa fa-check"></i><b>2.8</b> Section summary<span></span></a></li>
 </ul></li>
-<li class="chapter" data-level="3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html"><i class="fa fa-check"></i><b>3</b> Funk’s matrix factorization algorithm<span></span></a></li>
+<li class="chapter" data-level="3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html"><i class="fa fa-check"></i><b>3</b> Funk’s matrix factorization algorithm<span></span></a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#computing-the-residuals"><i class="fa fa-check"></i><b>3.1</b> Computing the residuals<span></span></a></li>
+<li class="chapter" data-level="3.2" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#the-recommenderlab-package-first-failure"><i class="fa fa-check"></i><b>3.2</b> The <span><code>recommenderlab</code></span> package: first failure<span></span></a></li>
+<li class="chapter" data-level="3.3" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#the-rrecsys-package-second-failure"><i class="fa fa-check"></i><b>3.3</b> The <span><code>rrecsys</code></span> package: second failure<span></span></a></li>
+<li class="chapter" data-level="3.4" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#writing-our-own-funk-mf-algorithm"><i class="fa fa-check"></i><b>3.4</b> Writing our own Funk MF algorithm<span></span></a></li>
+<li class="chapter" data-level="3.5" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#computing-the-optimal-rank-of-matrix-uv"><i class="fa fa-check"></i><b>3.5</b> Computing the optimal rank of matrix <span class="math inline">\(UV\)</span><span></span></a></li>
+<li class="chapter" data-level="3.6" data-path="funks-matrix-factorization-algorithm.html"><a href="funks-matrix-factorization-algorithm.html#final-matrix-factorization-and-rmse-values"><i class="fa fa-check"></i><b>3.6</b> Final matrix factorization and RMSE values<span></span></a></li>
+</ul></li>
 <li class="chapter" data-level="4" data-path="final-validation.html"><a href="final-validation.html"><i class="fa fa-check"></i><b>4</b> Final validation<span></span></a></li>
-<li class="chapter" data-level="5" data-path="concluding-remarks.html"><a href="concluding-remarks.html"><i class="fa fa-check"></i><b>5</b> Concluding remarks<span></span></a></li>
+<li class="chapter" data-level="5" data-path="concluding-remarks.html"><a href="concluding-remarks.html"><i class="fa fa-check"></i><b>5</b> Concluding remarks<span></span></a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="concluding-remarks.html"><a href="concluding-remarks.html#the-cmfrec-package-and-benchmarks"><i class="fa fa-check"></i><b>5.1</b> The <span><code>cmfrec</code></span> package and benchmarks<span></span></a></li>
+</ul></li>
 <li><a href="references.html#references">References<span></span></a></li>
 <li class="appendix"><span><b>Appendices<span></span></b></span></li>
 <li class="chapter" data-level="A" data-path="sec-code.html"><a href="sec-code.html"><i class="fa fa-check"></i><b>A</b> Code listing: <span><code>svd.cpp</code></span><span></span></a></li>
@@ -215,7 +226,7 @@ div.csl-indent {
             <section class="normal" id="section-">
 <div id="session-info" class="section level1 hasAnchor" number="7">
 <h1><span class="header-section-number">B</span> Session info<a href="session-info.html#session-info" class="anchor-section" aria-label="Anchor link to header"></a></h1>
-<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="session-info.html#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="session-info.html#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
 <pre><code>## R version 4.1.3 (2022-03-10)
 ## Platform: x86_64-w64-mingw32/x64 (64-bit)
 ## Running under: Windows 10 x64 (build 22000)
@@ -236,42 +247,51 @@ div.csl-indent {
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] lubridate_1.8.0   caret_6.0-91      lattice_0.20-45   forcats_0.5.1     stringr_1.4.0     dplyr_1.0.8       purrr_0.3.4      
-##  [8] readr_2.1.2       tidyr_1.2.0       tibble_3.1.6      ggplot2_3.3.5     tidyverse_1.3.1   patchwork_1.1.1   latex2exp_0.9.4  
-## [15] data.table_1.14.2 kableExtra_1.3.4  knitr_1.38        magrittr_2.0.3    pacman_0.5.1     
+##  [1] recommenderlab_0.2-7 registry_0.5-1       proxy_0.4-26         arules_1.7-3         Matrix_1.4-1        
+##  [6] lubridate_1.8.0      caret_6.0-91         lattice_0.20-45      forcats_0.5.1        stringr_1.4.0       
+## [11] dplyr_1.0.8          purrr_0.3.4          readr_2.1.2          tidyr_1.2.0          tibble_3.1.6        
+## [16] ggplot2_3.3.5        tidyverse_1.3.1      patchwork_1.1.1      latex2exp_0.9.4      data.table_1.14.2   
+## [21] kableExtra_1.3.4     knitr_1.38           magrittr_2.0.3       conflicted_1.1.0     pacman_0.5.1        
 ## 
 ## loaded via a namespace (and not attached):
-##   [1] colorspace_2.0-3         ellipsis_0.3.2           class_7.3-20             RcppArmadillo_0.11.0.0.0 fs_1.5.2                
-##   [6] proxy_0.4-26             rstudioapi_0.13          listenv_0.8.0            farver_2.1.0             bit64_4.0.5             
-##  [11] prodlim_2019.11.13       fansi_1.0.3              xml2_1.3.3               codetools_0.2-18         splines_4.1.3           
-##  [16] jsonlite_1.8.0           pROC_1.18.0              broom_0.7.12             dbplyr_2.1.1             compiler_4.1.3          
-##  [21] httr_1.4.2               backports_1.4.1          assertthat_0.2.1         Matrix_1.4-1             fastmap_1.1.0           
-##  [26] cli_3.2.0                htmltools_0.5.2          tools_4.1.3              gtable_0.3.0             glue_1.6.2              
-##  [31] reshape2_1.4.4           Rcpp_1.0.8.3             cellranger_1.1.0         jquerylib_0.1.4          raster_3.5-15           
-##  [36] vctrs_0.4.0              svglite_2.1.0            nlme_3.1-157             iterators_1.0.14         timeDate_3043.102       
-##  [41] gower_1.0.0              xfun_0.30                RcppProgress_0.4.2       globals_0.14.0           rvest_1.0.2             
-##  [46] lifecycle_1.0.1          future_1.24.0            terra_1.5-21             MASS_7.3-56              scales_1.1.1            
-##  [51] ipred_0.9-12             vroom_1.5.7              hms_1.1.1                parallel_4.1.3           yaml_2.3.5              
-##  [56] sass_0.4.1               rpart_4.1.16             stringi_1.7.6            highr_0.9                foreach_1.5.2           
-##  [61] e1071_1.7-9              hardhat_0.2.0            lava_1.6.10              rlang_1.0.2              pkgconfig_2.0.3         
-##  [66] systemfonts_1.0.4        evaluate_0.15            labeling_0.4.2           recipes_0.2.0            bit_4.0.4               
-##  [71] tidyselect_1.1.2         parallelly_1.30.0        plyr_1.8.7               bookdown_0.25            R6_2.5.1                
-##  [76] generics_0.1.2           DBI_1.1.2                pillar_1.7.0             haven_2.4.3              withr_2.5.0             
-##  [81] mgcv_1.8-40              survival_3.3-1           sp_1.4-6                 nnet_7.3-17              future.apply_1.8.1      
-##  [86] modelr_0.1.8             crayon_1.5.1             utf8_1.2.2               tzdb_0.3.0               rmarkdown_2.13          
-##  [91] grid_4.1.3               readxl_1.4.0             ModelMetrics_1.2.2.2     reprex_2.0.1             digest_0.6.29           
-##  [96] webshot_0.5.2            stats4_4.1.3             munsell_0.5.0            viridisLite_0.4.0        bslib_0.3.1</code></pre>
-<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="session-info.html#cb50-1" aria-hidden="true" tabindex="-1"></a>tidyverse<span class="sc">::</span><span class="fu">tidyverse_conflicts</span>()</span></code></pre></div>
-<pre><code>## -- Conflicts -------------------------------------------------------------------------------------------------------- tidyverse_conflicts() --
+##   [1] colorspace_2.0-3         ellipsis_0.3.2           class_7.3-20             RcppArmadillo_0.11.0.0.0
+##   [5] fs_1.5.2                 rstudioapi_0.13          listenv_0.8.0            farver_2.1.0            
+##   [9] bit64_4.0.5              prodlim_2019.11.13       fansi_1.0.3              xml2_1.3.3              
+##  [13] codetools_0.2-18         splines_4.1.3            cachem_1.0.6             jsonlite_1.8.0          
+##  [17] pROC_1.18.0              broom_0.7.12             dbplyr_2.1.1             compiler_4.1.3          
+##  [21] httr_1.4.2               backports_1.4.1          assertthat_0.2.1         fastmap_1.1.0           
+##  [25] cli_3.2.0                htmltools_0.5.2          tools_4.1.3              gtable_0.3.0            
+##  [29] glue_1.6.2               reshape2_1.4.4           float_0.2-6.1            Rcpp_1.0.8.3            
+##  [33] cellranger_1.1.0         jquerylib_0.1.4          raster_3.5-15            vctrs_0.4.0             
+##  [37] svglite_2.1.0            nlme_3.1-157             iterators_1.0.14         timeDate_3043.102       
+##  [41] gower_1.0.0              xfun_0.30                RcppProgress_0.4.2       globals_0.14.0          
+##  [45] rvest_1.0.2              irlba_2.3.5              lifecycle_1.0.1          future_1.24.0           
+##  [49] terra_1.5-21             MASS_7.3-56              scales_1.1.1             ipred_0.9-12            
+##  [53] vroom_1.5.7              hms_1.1.1                parallel_4.1.3           yaml_2.3.5              
+##  [57] memoise_2.0.1            sass_0.4.1               rpart_4.1.16             stringi_1.7.6           
+##  [61] highr_0.9                foreach_1.5.2            e1071_1.7-9              hardhat_0.2.0           
+##  [65] lava_1.6.10              rlang_1.0.2              pkgconfig_2.0.3          systemfonts_1.0.4       
+##  [69] evaluate_0.15            labeling_0.4.2           recipes_0.2.0            bit_4.0.4               
+##  [73] tidyselect_1.1.2         parallelly_1.30.0        plyr_1.8.7               bookdown_0.25           
+##  [77] R6_2.5.1                 generics_0.1.2           recosystem_0.5           DBI_1.1.2               
+##  [81] mgcv_1.8-40              pillar_1.7.0             haven_2.4.3              withr_2.5.0             
+##  [85] sp_1.4-6                 survival_3.3-1           nnet_7.3-17              future.apply_1.8.1      
+##  [89] modelr_0.1.8             crayon_1.5.1             utf8_1.2.2               tzdb_0.3.0              
+##  [93] rmarkdown_2.13           grid_4.1.3               readxl_1.4.0             ModelMetrics_1.2.2.2    
+##  [97] reprex_2.0.1             digest_0.6.29            webshot_0.5.2            stats4_4.1.3            
+## [101] munsell_0.5.0            viridisLite_0.4.0        bslib_0.3.1</code></pre>
+<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="session-info.html#cb56-1" aria-hidden="true" tabindex="-1"></a>tidyverse<span class="sc">::</span><span class="fu">tidyverse_conflicts</span>()</span></code></pre></div>
+<pre><code>## -- Conflicts ------------------------------------------------------------------------------------------- tidyverse_conflicts() --
 ## x lubridate::as.difftime() masks base::as.difftime()
 ## x dplyr::between()         masks data.table::between()
 ## x lubridate::date()        masks base::date()
+## x Matrix::expand()         masks tidyr::expand()
 ## x tidyr::extract()         masks magrittr::extract()
 ## x dplyr::filter()          masks stats::filter()
 ## x dplyr::first()           masks data.table::first()
 ## x dplyr::group_rows()      masks kableExtra::group_rows()
 ## x lubridate::hour()        masks data.table::hour()
-## x lubridate::intersect()   masks base::intersect()
+## x arules::intersect()      masks lubridate::intersect(), base::intersect()
 ## x lubridate::isoweek()     masks data.table::isoweek()
 ## x dplyr::lag()             masks stats::lag()
 ## x dplyr::last()            masks data.table::last()
@@ -279,12 +299,15 @@ div.csl-indent {
 ## x lubridate::mday()        masks data.table::mday()
 ## x lubridate::minute()      masks data.table::minute()
 ## x lubridate::month()       masks data.table::month()
+## x Matrix::pack()           masks tidyr::pack()
 ## x lubridate::quarter()     masks data.table::quarter()
+## x arules::recode()         masks dplyr::recode()
 ## x lubridate::second()      masks data.table::second()
 ## x purrr::set_names()       masks magrittr::set_names()
-## x lubridate::setdiff()     masks base::setdiff()
+## x arules::setdiff()        masks lubridate::setdiff(), base::setdiff()
 ## x purrr::transpose()       masks data.table::transpose()
-## x lubridate::union()       masks base::union()
+## x arules::union()          masks lubridate::union(), base::union()
+## x Matrix::unpack()         masks tidyr::unpack()
 ## x lubridate::wday()        masks data.table::wday()
 ## x lubridate::week()        masks data.table::week()
 ## x lubridate::yday()        masks data.table::yday()
