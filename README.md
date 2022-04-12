@@ -7,6 +7,6 @@ An Rcpp implementation of [Simon Funk's matrix factorization algorithm](https://
 was applied to the rating residuals after user, movie, genre, and time-based biases were removed.
 The final RMSE (root mean squared error) of the developed model as compared against the validation set was:
 
-### 0.7939817
+### 0.7941947
 
 compared to a target RMSE of 0.86490 set by the course.
