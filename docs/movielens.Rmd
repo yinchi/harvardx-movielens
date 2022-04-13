@@ -1076,13 +1076,15 @@ Note that the effect of adding genre and time-based biases was small.  In partic
 of a movie can be uniquely determined from its `movieID`, and most movies have been rated many times,
 decreasing the importance of genre information.  For the same reason, adding the year of release
 of each movie as a model feature is also unlikely to significantly improve the results.
-However, this is because the validation set for this project was deliberately constructed not to 
+However, this result is because the validation set for this project was deliberately constructed **not** to 
 contain any movies not in the training and test sets. In a live environment, adding
 genre and time-based information will prove useful for predicting ratings of *new*
 movies, where a movie bias cannot be computed (using a zero value is the likely best solution).
 In this case, adding the year of release as an additional model feature likely *would* improve
 prediction accuracy.  Another possible feature we could have used is the age of a movie
-*at the time it was rated*.
+*at the time it was rated*.  The tag information included in the original Movielens 10M dataset
+(but unused in this project) could also be useful for estimating the ratings of new or rarely
+rated movies.
 
 A consideration is the fact that while this project attempts to minimize the error of the raw
 ratings, a possibly better approach may be binary: would a user like a movie they have not yet
@@ -1115,13 +1117,14 @@ which can handle the size of the Movielens 10M dataset and in fact uses it for b
 [@cmfrec-benchmarks].  The best reported result among the R implementations
 has a RMSE of **0.782465**, somewhat better than that achieved here.
 
-There are two reasons why `cmfrec` outperforms our method in this project.
-Firstly, the `cmfrec` algorithms *update* user and movie biases during each iteration, rather than the
+There are three possible reasons why `cmfrec` outperforms our method in this project.
+First, the `cmfrec` algorithms *update* user and movie biases during each iteration, rather than the
 static method used here.  The benchmarks shown in @cmfrec-benchmarks show that such static methods
-generally perform worse than methods with iterative bias updates. The methods in `cmfrec` also use
+generally perform worse than methods with iterative bias updates. Second, methods in `cmfrec` use
 alternating least squares (ALS) by default rather than the gradient descent method used here,
-which improves numerical stability.  Another benefit of ALS is the possibility of
-massive paralellization [@Koren2009].
+which improves numerical stability/convergence.  Another benefit of ALS is the possibility of
+massive parallelization [@Koren2009].   Finally, no optimization was performed on the learning and
+regularization parameters $\lambda$ and $\gamma$ in this project.
 
 
 

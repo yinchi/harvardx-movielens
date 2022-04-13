@@ -23,7 +23,7 @@
 <meta name="author" content="Yin-Chi Chan" />
 
 
-<meta name="date" content="2022-04-12" />
+<meta name="date" content="2022-04-13" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -239,8 +239,9 @@ div.csl-indent {
 ##  Sample:  Rounding 
 ##  
 ## locale:
-## [1] LC_COLLATE=English_Hong Kong SAR.1252  LC_CTYPE=English_Hong Kong SAR.1252    LC_MONETARY=English_Hong Kong SAR.1252
-## [4] LC_NUMERIC=C                           LC_TIME=English_Hong Kong SAR.1252    
+## [1] LC_COLLATE=English_Hong Kong SAR.1252  LC_CTYPE=English_Hong Kong SAR.1252   
+## [3] LC_MONETARY=English_Hong Kong SAR.1252 LC_NUMERIC=C                          
+## [5] LC_TIME=English_Hong Kong SAR.1252    
 ## system code page: 65001
 ## 
 ## attached base packages:
@@ -262,11 +263,11 @@ div.csl-indent {
 ##  [21] httr_1.4.2               backports_1.4.1          assertthat_0.2.1         fastmap_1.1.0           
 ##  [25] cli_3.2.0                htmltools_0.5.2          tools_4.1.3              gtable_0.3.0            
 ##  [29] glue_1.6.2               reshape2_1.4.4           float_0.2-6.1            Rcpp_1.0.8.3            
-##  [33] cellranger_1.1.0         jquerylib_0.1.4          raster_3.5-15            vctrs_0.4.0             
+##  [33] raster_3.5-15            cellranger_1.1.0         jquerylib_0.1.4          vctrs_0.4.0             
 ##  [37] svglite_2.1.0            nlme_3.1-157             iterators_1.0.14         timeDate_3043.102       
-##  [41] gower_1.0.0              xfun_0.30                RcppProgress_0.4.2       globals_0.14.0          
-##  [45] rvest_1.0.2              irlba_2.3.5              lifecycle_1.0.1          future_1.24.0           
-##  [49] terra_1.5-21             MASS_7.3-56              scales_1.1.1             ipred_0.9-12            
+##  [41] xfun_0.30                gower_1.0.0              RcppProgress_0.4.2       globals_0.14.0          
+##  [45] rvest_1.0.2              irlba_2.3.5              lifecycle_1.0.1          terra_1.5-21            
+##  [49] future_1.24.0            MASS_7.3-56              scales_1.1.1             ipred_0.9-12            
 ##  [53] vroom_1.5.7              hms_1.1.1                parallel_4.1.3           yaml_2.3.5              
 ##  [57] memoise_2.0.1            sass_0.4.1               rpart_4.1.16             stringi_1.7.6           
 ##  [61] highr_0.9                foreach_1.5.2            e1071_1.7-9              hardhat_0.2.0           
@@ -274,14 +275,14 @@ div.csl-indent {
 ##  [69] evaluate_0.15            labeling_0.4.2           recipes_0.2.0            bit_4.0.4               
 ##  [73] tidyselect_1.1.2         parallelly_1.30.0        plyr_1.8.7               bookdown_0.25           
 ##  [77] R6_2.5.1                 generics_0.1.2           recosystem_0.5           DBI_1.1.2               
-##  [81] mgcv_1.8-40              pillar_1.7.0             haven_2.4.3              withr_2.5.0             
+##  [81] pillar_1.7.0             haven_2.4.3              withr_2.5.0              mgcv_1.8-40             
 ##  [85] sp_1.4-6                 survival_3.3-1           nnet_7.3-17              future.apply_1.8.1      
 ##  [89] modelr_0.1.8             crayon_1.5.1             utf8_1.2.2               tzdb_0.3.0              
 ##  [93] rmarkdown_2.13           grid_4.1.3               readxl_1.4.0             ModelMetrics_1.2.2.2    
 ##  [97] reprex_2.0.1             digest_0.6.29            webshot_0.5.2            stats4_4.1.3            
 ## [101] munsell_0.5.0            viridisLite_0.4.0        bslib_0.3.1</code></pre>
 <div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="session-info.html#cb56-1" aria-hidden="true" tabindex="-1"></a>tidyverse<span class="sc">::</span><span class="fu">tidyverse_conflicts</span>()</span></code></pre></div>
-<pre><code>## -- Conflicts ------------------------------------------------------------------------------------------- tidyverse_conflicts() --
+<pre><code>## -- Conflicts ----------------------------------------------------------------------------- tidyverse_conflicts() --
 ## x lubridate::as.difftime() masks base::as.difftime()
 ## x dplyr::between()         masks data.table::between()
 ## x lubridate::date()        masks base::date()
