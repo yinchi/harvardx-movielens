@@ -93,7 +93,7 @@ removed <- anti_join(temp, validation)
 edx <- rbind(edx, removed)
 
 
-# STEP 5; convert timestamps to datetime
+# STEP 5: convert timestamps to datetime
 edx <- edx |> mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
 validation <- validation |> mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
 
@@ -178,6 +178,8 @@ genre_summary |> arrange(desc(`Mean Rating`)) |>
 
 ## ----Genre-counts-hist, fig.height=3, fig.width=4----------------------------------------------------------------
 
+# The number of genres for a movie is the number of pipe symbols plus one,
+#   except in the case of "(no genres listed)".
 genre_counts <- table(str_count(edx$genres, '\\|') + 1 - str_count(edx$genres, 'no genres'))
 par(cex = 0.7)
 barplot(genre_counts, xlab = 'Number of genres', ylab = 'Count', main = 'Genres per movie')
@@ -211,18 +213,14 @@ rm(removed2, temp, test_index)
 
 ## ----Mean-only-model---------------------------------------------------------------------------------------------
 
+# Mean-only model: use mean rating to predict all ratings
 mu <- mean(edx_test$rating)
 mu
 
 
 ## ----Mean-only-RMSE----------------------------------------------------------------------------------------------
 
-# When multiple effects (movie, user, genre) are added in our model, some predictions
-# may fall out of the valid range.  This function fixes these predictions to the range
-# [0.5, 5].
-clamp <- function(x) raster::clamp(as.numeric(x), 0.5, 5)
-
-# Compute RMSE and add to a tibble.
+# Compute RMSE of mean-only model and add to a tibble.
 RMSEs <- tibble(Method = c("Mean only"),
                 RMSE = RMSE(mu, edx_test$rating),
                 "RMSE (clamped estimates)" = RMSE(mu, edx_test$rating))
@@ -239,8 +237,8 @@ movie_biases <- edx_train |>
 
 # Plot a histogram of the movie effects
 par(cex = 0.7)
-hist(movie_biases$b_i, 30, xlab = TeX(r'[$\hat{b}_{1,i}$]'),
-     main = TeX(r'[Histogram of $\hat{b}_{1,i}$]'))
+hist(movie_biases$b_i, 30, xlab = TeX(r'[$\hat{b}_{1;i}$]'),
+     main = TeX(r'[Histogram of $\hat{b}_{1;i}$]'))
 
 
 ## ----Movie-effects-RMSE------------------------------------------------------------------------------------------
@@ -249,6 +247,11 @@ hist(movie_biases$b_i, 30, xlab = TeX(r'[$\hat{b}_{1,i}$]'),
 predicted_ratings <- edx_test |> 
   left_join(movie_biases, by='movieId') |>
   mutate(pred = mu + b_i) |> pull(pred)
+
+# When multiple effects (movie, user, genre) are added in our model, some predictions
+# may fall out of the valid range.  This function fixes these predictions to the range
+# [0.5, 5].
+clamp <- function(x) raster::clamp(as.numeric(x), 0.5, 5)
 
 # Compute RMSE and add to data.table
 RMSEs <- RMSEs |>
@@ -269,8 +272,8 @@ user_biases <- edx_train |>
 
 # Plot a histogram of the user effects
 par(cex = 0.7)
-hist(user_biases$b_u, 30, xlab = TeX(r'[$\hat{b}_{2,u}$]'),
-     main = TeX(r'[Histogram of $\hat{b}_{2,u}$]'))
+hist(user_biases$b_u, 30, xlab = TeX(r'[$\hat{b}_{2;u}$]'),
+     main = TeX(r'[Histogram of $\hat{b}_{2;u}$]'))
 
 
 ## ----User-effects-RMSE-------------------------------------------------------------------------------------------
@@ -300,8 +303,8 @@ genre_biases <- edx_train |>
 
 # Plot a histogram of the genre effects
 par(cex = 0.7)
-hist(genre_biases$b_g, 30, xlab = TeX(r'[$\hat{b}_{3,g}$]'),
-     main = TeX(r'[Histogram of $\hat{b}_{3,g}$]'))
+hist(genre_biases$b_g, 30, xlab = TeX(r'[$\hat{b}_{3;g}$]'),
+     main = TeX(r'[Histogram of $\hat{b}_{3;g}$]'))
 
 
 ## ----Genre-effects-RMSE------------------------------------------------------------------------------------------
@@ -342,7 +345,7 @@ rm(fit)
 
 # Plot the fitted curve
 ggplot(data.frame(weekNum = r, f_t), aes(weekNum, f_t)) + geom_line() +
-  xlab(TeX(r'[$t_{u,i}$]')) + ylab(TeX(r'[$f\,(t_{u,i}\,)$]'))
+  xlab('t, Week number') + ylab(TeX(r'[$f(t)$]'))
 
 
 ## ----Time-effect-model-and-RMSE, fig.height=3, fig.width=4-------------------------------------------------------
@@ -387,8 +390,8 @@ RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ## ----Regularization, fig.height=3, fig.width=4-------------------------------------------------------------------
 
 # List of regularization parameter values to try.
-# Since I know the approximate optimal value, I added more points
-# in this range.
+# I increased the density of points near the optimal value since
+# I already know it approximately.
 lambdas <- c(0,1,2,3,4,seq(4.5,5.5,0.1),6,7,8,9,10)
 
 # Compute RMSE values for each lambda using the *test set.
@@ -436,6 +439,8 @@ lambda
 
 ## ----Regularized-model-and-RMSE----------------------------------------------------------------------------------
 
+# Compute movie, user, genre, and time effects using the test set, using the optimal
+# regularization parameter value lambda we just found.
 movie_biases_reg <-
   edx_train[, .(b_i = sum(rating - mu - f_t[weekNum])/(.N+lambda)), by = 'movieId']
 
@@ -474,7 +479,7 @@ RMSEs |> kable(align='lrr', booktabs = T, linesep = "") |> row_spec(0, bold = T)
 
 
 ## ----Computing the residuals, fig.height=3, fig.width=3----------------------------------------------------------
-# Residuals from previous best model
+# Compute residuals from previous best model
 previous_train <- genre_biases_reg[
   user_biases_reg[
     movie_biases_reg[
@@ -486,7 +491,7 @@ previous_train <- genre_biases_reg[
 
 residuals_train <- as.numeric(edx_train$rating - previous_train)
 
-# Test set predictions for previous best model
+# Generate test set predictions for previous best model
 previous_test <- genre_biases_reg[
   user_biases_reg[
     movie_biases_reg[
@@ -505,13 +510,15 @@ Vidx[unique(edx_train$movieId)] = seq(uniqueN(edx_train$movieId))
 
 
 ## ----------------------------------------------------------------------------------------------------------------
+
+# Create the recommenderlab::realRatingMatrix object
 mat <- new(
   className("realRatingMatrix", "recommenderlab"),
   data = sparseMatrix(Uidx[edx_train$userId],
                       Vidx[edx_train$movieId],
                       x = edx_train$rating)
 )
-object.size(mat)
+format(object.size(mat), units = "auto", standard="SI")
 
 
 
@@ -519,6 +526,7 @@ object.size(mat)
 
 
 ## ----Funk-MF-implemenation, fig.height=3, fig.width=3------------------------------------------------------------
+
 # Funk matrix factorization. See C++ source for full documentation.
 # Values for regCoef and learningRate are as suggested by [Funk 2006].
 Rcpp::sourceCpp("svd.cpp")
@@ -534,7 +542,8 @@ funk <- function(Uidx, Vidx, residuals, nFeatures, steps = 500,
 
 
 ## ----Funk-MF, fig.height=3, fig.width=3--------------------------------------------------------------------------
-# Compute RMSE values for varying number of MF features.
+
+# Compute RMSE values for varying number of MF features, if saved file not found.
 set.seed(1)
 if (!file.exists('funk_tuning.Rdata')) {
   nFeatures <- c(1, 2, 4, 8, seq(12,20), 24, 28, 32)
@@ -564,7 +573,10 @@ if (!file.exists('funk_tuning.Rdata')) {
 }
 set.seed(1)
 
+# Load RMSE data from file
 load('funk_tuning.Rdata')
+
+# Plot RMSE against number of MF features.
 par(cex = 0.7)
 qplot(nFeatures, rmses, xlab = 'rank(UV)', ylab = 'RMSE', geom = c('point','line'))
 
@@ -577,14 +589,15 @@ nFeaturesOpt
 
 ## ----Funk-MF-prediction------------------------------------------------------------------------------------------
 
-# Run Funk MF
+# Run Funk MF if saved file not found
 set.seed(1)
 if (!file.exists('funk.Rdata')) {
-funkResult <- funk(Uidx, Vidx, residuals_train, nFeatures = nFeaturesOpt, steps = 500)
-save(nFeaturesOpt, funkResult, file = 'funk.Rdata')
+  funkResult <- funk(Uidx, Vidx, residuals_train, nFeatures = nFeaturesOpt, steps = 500)
+  save(nFeaturesOpt, funkResult, file = 'funk.Rdata')
 }
 set.seed(1)
 
+# Load MF data from file
 load('funk.Rdata')
 U <- funkResult$U
 V <- funkResult$V
@@ -626,6 +639,7 @@ nrow(movie_biases_reg) + nrow(user_biases_reg) + nrow(genre_biases_reg) +
 
 ## ----Final-RMSE-validation-set-----------------------------------------------------------------------------------
 
+# Generate final predictions for the VALIDATION datset
 predicted_ratings_FINAL_VALIDATION <- validation |>
   mutate(weekNum = (timestamp - min(timestamp)) |>
            as.numeric(unit = "days") |> {\(x) floor(x/7) + 1}() ) |> 
@@ -663,6 +677,7 @@ mean(abs(predicted_ratings_FINAL_VALIDATION - validation$rating) < 0.5)
 
 ## ----Confusion-matrix-3.5----------------------------------------------------------------------------------------
 
+# Classify movies as good or bad based on 3.5-star treshold and compute confusion matrix
 confusionMatrix(as.factor(ifelse(predicted_ratings_FINAL_VALIDATION >= 3.5, 'Good', 'Bad')),
                 as.factor(ifelse(validation$rating >= 3.5, 'Good', 'Bad')),
                 positive = 'Good')

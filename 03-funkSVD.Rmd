@@ -6,7 +6,7 @@ We use the model $Y \sim P + UV^\mathrm{T} + \varepsilon$
 where:
 
 - $Y$ is the $N_\mathrm{U}\times N_\mathrm{M}$
-rating matrix, i.e., with $N_u$ users and $N_i$ movies,
+rating matrix, i.e., with $N_\mathrm{U}$ users and $N_\mathrm{M}$ movies,
 - $P$ represents the predictions from best model of the previous section,
 - $U$ and $V$ are $N_\mathrm{U} \times k$ and $N_\mathrm{M} \times k$ matrices, respectively, where
   $k$ is the number of *latent features* to be found.
@@ -17,25 +17,26 @@ rank-$k$ approximation of the residual matrix $Y-P$.
 
 Funk's MF estimates $U$ and $V$ using gradient descent,
 but operating only on the known ratings. First, $U$ and $V$ are seeded with random values.
-Then, for each epoch, the algorithm iterates over all known ratings $(i,j)$ in the training set
+Then, for each epoch, the algorithm iterates over all known ratings $(u,i)$ in the training set
 and updates the feature matrices as follows:
 
-\[e_{ij} = Y_{ij} - P_{ij} - U_i V_j^\mathrm{T}\]
-\[U_i \gets U_i + \gamma(e_{ij} V_j - \lambda U_i)\]
-\[V_j \gets V_i + \gamma(e_{ij} U_i - \lambda V_j)\]
+\[e_{u,i} = Y_{u,i} - P_{u,i} - U_u V_i^\mathrm{T}\]
+\[U_u \gets U_u + \gamma(e_{u,i} V_i - \lambda U_u)\]
+\[V_i \gets V_i + \gamma(e_{u,i} U_u - \lambda V_i)\]
 
 where $\gamma$ is the learning rate and $\lambda$ is a regularization parameter.
 In this report, these are set to 0.02 and 0.001, respectively, in accordance to guidance from
-@Funk2006. The code for the Funk MF implementation used in this report can be found in
+@Funk2006, and we will only optimize the rank parameter $k$.
+The code for the Funk MF implementation used in this report can be found in
 Appendix \@ref(sec-code).
 
 ## Computing the residuals
 
-The following code computes $Y_{u,i} - P_{u,i}$ for all $(u,i)$ in the training set,
+The following code computes $Y_{u,i} - P_{u,i}$ for all user-movie pairs $(u,i)$ in the training set,
 and creates an index mapping eliminating users and movies with no rating pairs.
 
 ```{r Computing the residuals, fig.height=3, fig.width=3}
-# Residuals from previous best model
+# Compute residuals from previous best model
 previous_train <- genre_biases_reg[
   user_biases_reg[
     movie_biases_reg[
@@ -47,7 +48,7 @@ previous_train <- genre_biases_reg[
 
 residuals_train <- as.numeric(edx_train$rating - previous_train)
 
-# Test set predictions for previous best model
+# Generate test set predictions for previous best model
 previous_test <- genre_biases_reg[
   user_biases_reg[
     movie_biases_reg[
@@ -73,16 +74,18 @@ ratings rather than a residual matrix.
 This object is easy to create and does not consume too much memory:
 
 ```{r}
+
+# Create the recommenderlab::realRatingMatrix object
 mat <- new(
   className("realRatingMatrix", "recommenderlab"),
   data = sparseMatrix(Uidx[edx_train$userId],
                       Vidx[edx_train$movieId],
                       x = edx_train$rating)
 )
-object.size(mat)
+format(object.size(mat), units = "auto", standard="SI")
 ```
 
-However, attempting to factor this matrix as follows returns an error. Note that this
+However, attempting to factor this matrix as follows returns an error, as shown below. Note that this
 is just one of several memory allocation requests; there is 32GB of RAM on the laptop used to
 run this project code.  This suggests that `recommenderlab` uses dense matrices in its
 internal functions.
@@ -130,6 +133,7 @@ https://yinchi.github.io/harvardx-movielens/svd.cpp
 and is loaded into the R environment below:
 
 ```{r Funk-MF-implemenation, fig.height=3, fig.width=3}
+
 # Funk matrix factorization. See C++ source for full documentation.
 # Values for regCoef and learningRate are as suggested by [Funk 2006].
 Rcpp::sourceCpp("svd.cpp")
@@ -150,7 +154,8 @@ The following code plots the prediction error of the new model against the numbe
 in the Funk matrix factorization, i.e. the rank of matrix $UV$:
 
 ```{r Funk-MF, fig.height=3, fig.width=3}
-# Compute RMSE values for varying number of MF features.
+
+# Compute RMSE values for varying number of MF features, if saved file not found.
 set.seed(1)
 if (!file.exists('funk_tuning.Rdata')) {
   nFeatures <- c(1, 2, 4, 8, seq(12,20), 24, 28, 32)
@@ -180,7 +185,10 @@ if (!file.exists('funk_tuning.Rdata')) {
 }
 set.seed(1)
 
+# Load RMSE data from file
 load('funk_tuning.Rdata')
+
+# Plot RMSE against number of MF features.
 par(cex = 0.7)
 qplot(nFeatures, rmses, xlab = 'rank(UV)', ylab = 'RMSE', geom = c('point','line'))
 ```
@@ -199,14 +207,15 @@ Using the new model with $k=`r nFeaturesOpt`$ to predict ratings for the `edx_te
 values:
 ```{r Funk-MF-prediction}
 
-# Run Funk MF
+# Run Funk MF if saved file not found
 set.seed(1)
 if (!file.exists('funk.Rdata')) {
-funkResult <- funk(Uidx, Vidx, residuals_train, nFeatures = nFeaturesOpt, steps = 500)
-save(nFeaturesOpt, funkResult, file = 'funk.Rdata')
+  funkResult <- funk(Uidx, Vidx, residuals_train, nFeatures = nFeaturesOpt, steps = 500)
+  save(nFeaturesOpt, funkResult, file = 'funk.Rdata')
 }
 set.seed(1)
 
+# Load MF data from file
 load('funk.Rdata')
 U <- funkResult$U
 V <- funkResult$V

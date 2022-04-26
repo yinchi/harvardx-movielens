@@ -23,7 +23,7 @@
 <meta name="author" content="Yin-Chi Chan" />
 
 
-<meta name="date" content="2022-04-13" />
+<meta name="date" content="2022-04-26" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -254,10 +254,11 @@ themselves, the genres of movie <span class="math inline">\(i\)</span>, and the 
 Finally, only the indices <span class="math inline">\((u,i)\)</span> in the training set, denoted <span class="math inline">\(\mathcal{T}\)</span>, are observable.</p>
 <p>The goal is to
 estimate <span class="math inline">\(Y\)</span> given the observable elements of <span class="math inline">\(Y\)</span> (the actual ratings). Given a user-movie pair <span class="math inline">\((u,i)\)</span>,
-we model <span class="math inline">\(Y_r\)</span> using a multiple linear regression model:
-<span class="math display">\[
-y_{u,i} \sim \mu + \left(\sum_j \beta_{j;u,i} \right) +\varepsilon_{u,i},
-\]</span>
+we model <span class="math inline">\(Y_{u,i}\)</span> using a multiple linear regression model:
+<span class="math display" id="eq:generic-equation">\[\begin{equation}
+Y_{u,i} \sim \mu + \left(\sum_j \beta_{j;u,i} \right) +\varepsilon_{u,i},
+\tag{2.1}
+\end{equation}\]</span>
 where</p>
 <ul>
 <li><span class="math inline">\(\mu\)</span> represents the “true” rating for all movies,</li>
@@ -268,20 +269,22 @@ same zero-mean distribution.</li>
 <p>We further define <span class="math inline">\(b_j\)</span> such that
 <span class="math display">\[
 \left(X_{j;u,i} = n\right) \implies \left(\beta_{j;u,i} = b_{j;n}\right).
-\]</span></p>
-<p>We can write the above in matrix form:
+\]</span>
+In other words, whereas <span class="math inline">\(\beta_j\)</span> defines biases based on user-movie pairs, <span class="math inline">\(b_j\)</span> defines the same
+biases based on some attribute of these pairs, for example, the movie genres.</p>
+<p>We can write Equation <a href="sec-linear-models.html#eq:generic-equation">(2.1)</a> in matrix form:
 <span class="math display">\[
 Y \sim \mu + \left( \sum_j \beta_j \right) + \varepsilon.
 \]</span></p>
 <p>The objective is to minimize the sum of the squared errors
 <span class="math display">\[
-\text{SE} =
+\text{SSE} =
 \sum_{(u,i)\in\mathcal{T}} \left[Y_{u,i} - \mu - \sum_j \beta_{j;u,i} \right]^2
 \]</span>
 where <span class="math inline">\(\mathcal{T}\)</span> represents the test set of observed movie ratings.</p>
-<p>The estimated value of <span class="math inline">\(Y_{u,v}\)</span> for <span class="math inline">\((u,v) \notin \mathcal{T}\)</span> is
+<p>The estimated value of <span class="math inline">\(Y_{u,i}\)</span> for <span class="math inline">\((u,i) \notin \mathcal{T}\)</span> is
 <span class="math display">\[
-\hat{Y}_{u,v} = \mu + \sum_j \beta_{j;u,v}.
+\hat{Y}_{u,i} = \mu + \sum_j \beta_{j;u,v}.
 \]</span></p>
 </div>
 <div id="using-the-mean-rating-only" class="section level2 hasAnchor" number="2.2">
@@ -291,20 +294,16 @@ where <span class="math inline">\(\mathcal{T}\)</span> represents the test set o
 Y_{u,i} \sim \mu + \varepsilon_{u,i}.
 \]</span>
 The best estimate <span class="math inline">\(\hat{\mu}\)</span> of <span class="math inline">\(\mu\)</span> is the mean of all ratings in <code>edx_train</code>, or:</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="sec-linear-models.html#cb14-1" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fu">mean</span>(edx_test<span class="sc">$</span>rating)</span>
-<span id="cb14-2"><a href="sec-linear-models.html#cb14-2" aria-hidden="true" tabindex="-1"></a>mu</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="sec-linear-models.html#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Mean-only model: use mean rating to predict all ratings</span></span>
+<span id="cb14-2"><a href="sec-linear-models.html#cb14-2" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fu">mean</span>(edx_test<span class="sc">$</span>rating)</span>
+<span id="cb14-3"><a href="sec-linear-models.html#cb14-3" aria-hidden="true" tabindex="-1"></a>mu</span></code></pre></div>
 <pre><code>## [1] 3.512551</code></pre>
 <p>This model gives the following RMSE values when applied to <code>edx_test</code>:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="sec-linear-models.html#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># When multiple effects (movie, user, genre) are added in our model, some predictions</span></span>
-<span id="cb16-2"><a href="sec-linear-models.html#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co"># may fall out of the valid range.  This function fixes these predictions to the range</span></span>
-<span id="cb16-3"><a href="sec-linear-models.html#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co"># [0.5, 5].</span></span>
-<span id="cb16-4"><a href="sec-linear-models.html#cb16-4" aria-hidden="true" tabindex="-1"></a>clamp <span class="ot">&lt;-</span> <span class="cf">function</span>(x) raster<span class="sc">::</span><span class="fu">clamp</span>(<span class="fu">as.numeric</span>(x), <span class="fl">0.5</span>, <span class="dv">5</span>)</span>
-<span id="cb16-5"><a href="sec-linear-models.html#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-6"><a href="sec-linear-models.html#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute RMSE and add to a tibble.</span></span>
-<span id="cb16-7"><a href="sec-linear-models.html#cb16-7" aria-hidden="true" tabindex="-1"></a>RMSEs <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">Method =</span> <span class="fu">c</span>(<span class="st">&quot;Mean only&quot;</span>),</span>
-<span id="cb16-8"><a href="sec-linear-models.html#cb16-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">RMSE =</span> <span class="fu">RMSE</span>(mu, edx_test<span class="sc">$</span>rating),</span>
-<span id="cb16-9"><a href="sec-linear-models.html#cb16-9" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;RMSE (clamped estimates)&quot;</span> <span class="ot">=</span> <span class="fu">RMSE</span>(mu, edx_test<span class="sc">$</span>rating))</span>
-<span id="cb16-10"><a href="sec-linear-models.html#cb16-10" aria-hidden="true" tabindex="-1"></a>RMSEs[[<span class="fu">nrow</span>(RMSEs),<span class="st">&#39;RMSE&#39;</span>]]</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="sec-linear-models.html#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute RMSE of mean-only model and add to a tibble.</span></span>
+<span id="cb16-2"><a href="sec-linear-models.html#cb16-2" aria-hidden="true" tabindex="-1"></a>RMSEs <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">Method =</span> <span class="fu">c</span>(<span class="st">&quot;Mean only&quot;</span>),</span>
+<span id="cb16-3"><a href="sec-linear-models.html#cb16-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">RMSE =</span> <span class="fu">RMSE</span>(mu, edx_test<span class="sc">$</span>rating),</span>
+<span id="cb16-4"><a href="sec-linear-models.html#cb16-4" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;RMSE (clamped estimates)&quot;</span> <span class="ot">=</span> <span class="fu">RMSE</span>(mu, edx_test<span class="sc">$</span>rating))</span>
+<span id="cb16-5"><a href="sec-linear-models.html#cb16-5" aria-hidden="true" tabindex="-1"></a>RMSEs[[<span class="fu">nrow</span>(RMSEs),<span class="st">&#39;RMSE&#39;</span>]]</span></code></pre></div>
 <pre><code>## [1] 1.060054</code></pre>
 </div>
 <div id="modeling-movie-effects" class="section level2 hasAnchor" number="2.3">
@@ -324,8 +323,8 @@ plots these as a histogram:</p>
 <span id="cb18-6"><a href="sec-linear-models.html#cb18-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-7"><a href="sec-linear-models.html#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot a histogram of the movie effects</span></span>
 <span id="cb18-8"><a href="sec-linear-models.html#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">cex =</span> <span class="fl">0.7</span>)</span>
-<span id="cb18-9"><a href="sec-linear-models.html#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(movie_biases<span class="sc">$</span>b_i, <span class="dv">30</span>, <span class="at">xlab =</span> <span class="fu">TeX</span>(r<span class="st">&#39;[$\hat{b}_{1,i}$]&#39;</span>),</span>
-<span id="cb18-10"><a href="sec-linear-models.html#cb18-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="fu">TeX</span>(r<span class="st">&#39;[Histogram of $\hat{b}_{1,i}$]&#39;</span>))</span></code></pre></div>
+<span id="cb18-9"><a href="sec-linear-models.html#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(movie_biases<span class="sc">$</span>b_i, <span class="dv">30</span>, <span class="at">xlab =</span> <span class="fu">TeX</span>(r<span class="st">&#39;[$\hat{b}_{1;i}$]&#39;</span>),</span>
+<span id="cb18-10"><a href="sec-linear-models.html#cb18-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="fu">TeX</span>(r<span class="st">&#39;[Histogram of $\hat{b}_{1;i}$]&#39;</span>))</span></code></pre></div>
 <p><img src="movielens_files/figure-html/Movie-effects-1.png" width="576" /></p>
 <p>The new model gives the following RMSE values when applied to <code>edx_test</code>:</p>
 <div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="sec-linear-models.html#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Obtain predictions for the edx_test set</span></span>
@@ -333,13 +332,18 @@ plots these as a histogram:</p>
 <span id="cb19-3"><a href="sec-linear-models.html#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(movie_biases, <span class="at">by=</span><span class="st">&#39;movieId&#39;</span>) <span class="sc">|&gt;</span></span>
 <span id="cb19-4"><a href="sec-linear-models.html#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pred =</span> mu <span class="sc">+</span> b_i) <span class="sc">|&gt;</span> <span class="fu">pull</span>(pred)</span>
 <span id="cb19-5"><a href="sec-linear-models.html#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-6"><a href="sec-linear-models.html#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute RMSE and add to data.table</span></span>
-<span id="cb19-7"><a href="sec-linear-models.html#cb19-7" aria-hidden="true" tabindex="-1"></a>RMSEs <span class="ot">&lt;-</span> RMSEs <span class="sc">|&gt;</span></span>
-<span id="cb19-8"><a href="sec-linear-models.html#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_row</span>(<span class="at">Method =</span> <span class="st">&quot;Movie effects&quot;</span>,</span>
-<span id="cb19-9"><a href="sec-linear-models.html#cb19-9" aria-hidden="true" tabindex="-1"></a>          <span class="at">RMSE =</span> <span class="fu">RMSE</span>(predicted_ratings, edx_test<span class="sc">$</span>rating),</span>
-<span id="cb19-10"><a href="sec-linear-models.html#cb19-10" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;RMSE (clamped estimates)&quot;</span> <span class="ot">=</span> <span class="fu">RMSE</span>(<span class="fu">clamp</span>(predicted_ratings), edx_test<span class="sc">$</span>rating))</span>
-<span id="cb19-11"><a href="sec-linear-models.html#cb19-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-12"><a href="sec-linear-models.html#cb19-12" aria-hidden="true" tabindex="-1"></a>RMSEs[<span class="fu">nrow</span>(RMSEs),] <span class="sc">|&gt;</span> <span class="fu">kable</span>(<span class="at">align=</span><span class="st">&#39;lrr&#39;</span>, <span class="at">booktabs =</span> T) <span class="sc">|&gt;</span> <span class="fu">row_spec</span>(<span class="dv">0</span>, <span class="at">bold =</span> T)</span></code></pre></div>
+<span id="cb19-6"><a href="sec-linear-models.html#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="co"># When multiple effects (movie, user, genre) are added in our model, some predictions</span></span>
+<span id="cb19-7"><a href="sec-linear-models.html#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="co"># may fall out of the valid range.  This function fixes these predictions to the range</span></span>
+<span id="cb19-8"><a href="sec-linear-models.html#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="co"># [0.5, 5].</span></span>
+<span id="cb19-9"><a href="sec-linear-models.html#cb19-9" aria-hidden="true" tabindex="-1"></a>clamp <span class="ot">&lt;-</span> <span class="cf">function</span>(x) raster<span class="sc">::</span><span class="fu">clamp</span>(<span class="fu">as.numeric</span>(x), <span class="fl">0.5</span>, <span class="dv">5</span>)</span>
+<span id="cb19-10"><a href="sec-linear-models.html#cb19-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-11"><a href="sec-linear-models.html#cb19-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute RMSE and add to data.table</span></span>
+<span id="cb19-12"><a href="sec-linear-models.html#cb19-12" aria-hidden="true" tabindex="-1"></a>RMSEs <span class="ot">&lt;-</span> RMSEs <span class="sc">|&gt;</span></span>
+<span id="cb19-13"><a href="sec-linear-models.html#cb19-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_row</span>(<span class="at">Method =</span> <span class="st">&quot;Movie effects&quot;</span>,</span>
+<span id="cb19-14"><a href="sec-linear-models.html#cb19-14" aria-hidden="true" tabindex="-1"></a>          <span class="at">RMSE =</span> <span class="fu">RMSE</span>(predicted_ratings, edx_test<span class="sc">$</span>rating),</span>
+<span id="cb19-15"><a href="sec-linear-models.html#cb19-15" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;RMSE (clamped estimates)&quot;</span> <span class="ot">=</span> <span class="fu">RMSE</span>(<span class="fu">clamp</span>(predicted_ratings), edx_test<span class="sc">$</span>rating))</span>
+<span id="cb19-16"><a href="sec-linear-models.html#cb19-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-17"><a href="sec-linear-models.html#cb19-17" aria-hidden="true" tabindex="-1"></a>RMSEs[<span class="fu">nrow</span>(RMSEs),] <span class="sc">|&gt;</span> <span class="fu">kable</span>(<span class="at">align=</span><span class="st">&#39;lrr&#39;</span>, <span class="at">booktabs =</span> T) <span class="sc">|&gt;</span> <span class="fu">row_spec</span>(<span class="dv">0</span>, <span class="at">bold =</span> T)</span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -392,8 +396,8 @@ each <span class="math inline">\(u\)</span> and plots these as a histogram:</p>
 <span id="cb20-6"><a href="sec-linear-models.html#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-7"><a href="sec-linear-models.html#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot a histogram of the user effects</span></span>
 <span id="cb20-8"><a href="sec-linear-models.html#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">cex =</span> <span class="fl">0.7</span>)</span>
-<span id="cb20-9"><a href="sec-linear-models.html#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(user_biases<span class="sc">$</span>b_u, <span class="dv">30</span>, <span class="at">xlab =</span> <span class="fu">TeX</span>(r<span class="st">&#39;[$\hat{b}_{2,u}$]&#39;</span>),</span>
-<span id="cb20-10"><a href="sec-linear-models.html#cb20-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="fu">TeX</span>(r<span class="st">&#39;[Histogram of $\hat{b}_{2,u}$]&#39;</span>))</span></code></pre></div>
+<span id="cb20-9"><a href="sec-linear-models.html#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(user_biases<span class="sc">$</span>b_u, <span class="dv">30</span>, <span class="at">xlab =</span> <span class="fu">TeX</span>(r<span class="st">&#39;[$\hat{b}_{2;u}$]&#39;</span>),</span>
+<span id="cb20-10"><a href="sec-linear-models.html#cb20-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="fu">TeX</span>(r<span class="st">&#39;[Histogram of $\hat{b}_{2;u}$]&#39;</span>))</span></code></pre></div>
 <p><img src="movielens_files/figure-html/User-effects-1.png" width="576" /></p>
 <p>The new model gives the following RMSE values when applied to the <code>edx_test</code> set:</p>
 <div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="sec-linear-models.html#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Obtain predictions for the edx_test set</span></span>
@@ -445,7 +449,7 @@ Y_{u,i} \sim \mu + b_{1;i} + b_{2;u} + b_{3;g(i)} + \varepsilon_{u,i},
 \]</span>
 where <span class="math inline">\(g(i)\)</span> is the <em>combination</em> of genres for movie <span class="math inline">\(i\)</span>.
 We approximate <span class="math inline">\(b_{3;g}\)</span> for each genre combination <span class="math inline">\(g\)</span> as the mean of
-<span class="math inline">\(\hat{b}_u = Y_{u;i} - \hat{\mu} - \hat{b}_{1;i} - \hat{b}_{2;u}\)</span>, averaged over
+<span class="math inline">\(\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1;i} - \hat{b}_{2;u}\)</span>, averaged over
 all ratings in the training set where <span class="math inline">\(g(i) = g\)</span>. The following code computes
 <span class="math inline">\(\hat{b}_{3,g}\)</span> for each <span class="math inline">\(g\)</span> and plots these as a histogram:</p>
 <div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="sec-linear-models.html#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Estimate genre effects</span></span>
@@ -457,8 +461,8 @@ all ratings in the training set where <span class="math inline">\(g(i) = g\)</sp
 <span id="cb22-7"><a href="sec-linear-models.html#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-8"><a href="sec-linear-models.html#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot a histogram of the genre effects</span></span>
 <span id="cb22-9"><a href="sec-linear-models.html#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">cex =</span> <span class="fl">0.7</span>)</span>
-<span id="cb22-10"><a href="sec-linear-models.html#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(genre_biases<span class="sc">$</span>b_g, <span class="dv">30</span>, <span class="at">xlab =</span> <span class="fu">TeX</span>(r<span class="st">&#39;[$\hat{b}_{3,g}$]&#39;</span>),</span>
-<span id="cb22-11"><a href="sec-linear-models.html#cb22-11" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="fu">TeX</span>(r<span class="st">&#39;[Histogram of $\hat{b}_{3,g}$]&#39;</span>))</span></code></pre></div>
+<span id="cb22-10"><a href="sec-linear-models.html#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(genre_biases<span class="sc">$</span>b_g, <span class="dv">30</span>, <span class="at">xlab =</span> <span class="fu">TeX</span>(r<span class="st">&#39;[$\hat{b}_{3;g}$]&#39;</span>),</span>
+<span id="cb22-11"><a href="sec-linear-models.html#cb22-11" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="fu">TeX</span>(r<span class="st">&#39;[Histogram of $\hat{b}_{3;g}$]&#39;</span>))</span></code></pre></div>
 <p><img src="movielens_files/figure-html/Genre-effects-1.png" width="576" /></p>
 <p>The new model gives the following RMSE values when applied to the <code>edx_test</code> set:</p>
 <div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="sec-linear-models.html#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Obtain predictions for the edx_test set</span></span>
@@ -513,12 +517,9 @@ where <span class="math inline">\(t_{u,i}\)</span> is a week index, such that th
 start of Week 1.</p>
 <p>The new optimization problem minimizes
 <span class="math display">\[
-\text{SE} =
-\sum_{(u,i)\in\mathcal{T}} \left[y_{u,i} - \mu - b_{1;i} - b_{2;u} - b_{3;g(i)} - f(t_{u,i})\right]^2.
-\]</span>
-Note the addition of the <span class="math inline">\(t\)</span> subscript compared to the original problem formulation
-defined in Section <a href="sec-linear-models.html#sec-notation">2.1</a>, with
-<span class="math inline">\(\mu_{t;u,i} = \mu - f(t_{u,i})\)</span>.</p>
+\text{SSE} =
+\sum_{(u,i)\in\mathcal{T}} \left[Y_{u,i} - \mu - b_{1;i} - b_{2;u} - b_{3;g(i)} - f(t_{u,i})\right]^2.
+\]</span></p>
 <p>The following code defines <span class="math inline">\(f(t)\)</span> as the smoothed average rating on Week <span class="math inline">\(t\)</span>, minus <span class="math inline">\(\mu\)</span>:</p>
 <div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="sec-linear-models.html#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Add a week number to each rating in the edx_train and edx_test datasets</span></span>
 <span id="cb24-2"><a href="sec-linear-models.html#cb24-2" aria-hidden="true" tabindex="-1"></a>edx_train <span class="ot">&lt;-</span> edx_train <span class="sc">|&gt;</span></span>
@@ -539,11 +540,9 @@ defined in Section <a href="sec-linear-models.html#sec-notation">2.1</a>, with
 <span id="cb24-17"><a href="sec-linear-models.html#cb24-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb24-18"><a href="sec-linear-models.html#cb24-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the fitted curve</span></span>
 <span id="cb24-19"><a href="sec-linear-models.html#cb24-19" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">data.frame</span>(<span class="at">weekNum =</span> r, f_t), <span class="fu">aes</span>(weekNum, f_t)) <span class="sc">+</span> <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb24-20"><a href="sec-linear-models.html#cb24-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="fu">TeX</span>(r<span class="st">&#39;[$t_{u,i}$]&#39;</span>)) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="fu">TeX</span>(r<span class="st">&#39;[$f\,(t_{u,i}\,)$]&#39;</span>))</span></code></pre></div>
+<span id="cb24-20"><a href="sec-linear-models.html#cb24-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&#39;t, Week number&#39;</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="fu">TeX</span>(r<span class="st">&#39;[$f(t)$]&#39;</span>))</span></code></pre></div>
 <p><img src="movielens_files/figure-html/Time-averages-1.png" width="576" /></p>
-<p>We approximate <span class="math inline">\(b_{t,g}\)</span> for each genre combination <span class="math inline">\(g\)</span> as the mean of
-<span class="math inline">\(\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1;i} - \hat{b}_{2;u} - b_{3;g(i)}\)</span>.
-Fitting the <span class="math inline">\(b_{j;t}\)</span>’s <span class="math inline">\(j=1,2,3\)</span>, for the new model, we obtain RMSE values of:</p>
+<p>Refitting the user, movie, and genre effects for the new time-based model, we obtain RMSE values of:</p>
 <div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="sec-linear-models.html#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute the biases</span></span>
 <span id="cb25-2"><a href="sec-linear-models.html#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb25-3"><a href="sec-linear-models.html#cb25-3" aria-hidden="true" tabindex="-1"></a>movie_biases_t <span class="ot">&lt;-</span> edx_train <span class="sc">|&gt;</span> </span>
@@ -613,17 +612,17 @@ Movie + user + genre + time effects
 <p>To improve our model further, we can add <span class="math inline">\(L_2\)</span> regularization. Whereas the previous model fitting
 procedure minimizes
 <span class="math display">\[
-\text{SE} = \sum_{(u,i)\in\mathcal{T}} \left[y_{u,i} - \mu - b_{1;i} - b_{2;u} - b_{3;g(i)} - f(t_{u,i})\right]^2,
+\text{SSE} = \sum_{(u,i)\in\mathcal{T}} \left[Y_{u,i} - \mu - b_{1;i} - b_{2;u} - b_{3;g(i)} - f(t_{u,i})\right]^2,
 \]</span>
 in this section we add a penalty term such that the new expression to minimize is as follows:
 <span class="math display">\[
-\text{SE} + \lambda\sum_j\left\Vert b_j\right\Vert_2^2.
+\text{SSE} + \lambda\sum_j\left\Vert b_j\right\Vert_2^2.
 \]</span>
 Fitting the regularized model to the training set for different <span class="math inline">\(\lambda\)</span>, and
 using the test set for RMSE calculation, we obtain the following plot of RMSE against <span class="math inline">\(\lambda\)</span>.</p>
 <div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="sec-linear-models.html#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List of regularization parameter values to try.</span></span>
-<span id="cb26-2"><a href="sec-linear-models.html#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Since I know the approximate optimal value, I added more points</span></span>
-<span id="cb26-3"><a href="sec-linear-models.html#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="co"># in this range.</span></span>
+<span id="cb26-2"><a href="sec-linear-models.html#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="co"># I increased the density of points near the optimal value since</span></span>
+<span id="cb26-3"><a href="sec-linear-models.html#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="co"># I already know it approximately.</span></span>
 <span id="cb26-4"><a href="sec-linear-models.html#cb26-4" aria-hidden="true" tabindex="-1"></a>lambdas <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="fu">seq</span>(<span class="fl">4.5</span>,<span class="fl">5.5</span>,<span class="fl">0.1</span>),<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>,<span class="dv">9</span>,<span class="dv">10</span>)</span>
 <span id="cb26-5"><a href="sec-linear-models.html#cb26-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-6"><a href="sec-linear-models.html#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute RMSE values for each lambda using the *test set.</span></span>
@@ -668,36 +667,38 @@ using the test set for RMSE calculation, we obtain the following plot of RMSE ag
 <pre><code>## [1] 4.9</code></pre>
 <p>Fitting the regularized model one last time and computing the RMSE on <code>edx_test</code>, we
 obtain:</p>
-<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="sec-linear-models.html#cb29-1" aria-hidden="true" tabindex="-1"></a>movie_biases_reg <span class="ot">&lt;-</span></span>
-<span id="cb29-2"><a href="sec-linear-models.html#cb29-2" aria-hidden="true" tabindex="-1"></a>  edx_train[, .(<span class="at">b_i =</span> <span class="fu">sum</span>(rating <span class="sc">-</span> mu <span class="sc">-</span> f_t[weekNum])<span class="sc">/</span>(.N<span class="sc">+</span>lambda)), by <span class="ot">=</span> <span class="st">&#39;movieId&#39;</span>]</span>
-<span id="cb29-3"><a href="sec-linear-models.html#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-4"><a href="sec-linear-models.html#cb29-4" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> movie_biases_reg[edx_train, on <span class="ot">=</span> <span class="st">&#39;movieId&#39;</span>]</span>
-<span id="cb29-5"><a href="sec-linear-models.html#cb29-5" aria-hidden="true" tabindex="-1"></a>user_biases_reg <span class="ot">&lt;-</span></span>
-<span id="cb29-6"><a href="sec-linear-models.html#cb29-6" aria-hidden="true" tabindex="-1"></a>  temp[, .(<span class="at">b_u =</span> <span class="fu">sum</span>(rating <span class="sc">-</span> mu <span class="sc">-</span> b_i <span class="sc">-</span> f_t[weekNum])<span class="sc">/</span>(.N<span class="sc">+</span>lambda)), by <span class="ot">=</span> <span class="st">&#39;userId&#39;</span>]</span>
-<span id="cb29-7"><a href="sec-linear-models.html#cb29-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-8"><a href="sec-linear-models.html#cb29-8" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> user_biases_reg[temp, on <span class="ot">=</span> <span class="st">&#39;userId&#39;</span>]</span>
-<span id="cb29-9"><a href="sec-linear-models.html#cb29-9" aria-hidden="true" tabindex="-1"></a>genre_biases_reg <span class="ot">&lt;-</span></span>
-<span id="cb29-10"><a href="sec-linear-models.html#cb29-10" aria-hidden="true" tabindex="-1"></a>  temp[, .(<span class="at">b_g =</span> <span class="fu">sum</span>(rating <span class="sc">-</span> mu <span class="sc">-</span> b_i <span class="sc">-</span> b_u <span class="sc">-</span> f_t[weekNum])<span class="sc">/</span>(.N<span class="sc">+</span>lambda)), by <span class="ot">=</span> <span class="st">&#39;genres&#39;</span>]</span>
-<span id="cb29-11"><a href="sec-linear-models.html#cb29-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-12"><a href="sec-linear-models.html#cb29-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate predictions for the *edx_test* set.</span></span>
-<span id="cb29-13"><a href="sec-linear-models.html#cb29-13" aria-hidden="true" tabindex="-1"></a>predicted_ratings_reg <span class="ot">&lt;-</span> genre_biases_reg[</span>
-<span id="cb29-14"><a href="sec-linear-models.html#cb29-14" aria-hidden="true" tabindex="-1"></a>  user_biases_reg[</span>
-<span id="cb29-15"><a href="sec-linear-models.html#cb29-15" aria-hidden="true" tabindex="-1"></a>    movie_biases_reg[</span>
-<span id="cb29-16"><a href="sec-linear-models.html#cb29-16" aria-hidden="true" tabindex="-1"></a>      edx_test, on <span class="ot">=</span> <span class="st">&#39;movieId&#39;</span>],</span>
-<span id="cb29-17"><a href="sec-linear-models.html#cb29-17" aria-hidden="true" tabindex="-1"></a>    on <span class="ot">=</span> <span class="st">&#39;userId&#39;</span>],</span>
-<span id="cb29-18"><a href="sec-linear-models.html#cb29-18" aria-hidden="true" tabindex="-1"></a>  on <span class="ot">=</span> <span class="st">&#39;genres&#39;</span>] <span class="sc">|&gt;</span> </span>
-<span id="cb29-19"><a href="sec-linear-models.html#cb29-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pred =</span> mu <span class="sc">+</span> b_i <span class="sc">+</span> b_u <span class="sc">+</span> b_g <span class="sc">+</span> f_t[weekNum]) <span class="sc">|&gt;</span> </span>
-<span id="cb29-20"><a href="sec-linear-models.html#cb29-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(pred)</span>
-<span id="cb29-21"><a href="sec-linear-models.html#cb29-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-22"><a href="sec-linear-models.html#cb29-22" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(temp)</span>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="sec-linear-models.html#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute movie, user, genre, and time effects using the test set, using the optimal</span></span>
+<span id="cb29-2"><a href="sec-linear-models.html#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co"># regularization parameter value lambda we just found.</span></span>
+<span id="cb29-3"><a href="sec-linear-models.html#cb29-3" aria-hidden="true" tabindex="-1"></a>movie_biases_reg <span class="ot">&lt;-</span></span>
+<span id="cb29-4"><a href="sec-linear-models.html#cb29-4" aria-hidden="true" tabindex="-1"></a>  edx_train[, .(<span class="at">b_i =</span> <span class="fu">sum</span>(rating <span class="sc">-</span> mu <span class="sc">-</span> f_t[weekNum])<span class="sc">/</span>(.N<span class="sc">+</span>lambda)), by <span class="ot">=</span> <span class="st">&#39;movieId&#39;</span>]</span>
+<span id="cb29-5"><a href="sec-linear-models.html#cb29-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-6"><a href="sec-linear-models.html#cb29-6" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> movie_biases_reg[edx_train, on <span class="ot">=</span> <span class="st">&#39;movieId&#39;</span>]</span>
+<span id="cb29-7"><a href="sec-linear-models.html#cb29-7" aria-hidden="true" tabindex="-1"></a>user_biases_reg <span class="ot">&lt;-</span></span>
+<span id="cb29-8"><a href="sec-linear-models.html#cb29-8" aria-hidden="true" tabindex="-1"></a>  temp[, .(<span class="at">b_u =</span> <span class="fu">sum</span>(rating <span class="sc">-</span> mu <span class="sc">-</span> b_i <span class="sc">-</span> f_t[weekNum])<span class="sc">/</span>(.N<span class="sc">+</span>lambda)), by <span class="ot">=</span> <span class="st">&#39;userId&#39;</span>]</span>
+<span id="cb29-9"><a href="sec-linear-models.html#cb29-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-10"><a href="sec-linear-models.html#cb29-10" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> user_biases_reg[temp, on <span class="ot">=</span> <span class="st">&#39;userId&#39;</span>]</span>
+<span id="cb29-11"><a href="sec-linear-models.html#cb29-11" aria-hidden="true" tabindex="-1"></a>genre_biases_reg <span class="ot">&lt;-</span></span>
+<span id="cb29-12"><a href="sec-linear-models.html#cb29-12" aria-hidden="true" tabindex="-1"></a>  temp[, .(<span class="at">b_g =</span> <span class="fu">sum</span>(rating <span class="sc">-</span> mu <span class="sc">-</span> b_i <span class="sc">-</span> b_u <span class="sc">-</span> f_t[weekNum])<span class="sc">/</span>(.N<span class="sc">+</span>lambda)), by <span class="ot">=</span> <span class="st">&#39;genres&#39;</span>]</span>
+<span id="cb29-13"><a href="sec-linear-models.html#cb29-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-14"><a href="sec-linear-models.html#cb29-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate predictions for the *edx_test* set.</span></span>
+<span id="cb29-15"><a href="sec-linear-models.html#cb29-15" aria-hidden="true" tabindex="-1"></a>predicted_ratings_reg <span class="ot">&lt;-</span> genre_biases_reg[</span>
+<span id="cb29-16"><a href="sec-linear-models.html#cb29-16" aria-hidden="true" tabindex="-1"></a>  user_biases_reg[</span>
+<span id="cb29-17"><a href="sec-linear-models.html#cb29-17" aria-hidden="true" tabindex="-1"></a>    movie_biases_reg[</span>
+<span id="cb29-18"><a href="sec-linear-models.html#cb29-18" aria-hidden="true" tabindex="-1"></a>      edx_test, on <span class="ot">=</span> <span class="st">&#39;movieId&#39;</span>],</span>
+<span id="cb29-19"><a href="sec-linear-models.html#cb29-19" aria-hidden="true" tabindex="-1"></a>    on <span class="ot">=</span> <span class="st">&#39;userId&#39;</span>],</span>
+<span id="cb29-20"><a href="sec-linear-models.html#cb29-20" aria-hidden="true" tabindex="-1"></a>  on <span class="ot">=</span> <span class="st">&#39;genres&#39;</span>] <span class="sc">|&gt;</span> </span>
+<span id="cb29-21"><a href="sec-linear-models.html#cb29-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pred =</span> mu <span class="sc">+</span> b_i <span class="sc">+</span> b_u <span class="sc">+</span> b_g <span class="sc">+</span> f_t[weekNum]) <span class="sc">|&gt;</span> </span>
+<span id="cb29-22"><a href="sec-linear-models.html#cb29-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(pred)</span>
 <span id="cb29-23"><a href="sec-linear-models.html#cb29-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-24"><a href="sec-linear-models.html#cb29-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute RMSE and add to data.table</span></span>
-<span id="cb29-25"><a href="sec-linear-models.html#cb29-25" aria-hidden="true" tabindex="-1"></a>RMSEs <span class="ot">&lt;-</span> RMSEs <span class="sc">|&gt;</span></span>
-<span id="cb29-26"><a href="sec-linear-models.html#cb29-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_row</span>(<span class="at">Method =</span> <span class="st">&quot;Movie + user + genre + time effects (regularized)&quot;</span>,</span>
-<span id="cb29-27"><a href="sec-linear-models.html#cb29-27" aria-hidden="true" tabindex="-1"></a>          <span class="at">RMSE =</span> <span class="fu">RMSE</span>(predicted_ratings_reg, edx_test<span class="sc">$</span>rating),</span>
-<span id="cb29-28"><a href="sec-linear-models.html#cb29-28" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;RMSE (clamped estimates)&quot;</span> <span class="ot">=</span></span>
-<span id="cb29-29"><a href="sec-linear-models.html#cb29-29" aria-hidden="true" tabindex="-1"></a>            <span class="fu">RMSE</span>(<span class="fu">clamp</span>(predicted_ratings_reg), edx_test<span class="sc">$</span>rating))</span>
-<span id="cb29-30"><a href="sec-linear-models.html#cb29-30" aria-hidden="true" tabindex="-1"></a>RMSEs[<span class="fu">nrow</span>(RMSEs),] <span class="sc">|&gt;</span> <span class="fu">kable</span>(<span class="at">align=</span><span class="st">&#39;lrr&#39;</span>, <span class="at">booktabs =</span> T) <span class="sc">|&gt;</span> <span class="fu">row_spec</span>(<span class="dv">0</span>, <span class="at">bold =</span> T)</span></code></pre></div>
+<span id="cb29-24"><a href="sec-linear-models.html#cb29-24" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(temp)</span>
+<span id="cb29-25"><a href="sec-linear-models.html#cb29-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-26"><a href="sec-linear-models.html#cb29-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute RMSE and add to data.table</span></span>
+<span id="cb29-27"><a href="sec-linear-models.html#cb29-27" aria-hidden="true" tabindex="-1"></a>RMSEs <span class="ot">&lt;-</span> RMSEs <span class="sc">|&gt;</span></span>
+<span id="cb29-28"><a href="sec-linear-models.html#cb29-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_row</span>(<span class="at">Method =</span> <span class="st">&quot;Movie + user + genre + time effects (regularized)&quot;</span>,</span>
+<span id="cb29-29"><a href="sec-linear-models.html#cb29-29" aria-hidden="true" tabindex="-1"></a>          <span class="at">RMSE =</span> <span class="fu">RMSE</span>(predicted_ratings_reg, edx_test<span class="sc">$</span>rating),</span>
+<span id="cb29-30"><a href="sec-linear-models.html#cb29-30" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;RMSE (clamped estimates)&quot;</span> <span class="ot">=</span></span>
+<span id="cb29-31"><a href="sec-linear-models.html#cb29-31" aria-hidden="true" tabindex="-1"></a>            <span class="fu">RMSE</span>(<span class="fu">clamp</span>(predicted_ratings_reg), edx_test<span class="sc">$</span>rating))</span>
+<span id="cb29-32"><a href="sec-linear-models.html#cb29-32" aria-hidden="true" tabindex="-1"></a>RMSEs[<span class="fu">nrow</span>(RMSEs),] <span class="sc">|&gt;</span> <span class="fu">kable</span>(<span class="at">align=</span><span class="st">&#39;lrr&#39;</span>, <span class="at">booktabs =</span> T) <span class="sc">|&gt;</span> <span class="fu">row_spec</span>(<span class="dv">0</span>, <span class="at">bold =</span> T)</span></code></pre></div>
 <table>
 <thead>
 <tr>

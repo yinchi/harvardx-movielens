@@ -156,7 +156,7 @@ removed <- anti_join(temp, validation)
 edx <- rbind(edx, removed)
 
 
-# STEP 5; convert timestamps to datetime
+# STEP 5: convert timestamps to datetime
 edx <- edx |> mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
 validation <- validation |> mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
 
@@ -270,6 +270,8 @@ genre_summary |> arrange(desc(`Mean Rating`)) |>
 The number of genres for each movie is plotted as a histogram below:
 ```{r Genre-counts-hist, fig.height=3, fig.width=4}
 
+# The number of genres for a movie is the number of pipe symbols plus one,
+#   except in the case of "(no genres listed)".
 genre_counts <- table(str_count(edx$genres, '\\|') + 1 - str_count(edx$genres, 'no genres'))
 par(cex = 0.7)
 barplot(genre_counts, xlab = 'Number of genres', ylab = 'Count', main = 'Genres per movie')
@@ -290,20 +292,19 @@ error (RMSE):
 $$
 \text{RMSE} = \sqrt{\frac{1}{\left|\mathcal{T}\right|}\sum_{(u,i)\in\mathcal{T}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2}
 $$
-where $y$ denotes the true values of movie ratings in the test set $\mathcal{T}$,
-$\hat{y}$ denotes the estimated values,
-and $N$ denotes the number of observations in the test set.
+where $y$ denotes the true values of movie ratings in the test set $\mathcal{T}$
+and $\hat{y}$ denotes the estimated values.
 
 The library function `caret::RSME` is used in this report for RSME evaluation.
 
 Note that minimizing the RMSE is equivalent to minimizing the sum of the square errors, i.e.,
 $$
-\text{SE} = \sum_{(u,i)\in\mathcal{T}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2.
+\text{SSE} = \sum_{(u,i)\in\mathcal{T}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2.
 $$
 In matrix form, this can be thought of as the square of the
 $L_{2,2}$ or Frobenius norm of the prediction errors, i.e.,
 $$
-\text{SE} = \left\Vert Y - \hat{Y} \right\Vert_{2,2}^2,
+\text{SSE} = \left\Vert Y - \hat{Y} \right\Vert_{2,2}^2,
 $$
 where $Y - \hat{Y}$ is defined as zero for user-movie pairs not in the test set.
 
@@ -345,10 +346,11 @@ Finally, only the indices $(u,i)$ in the training set, denoted $\mathcal{T}$, ar
 
 The goal is to
 estimate $Y$ given the observable elements of $Y$ (the actual ratings). Given a user-movie pair $(u,i)$,
-we model $Y_r$ using a multiple linear regression model:
-$$
-y_{u,i} \sim \mu + \left(\sum_j \beta_{j;u,i} \right) +\varepsilon_{u,i},
-$$
+we model $Y_{u,i}$ using a multiple linear regression model:
+\begin{equation}
+Y_{u,i} \sim \mu + \left(\sum_j \beta_{j;u,i} \right) +\varepsilon_{u,i},
+(\#eq:generic-equation)
+\end{equation}
 where
 
 * $\mu$ represents the “true” rating for all movies,
@@ -360,22 +362,24 @@ We further define $b_j$ such that
 $$
 \left(X_{j;u,i} = n\right) \implies \left(\beta_{j;u,i} = b_{j;n}\right).
 $$
+In other words, whereas $\beta_j$ defines biases based on user-movie pairs, $b_j$ defines the same
+biases based on some attribute of these pairs, for example, the movie genres.
 
-We can write the above in matrix form:
+We can write Equation \@ref(eq:generic-equation) in matrix form:
 $$
 Y \sim \mu + \left( \sum_j \beta_j \right) + \varepsilon.
 $$
 
 The objective is to minimize the sum of the squared errors
 $$
-\text{SE} =
+\text{SSE} =
 \sum_{(u,i)\in\mathcal{T}} \left[Y_{u,i} - \mu - \sum_j \beta_{j;u,i} \right]^2
 $$
 where $\mathcal{T}$ represents the test set of observed movie ratings.
 
-The estimated value of $Y_{u,v}$ for $(u,v) \notin \mathcal{T}$ is
+The estimated value of $Y_{u,i}$ for $(u,i) \notin \mathcal{T}$ is
 $$
-\hat{Y}_{u,v} = \mu + \sum_j \beta_{j;u,v}.
+\hat{Y}_{u,i} = \mu + \sum_j \beta_{j;u,v}.
 $$
 
 ## Using the mean rating only
@@ -388,6 +392,7 @@ The best estimate $\hat{\mu}$ of $\mu$ is the mean of all ratings in `edx_train`
 
 ```{r Mean-only-model}
 
+# Mean-only model: use mean rating to predict all ratings
 mu <- mean(edx_test$rating)
 mu
 ```
@@ -396,12 +401,7 @@ This model gives the following RMSE values when applied to `edx_test`:
 
 ```{r Mean-only-RMSE}
 
-# When multiple effects (movie, user, genre) are added in our model, some predictions
-# may fall out of the valid range.  This function fixes these predictions to the range
-# [0.5, 5].
-clamp <- function(x) raster::clamp(as.numeric(x), 0.5, 5)
-
-# Compute RMSE and add to a tibble.
+# Compute RMSE of mean-only model and add to a tibble.
 RMSEs <- tibble(Method = c("Mean only"),
                 RMSE = RMSE(mu, edx_test$rating),
                 "RMSE (clamped estimates)" = RMSE(mu, edx_test$rating))
@@ -428,8 +428,8 @@ movie_biases <- edx_train |>
 
 # Plot a histogram of the movie effects
 par(cex = 0.7)
-hist(movie_biases$b_i, 30, xlab = TeX(r'[$\hat{b}_{1,i}$]'),
-     main = TeX(r'[Histogram of $\hat{b}_{1,i}$]'))
+hist(movie_biases$b_i, 30, xlab = TeX(r'[$\hat{b}_{1;i}$]'),
+     main = TeX(r'[Histogram of $\hat{b}_{1;i}$]'))
 ```
 
 The new model gives the following RMSE values when applied to `edx_test`:
@@ -440,6 +440,11 @@ The new model gives the following RMSE values when applied to `edx_test`:
 predicted_ratings <- edx_test |> 
   left_join(movie_biases, by='movieId') |>
   mutate(pred = mu + b_i) |> pull(pred)
+
+# When multiple effects (movie, user, genre) are added in our model, some predictions
+# may fall out of the valid range.  This function fixes these predictions to the range
+# [0.5, 5].
+clamp <- function(x) raster::clamp(as.numeric(x), 0.5, 5)
 
 # Compute RMSE and add to data.table
 RMSEs <- RMSEs |>
@@ -476,8 +481,8 @@ user_biases <- edx_train |>
 
 # Plot a histogram of the user effects
 par(cex = 0.7)
-hist(user_biases$b_u, 30, xlab = TeX(r'[$\hat{b}_{2,u}$]'),
-     main = TeX(r'[Histogram of $\hat{b}_{2,u}$]'))
+hist(user_biases$b_u, 30, xlab = TeX(r'[$\hat{b}_{2;u}$]'),
+     main = TeX(r'[Histogram of $\hat{b}_{2;u}$]'))
 ```
 
 The new model gives the following RMSE values when applied to the `edx_test` set:
@@ -506,7 +511,7 @@ Y_{u,i} \sim \mu + b_{1;i} + b_{2;u} + b_{3;g(i)} + \varepsilon_{u,i},
 $$
 where $g(i)$ is the *combination* of genres for movie $i$.
 We approximate $b_{3;g}$ for each genre combination $g$ as the mean of
-$\hat{b}_u = Y_{u;i} - \hat{\mu} - \hat{b}_{1;i} - \hat{b}_{2;u}$, averaged over
+$\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1;i} - \hat{b}_{2;u}$, averaged over
 all ratings in the training set where $g(i) = g$. The following code computes
 $\hat{b}_{3,g}$ for each $g$ and plots these as a histogram:
 
@@ -522,8 +527,8 @@ genre_biases <- edx_train |>
 
 # Plot a histogram of the genre effects
 par(cex = 0.7)
-hist(genre_biases$b_g, 30, xlab = TeX(r'[$\hat{b}_{3,g}$]'),
-     main = TeX(r'[Histogram of $\hat{b}_{3,g}$]'))
+hist(genre_biases$b_g, 30, xlab = TeX(r'[$\hat{b}_{3;g}$]'),
+     main = TeX(r'[Histogram of $\hat{b}_{3;g}$]'))
 ```
 
 The new model gives the following RMSE values when applied to the `edx_test` set:
@@ -556,12 +561,9 @@ start of Week 1.
 
 The new optimization problem minimizes
 $$
-\text{SE} =
-\sum_{(u,i)\in\mathcal{T}} \left[y_{u,i} - \mu - b_{1;i} - b_{2;u} - b_{3;g(i)} - f(t_{u,i})\right]^2.
+\text{SSE} =
+\sum_{(u,i)\in\mathcal{T}} \left[Y_{u,i} - \mu - b_{1;i} - b_{2;u} - b_{3;g(i)} - f(t_{u,i})\right]^2.
 $$
-Note the addition of the $t$ subscript compared to the original problem formulation
-defined in Section \@ref(sec-notation), with 
-$\mu_{t;u,i} = \mu - f(t_{u,i})$.
 
 The following code defines $f(t)$ as the smoothed average rating on Week $t$, minus $\mu$:
 
@@ -586,12 +588,10 @@ rm(fit)
 
 # Plot the fitted curve
 ggplot(data.frame(weekNum = r, f_t), aes(weekNum, f_t)) + geom_line() +
-  xlab(TeX(r'[$t_{u,i}$]')) + ylab(TeX(r'[$f\,(t_{u,i}\,)$]'))
+  xlab('t, Week number') + ylab(TeX(r'[$f(t)$]'))
 ```
 
-We approximate $b_{t,g}$ for each genre combination $g$ as the mean of
-$\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1;i} - \hat{b}_{2;u} - b_{3;g(i)}$.
-Fitting the $b_{j;t}$'s $j=1,2,3$, for the new model, we obtain RMSE values of:
+Refitting the user, movie, and genre effects for the new time-based model, we obtain RMSE values of:
 
 ```{r Time-effect-model-and-RMSE, fig.height=3, fig.width=4}
 
@@ -637,11 +637,11 @@ RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 To improve our model further, we can add $L_2$ regularization.  Whereas the previous model fitting
 procedure minimizes
 $$
-\text{SE} = \sum_{(u,i)\in\mathcal{T}} \left[y_{u,i} - \mu - b_{1;i} - b_{2;u} - b_{3;g(i)} - f(t_{u,i})\right]^2,
+\text{SSE} = \sum_{(u,i)\in\mathcal{T}} \left[Y_{u,i} - \mu - b_{1;i} - b_{2;u} - b_{3;g(i)} - f(t_{u,i})\right]^2,
 $$
 in this section we add a penalty term such that the new expression to minimize is as follows:
 $$
-\text{SE} + \lambda\sum_j\left\Vert b_j\right\Vert_2^2.
+\text{SSE} + \lambda\sum_j\left\Vert b_j\right\Vert_2^2.
 $$
 Fitting the regularized model to the training set for different $\lambda$, and
 using the test set for RMSE calculation, we obtain the following plot of RMSE against $\lambda$.
@@ -649,8 +649,8 @@ using the test set for RMSE calculation, we obtain the following plot of RMSE ag
 ```{r Regularization, fig.height=3, fig.width=4}
 
 # List of regularization parameter values to try.
-# Since I know the approximate optimal value, I added more points
-# in this range.
+# I increased the density of points near the optimal value since
+# I already know it approximately.
 lambdas <- c(0,1,2,3,4,seq(4.5,5.5,0.1),6,7,8,9,10)
 
 # Compute RMSE values for each lambda using the *test set.
@@ -703,6 +703,8 @@ obtain:
 
 ```{r Regularized-model-and-RMSE}
 
+# Compute movie, user, genre, and time effects using the test set, using the optimal
+# regularization parameter value lambda we just found.
 movie_biases_reg <-
   edx_train[, .(b_i = sum(rating - mu - f_t[weekNum])/(.N+lambda)), by = 'movieId']
 
@@ -759,7 +761,7 @@ We use the model $Y \sim P + UV^\mathrm{T} + \varepsilon$
 where:
 
 - $Y$ is the $N_\mathrm{U}\times N_\mathrm{M}$
-rating matrix, i.e., with $N_u$ users and $N_i$ movies,
+rating matrix, i.e., with $N_\mathrm{U}$ users and $N_\mathrm{M}$ movies,
 - $P$ represents the predictions from best model of the previous section,
 - $U$ and $V$ are $N_\mathrm{U} \times k$ and $N_\mathrm{M} \times k$ matrices, respectively, where
   $k$ is the number of *latent features* to be found.
@@ -770,25 +772,26 @@ rank-$k$ approximation of the residual matrix $Y-P$.
 
 Funk's MF estimates $U$ and $V$ using gradient descent,
 but operating only on the known ratings. First, $U$ and $V$ are seeded with random values.
-Then, for each epoch, the algorithm iterates over all known ratings $(i,j)$ in the training set
+Then, for each epoch, the algorithm iterates over all known ratings $(u,i)$ in the training set
 and updates the feature matrices as follows:
 
-\[e_{ij} = Y_{ij} - P_{ij} - U_i V_j^\mathrm{T}\]
-\[U_i \gets U_i + \gamma(e_{ij} V_j - \lambda U_i)\]
-\[V_j \gets V_i + \gamma(e_{ij} U_i - \lambda V_j)\]
+\[e_{u,i} = Y_{u,i} - P_{u,i} - U_u V_i^\mathrm{T}\]
+\[U_u \gets U_u + \gamma(e_{u,i} V_i - \lambda U_u)\]
+\[V_i \gets V_i + \gamma(e_{u,i} U_u - \lambda V_i)\]
 
 where $\gamma$ is the learning rate and $\lambda$ is a regularization parameter.
 In this report, these are set to 0.02 and 0.001, respectively, in accordance to guidance from
-@Funk2006. The code for the Funk MF implementation used in this report can be found in
+@Funk2006, and we will only optimize the rank parameter $k$.
+The code for the Funk MF implementation used in this report can be found in
 Appendix \@ref(sec-code).
 
 ## Computing the residuals
 
-The following code computes $Y_{u,i} - P_{u,i}$ for all $(u,i)$ in the training set,
+The following code computes $Y_{u,i} - P_{u,i}$ for all user-movie pairs $(u,i)$ in the training set,
 and creates an index mapping eliminating users and movies with no rating pairs.
 
 ```{r Computing the residuals, fig.height=3, fig.width=3}
-# Residuals from previous best model
+# Compute residuals from previous best model
 previous_train <- genre_biases_reg[
   user_biases_reg[
     movie_biases_reg[
@@ -800,7 +803,7 @@ previous_train <- genre_biases_reg[
 
 residuals_train <- as.numeric(edx_train$rating - previous_train)
 
-# Test set predictions for previous best model
+# Generate test set predictions for previous best model
 previous_test <- genre_biases_reg[
   user_biases_reg[
     movie_biases_reg[
@@ -826,16 +829,18 @@ ratings rather than a residual matrix.
 This object is easy to create and does not consume too much memory:
 
 ```{r}
+
+# Create the recommenderlab::realRatingMatrix object
 mat <- new(
   className("realRatingMatrix", "recommenderlab"),
   data = sparseMatrix(Uidx[edx_train$userId],
                       Vidx[edx_train$movieId],
                       x = edx_train$rating)
 )
-object.size(mat)
+format(object.size(mat), units = "auto", standard="SI")
 ```
 
-However, attempting to factor this matrix as follows returns an error. Note that this
+However, attempting to factor this matrix as follows returns an error, as shown below. Note that this
 is just one of several memory allocation requests; there is 32GB of RAM on the laptop used to
 run this project code.  This suggests that `recommenderlab` uses dense matrices in its
 internal functions.
@@ -883,6 +888,7 @@ https://yinchi.github.io/harvardx-movielens/svd.cpp
 and is loaded into the R environment below:
 
 ```{r Funk-MF-implemenation, fig.height=3, fig.width=3}
+
 # Funk matrix factorization. See C++ source for full documentation.
 # Values for regCoef and learningRate are as suggested by [Funk 2006].
 Rcpp::sourceCpp("svd.cpp")
@@ -903,7 +909,8 @@ The following code plots the prediction error of the new model against the numbe
 in the Funk matrix factorization, i.e. the rank of matrix $UV$:
 
 ```{r Funk-MF, fig.height=3, fig.width=3}
-# Compute RMSE values for varying number of MF features.
+
+# Compute RMSE values for varying number of MF features, if saved file not found.
 set.seed(1)
 if (!file.exists('funk_tuning.Rdata')) {
   nFeatures <- c(1, 2, 4, 8, seq(12,20), 24, 28, 32)
@@ -933,7 +940,10 @@ if (!file.exists('funk_tuning.Rdata')) {
 }
 set.seed(1)
 
+# Load RMSE data from file
 load('funk_tuning.Rdata')
+
+# Plot RMSE against number of MF features.
 par(cex = 0.7)
 qplot(nFeatures, rmses, xlab = 'rank(UV)', ylab = 'RMSE', geom = c('point','line'))
 ```
@@ -952,14 +962,15 @@ Using the new model with $k=`r nFeaturesOpt`$ to predict ratings for the `edx_te
 values:
 ```{r Funk-MF-prediction}
 
-# Run Funk MF
+# Run Funk MF if saved file not found
 set.seed(1)
 if (!file.exists('funk.Rdata')) {
-funkResult <- funk(Uidx, Vidx, residuals_train, nFeatures = nFeaturesOpt, steps = 500)
-save(nFeaturesOpt, funkResult, file = 'funk.Rdata')
+  funkResult <- funk(Uidx, Vidx, residuals_train, nFeatures = nFeaturesOpt, steps = 500)
+  save(nFeaturesOpt, funkResult, file = 'funk.Rdata')
 }
 set.seed(1)
 
+# Load MF data from file
 load('funk.Rdata')
 U <- funkResult$U
 V <- funkResult$V
@@ -1020,6 +1031,7 @@ The final RMSE computed with the `validation` set is:
 
 ```{r Final-RMSE-validation-set}
 
+# Generate final predictions for the VALIDATION datset
 predicted_ratings_FINAL_VALIDATION <- validation |>
   mutate(weekNum = (timestamp - min(timestamp)) |>
            as.numeric(unit = "days") |> {\(x) floor(x/7) + 1}() ) |> 
@@ -1094,6 +1106,7 @@ rate it 3.5 stars or higher, then the confusion matrix as computed on the valida
 
 ```{r Confusion-matrix-3.5}
 
+# Classify movies as good or bad based on 3.5-star treshold and compute confusion matrix
 confusionMatrix(as.factor(ifelse(predicted_ratings_FINAL_VALIDATION >= 3.5, 'Good', 'Bad')),
                 as.factor(ifelse(validation$rating >= 3.5, 'Good', 'Bad')),
                 positive = 'Good')
@@ -1118,7 +1131,7 @@ which can handle the size of the Movielens 10M dataset and in fact uses it for b
 [@cmfrec-benchmarks].  The best reported result among the R implementations
 has a RMSE of **0.782465**, somewhat better than that achieved here.
 
-There are three possible reasons why `cmfrec` outperforms our method in this project.
+There are several possible reasons why `cmfrec` outperforms our method in this project.
 First, the `cmfrec` algorithms *update* user and movie biases during each iteration, rather than the
 static method used here.  The benchmarks shown in @cmfrec-benchmarks show that such static methods
 generally perform worse than methods with iterative bias updates. Second, methods in `cmfrec` use
@@ -1140,6 +1153,9 @@ regularization parameters $\lambda$ and $\gamma$ in this project.
 # (APPENDIX) Appendices {-} 
 
 # Code listing: [`svd.cpp`](https://github.com/yinchi/harvardx-movielens/blob/main/svd.cpp) {#sec-code}
+
+Note that the code below uses $i$ and $j$ as matrix indices rather than $u$ and $i$ which is
+specific to the Movielens models in this project.
 
 ```{Rcpp eval=FALSE, file='svd.cpp', purl = F}
 ```

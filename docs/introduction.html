@@ -23,7 +23,7 @@
 <meta name="author" content="Yin-Chi Chan" />
 
 
-<meta name="date" content="2022-04-13" />
+<meta name="date" content="2022-04-26" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -299,7 +299,7 @@ below:</p>
 <span id="cb2-61"><a href="introduction.html#cb2-61" aria-hidden="true" tabindex="-1"></a>edx <span class="ot">&lt;-</span> <span class="fu">rbind</span>(edx, removed)</span>
 <span id="cb2-62"><a href="introduction.html#cb2-62" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-63"><a href="introduction.html#cb2-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-64"><a href="introduction.html#cb2-64" aria-hidden="true" tabindex="-1"></a><span class="co"># STEP 5; convert timestamps to datetime</span></span>
+<span id="cb2-64"><a href="introduction.html#cb2-64" aria-hidden="true" tabindex="-1"></a><span class="co"># STEP 5: convert timestamps to datetime</span></span>
 <span id="cb2-65"><a href="introduction.html#cb2-65" aria-hidden="true" tabindex="-1"></a>edx <span class="ot">&lt;-</span> edx <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">timestamp =</span> <span class="fu">as_datetime</span>(timestamp)) <span class="sc">|&gt;</span> <span class="fu">as.data.table</span>()</span>
 <span id="cb2-66"><a href="introduction.html#cb2-66" aria-hidden="true" tabindex="-1"></a>validation <span class="ot">&lt;-</span> validation <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">timestamp =</span> <span class="fu">as_datetime</span>(timestamp)) <span class="sc">|&gt;</span> <span class="fu">as.data.table</span>()</span>
 <span id="cb2-67"><a href="introduction.html#cb2-67" aria-hidden="true" tabindex="-1"></a></span>
@@ -778,9 +778,11 @@ Horror
 </tbody>
 </table>
 <p>The number of genres for each movie is plotted as a histogram below:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="introduction.html#cb10-1" aria-hidden="true" tabindex="-1"></a>genre_counts <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="fu">str_count</span>(edx<span class="sc">$</span>genres, <span class="st">&#39;</span><span class="sc">\\</span><span class="st">|&#39;</span>) <span class="sc">+</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fu">str_count</span>(edx<span class="sc">$</span>genres, <span class="st">&#39;no genres&#39;</span>))</span>
-<span id="cb10-2"><a href="introduction.html#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">cex =</span> <span class="fl">0.7</span>)</span>
-<span id="cb10-3"><a href="introduction.html#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">barplot</span>(genre_counts, <span class="at">xlab =</span> <span class="st">&#39;Number of genres&#39;</span>, <span class="at">ylab =</span> <span class="st">&#39;Count&#39;</span>, <span class="at">main =</span> <span class="st">&#39;Genres per movie&#39;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="introduction.html#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># The number of genres for a movie is the number of pipe symbols plus one,</span></span>
+<span id="cb10-2"><a href="introduction.html#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   except in the case of &quot;(no genres listed)&quot;.</span></span>
+<span id="cb10-3"><a href="introduction.html#cb10-3" aria-hidden="true" tabindex="-1"></a>genre_counts <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="fu">str_count</span>(edx<span class="sc">$</span>genres, <span class="st">&#39;</span><span class="sc">\\</span><span class="st">|&#39;</span>) <span class="sc">+</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fu">str_count</span>(edx<span class="sc">$</span>genres, <span class="st">&#39;no genres&#39;</span>))</span>
+<span id="cb10-4"><a href="introduction.html#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">cex =</span> <span class="fl">0.7</span>)</span>
+<span id="cb10-5"><a href="introduction.html#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">barplot</span>(genre_counts, <span class="at">xlab =</span> <span class="st">&#39;Number of genres&#39;</span>, <span class="at">ylab =</span> <span class="st">&#39;Count&#39;</span>, <span class="at">main =</span> <span class="st">&#39;Genres per movie&#39;</span>)</span></code></pre></div>
 <p><img src="movielens_files/figure-html/Genre-counts-hist-1.png" width="576" /></p>
 <p>Therefore, it is likely better to analyze genre combinations rather than individual genres.
 The following code confirms that over half of all movies have either two or three genres:</p>
@@ -796,18 +798,17 @@ error (RMSE):
 <span class="math display">\[
 \text{RMSE} = \sqrt{\frac{1}{\left|\mathcal{T}\right|}\sum_{(u,i)\in\mathcal{T}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2}
 \]</span>
-where <span class="math inline">\(y\)</span> denotes the true values of movie ratings in the test set <span class="math inline">\(\mathcal{T}\)</span>,
-<span class="math inline">\(\hat{y}\)</span> denotes the estimated values,
-and <span class="math inline">\(N\)</span> denotes the number of observations in the test set.</p>
+where <span class="math inline">\(y\)</span> denotes the true values of movie ratings in the test set <span class="math inline">\(\mathcal{T}\)</span>
+and <span class="math inline">\(\hat{y}\)</span> denotes the estimated values.</p>
 <p>The library function <code>caret::RSME</code> is used in this report for RSME evaluation.</p>
 <p>Note that minimizing the RMSE is equivalent to minimizing the sum of the square errors, i.e.,
 <span class="math display">\[
-\text{SE} = \sum_{(u,i)\in\mathcal{T}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2.
+\text{SSE} = \sum_{(u,i)\in\mathcal{T}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2.
 \]</span>
 In matrix form, this can be thought of as the square of the
 <span class="math inline">\(L_{2,2}\)</span> or Frobenius norm of the prediction errors, i.e.,
 <span class="math display">\[
-\text{SE} = \left\Vert Y - \hat{Y} \right\Vert_{2,2}^2,
+\text{SSE} = \left\Vert Y - \hat{Y} \right\Vert_{2,2}^2,
 \]</span>
 where <span class="math inline">\(Y - \hat{Y}\)</span> is defined as zero for user-movie pairs not in the test set.</p>
 

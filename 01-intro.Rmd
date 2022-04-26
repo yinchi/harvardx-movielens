@@ -77,7 +77,7 @@ removed <- anti_join(temp, validation)
 edx <- rbind(edx, removed)
 
 
-# STEP 5; convert timestamps to datetime
+# STEP 5: convert timestamps to datetime
 edx <- edx |> mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
 validation <- validation |> mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
 
@@ -191,6 +191,8 @@ genre_summary |> arrange(desc(`Mean Rating`)) |>
 The number of genres for each movie is plotted as a histogram below:
 ```{r Genre-counts-hist, fig.height=3, fig.width=4}
 
+# The number of genres for a movie is the number of pipe symbols plus one,
+#   except in the case of "(no genres listed)".
 genre_counts <- table(str_count(edx$genres, '\\|') + 1 - str_count(edx$genres, 'no genres'))
 par(cex = 0.7)
 barplot(genre_counts, xlab = 'Number of genres', ylab = 'Count', main = 'Genres per movie')
@@ -211,19 +213,18 @@ error (RMSE):
 $$
 \text{RMSE} = \sqrt{\frac{1}{\left|\mathcal{T}\right|}\sum_{(u,i)\in\mathcal{T}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2}
 $$
-where $y$ denotes the true values of movie ratings in the test set $\mathcal{T}$,
-$\hat{y}$ denotes the estimated values,
-and $N$ denotes the number of observations in the test set.
+where $y$ denotes the true values of movie ratings in the test set $\mathcal{T}$
+and $\hat{y}$ denotes the estimated values.
 
 The library function `caret::RSME` is used in this report for RSME evaluation.
 
 Note that minimizing the RMSE is equivalent to minimizing the sum of the square errors, i.e.,
 $$
-\text{SE} = \sum_{(u,i)\in\mathcal{T}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2.
+\text{SSE} = \sum_{(u,i)\in\mathcal{T}} \left(y_{u,i} - \hat{y}_{u,i}\right)^2.
 $$
 In matrix form, this can be thought of as the square of the
 $L_{2,2}$ or Frobenius norm of the prediction errors, i.e.,
 $$
-\text{SE} = \left\Vert Y - \hat{Y} \right\Vert_{2,2}^2,
+\text{SSE} = \left\Vert Y - \hat{Y} \right\Vert_{2,2}^2,
 $$
 where $Y - \hat{Y}$ is defined as zero for user-movie pairs not in the test set.

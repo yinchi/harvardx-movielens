@@ -28,6 +28,7 @@ rate it 3.5 stars or higher, then the confusion matrix as computed on the valida
 
 ```{r Confusion-matrix-3.5}
 
+# Classify movies as good or bad based on 3.5-star treshold and compute confusion matrix
 confusionMatrix(as.factor(ifelse(predicted_ratings_FINAL_VALIDATION >= 3.5, 'Good', 'Bad')),
                 as.factor(ifelse(validation$rating >= 3.5, 'Good', 'Bad')),
                 positive = 'Good')
@@ -52,7 +53,7 @@ which can handle the size of the Movielens 10M dataset and in fact uses it for b
 [@cmfrec-benchmarks].  The best reported result among the R implementations
 has a RMSE of **0.782465**, somewhat better than that achieved here.
 
-There are three possible reasons why `cmfrec` outperforms our method in this project.
+There are several possible reasons why `cmfrec` outperforms our method in this project.
 First, the `cmfrec` algorithms *update* user and movie biases during each iteration, rather than the
 static method used here.  The benchmarks shown in @cmfrec-benchmarks show that such static methods
 generally perform worse than methods with iterative bias updates. Second, methods in `cmfrec` use

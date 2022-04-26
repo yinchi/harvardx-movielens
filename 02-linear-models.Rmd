@@ -34,10 +34,11 @@ Finally, only the indices $(u,i)$ in the training set, denoted $\mathcal{T}$, ar
 
 The goal is to
 estimate $Y$ given the observable elements of $Y$ (the actual ratings). Given a user-movie pair $(u,i)$,
-we model $Y_r$ using a multiple linear regression model:
-$$
-y_{u,i} \sim \mu + \left(\sum_j \beta_{j;u,i} \right) +\varepsilon_{u,i},
-$$
+we model $Y_{u,i}$ using a multiple linear regression model:
+\begin{equation}
+Y_{u,i} \sim \mu + \left(\sum_j \beta_{j;u,i} \right) +\varepsilon_{u,i},
+(\#eq:generic-equation)
+\end{equation}
 where
 
 * $\mu$ represents the “true” rating for all movies,
@@ -49,22 +50,24 @@ We further define $b_j$ such that
 $$
 \left(X_{j;u,i} = n\right) \implies \left(\beta_{j;u,i} = b_{j;n}\right).
 $$
+In other words, whereas $\beta_j$ defines biases based on user-movie pairs, $b_j$ defines the same
+biases based on some attribute of these pairs, for example, the movie genres.
 
-We can write the above in matrix form:
+We can write Equation \@ref(eq:generic-equation) in matrix form:
 $$
 Y \sim \mu + \left( \sum_j \beta_j \right) + \varepsilon.
 $$
 
 The objective is to minimize the sum of the squared errors
 $$
-\text{SE} =
+\text{SSE} =
 \sum_{(u,i)\in\mathcal{T}} \left[Y_{u,i} - \mu - \sum_j \beta_{j;u,i} \right]^2
 $$
 where $\mathcal{T}$ represents the test set of observed movie ratings.
 
-The estimated value of $Y_{u,v}$ for $(u,v) \notin \mathcal{T}$ is
+The estimated value of $Y_{u,i}$ for $(u,i) \notin \mathcal{T}$ is
 $$
-\hat{Y}_{u,v} = \mu + \sum_j \beta_{j;u,v}.
+\hat{Y}_{u,i} = \mu + \sum_j \beta_{j;u,v}.
 $$
 
 ## Using the mean rating only
@@ -77,6 +80,7 @@ The best estimate $\hat{\mu}$ of $\mu$ is the mean of all ratings in `edx_train`
 
 ```{r Mean-only-model}
 
+# Mean-only model: use mean rating to predict all ratings
 mu <- mean(edx_test$rating)
 mu
 ```
@@ -85,12 +89,7 @@ This model gives the following RMSE values when applied to `edx_test`:
 
 ```{r Mean-only-RMSE}
 
-# When multiple effects (movie, user, genre) are added in our model, some predictions
-# may fall out of the valid range.  This function fixes these predictions to the range
-# [0.5, 5].
-clamp <- function(x) raster::clamp(as.numeric(x), 0.5, 5)
-
-# Compute RMSE and add to a tibble.
+# Compute RMSE of mean-only model and add to a tibble.
 RMSEs <- tibble(Method = c("Mean only"),
                 RMSE = RMSE(mu, edx_test$rating),
                 "RMSE (clamped estimates)" = RMSE(mu, edx_test$rating))
@@ -117,8 +116,8 @@ movie_biases <- edx_train |>
 
 # Plot a histogram of the movie effects
 par(cex = 0.7)
-hist(movie_biases$b_i, 30, xlab = TeX(r'[$\hat{b}_{1,i}$]'),
-     main = TeX(r'[Histogram of $\hat{b}_{1,i}$]'))
+hist(movie_biases$b_i, 30, xlab = TeX(r'[$\hat{b}_{1;i}$]'),
+     main = TeX(r'[Histogram of $\hat{b}_{1;i}$]'))
 ```
 
 The new model gives the following RMSE values when applied to `edx_test`:
@@ -129,6 +128,11 @@ The new model gives the following RMSE values when applied to `edx_test`:
 predicted_ratings <- edx_test |> 
   left_join(movie_biases, by='movieId') |>
   mutate(pred = mu + b_i) |> pull(pred)
+
+# When multiple effects (movie, user, genre) are added in our model, some predictions
+# may fall out of the valid range.  This function fixes these predictions to the range
+# [0.5, 5].
+clamp <- function(x) raster::clamp(as.numeric(x), 0.5, 5)
 
 # Compute RMSE and add to data.table
 RMSEs <- RMSEs |>
@@ -165,8 +169,8 @@ user_biases <- edx_train |>
 
 # Plot a histogram of the user effects
 par(cex = 0.7)
-hist(user_biases$b_u, 30, xlab = TeX(r'[$\hat{b}_{2,u}$]'),
-     main = TeX(r'[Histogram of $\hat{b}_{2,u}$]'))
+hist(user_biases$b_u, 30, xlab = TeX(r'[$\hat{b}_{2;u}$]'),
+     main = TeX(r'[Histogram of $\hat{b}_{2;u}$]'))
 ```
 
 The new model gives the following RMSE values when applied to the `edx_test` set:
@@ -195,7 +199,7 @@ Y_{u,i} \sim \mu + b_{1;i} + b_{2;u} + b_{3;g(i)} + \varepsilon_{u,i},
 $$
 where $g(i)$ is the *combination* of genres for movie $i$.
 We approximate $b_{3;g}$ for each genre combination $g$ as the mean of
-$\hat{b}_u = Y_{u;i} - \hat{\mu} - \hat{b}_{1;i} - \hat{b}_{2;u}$, averaged over
+$\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1;i} - \hat{b}_{2;u}$, averaged over
 all ratings in the training set where $g(i) = g$. The following code computes
 $\hat{b}_{3,g}$ for each $g$ and plots these as a histogram:
 
@@ -211,8 +215,8 @@ genre_biases <- edx_train |>
 
 # Plot a histogram of the genre effects
 par(cex = 0.7)
-hist(genre_biases$b_g, 30, xlab = TeX(r'[$\hat{b}_{3,g}$]'),
-     main = TeX(r'[Histogram of $\hat{b}_{3,g}$]'))
+hist(genre_biases$b_g, 30, xlab = TeX(r'[$\hat{b}_{3;g}$]'),
+     main = TeX(r'[Histogram of $\hat{b}_{3;g}$]'))
 ```
 
 The new model gives the following RMSE values when applied to the `edx_test` set:
@@ -245,12 +249,9 @@ start of Week 1.
 
 The new optimization problem minimizes
 $$
-\text{SE} =
-\sum_{(u,i)\in\mathcal{T}} \left[y_{u,i} - \mu - b_{1;i} - b_{2;u} - b_{3;g(i)} - f(t_{u,i})\right]^2.
+\text{SSE} =
+\sum_{(u,i)\in\mathcal{T}} \left[Y_{u,i} - \mu - b_{1;i} - b_{2;u} - b_{3;g(i)} - f(t_{u,i})\right]^2.
 $$
-Note the addition of the $t$ subscript compared to the original problem formulation
-defined in Section \@ref(sec-notation), with 
-$\mu_{t;u,i} = \mu - f(t_{u,i})$.
 
 The following code defines $f(t)$ as the smoothed average rating on Week $t$, minus $\mu$:
 
@@ -275,12 +276,10 @@ rm(fit)
 
 # Plot the fitted curve
 ggplot(data.frame(weekNum = r, f_t), aes(weekNum, f_t)) + geom_line() +
-  xlab(TeX(r'[$t_{u,i}$]')) + ylab(TeX(r'[$f\,(t_{u,i}\,)$]'))
+  xlab('t, Week number') + ylab(TeX(r'[$f(t)$]'))
 ```
 
-We approximate $b_{t,g}$ for each genre combination $g$ as the mean of
-$\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1;i} - \hat{b}_{2;u} - b_{3;g(i)}$.
-Fitting the $b_{j;t}$'s $j=1,2,3$, for the new model, we obtain RMSE values of:
+Refitting the user, movie, and genre effects for the new time-based model, we obtain RMSE values of:
 
 ```{r Time-effect-model-and-RMSE, fig.height=3, fig.width=4}
 
@@ -326,11 +325,11 @@ RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 To improve our model further, we can add $L_2$ regularization.  Whereas the previous model fitting
 procedure minimizes
 $$
-\text{SE} = \sum_{(u,i)\in\mathcal{T}} \left[y_{u,i} - \mu - b_{1;i} - b_{2;u} - b_{3;g(i)} - f(t_{u,i})\right]^2,
+\text{SSE} = \sum_{(u,i)\in\mathcal{T}} \left[Y_{u,i} - \mu - b_{1;i} - b_{2;u} - b_{3;g(i)} - f(t_{u,i})\right]^2,
 $$
 in this section we add a penalty term such that the new expression to minimize is as follows:
 $$
-\text{SE} + \lambda\sum_j\left\Vert b_j\right\Vert_2^2.
+\text{SSE} + \lambda\sum_j\left\Vert b_j\right\Vert_2^2.
 $$
 Fitting the regularized model to the training set for different $\lambda$, and
 using the test set for RMSE calculation, we obtain the following plot of RMSE against $\lambda$.
@@ -338,8 +337,8 @@ using the test set for RMSE calculation, we obtain the following plot of RMSE ag
 ```{r Regularization, fig.height=3, fig.width=4}
 
 # List of regularization parameter values to try.
-# Since I know the approximate optimal value, I added more points
-# in this range.
+# I increased the density of points near the optimal value since
+# I already know it approximately.
 lambdas <- c(0,1,2,3,4,seq(4.5,5.5,0.1),6,7,8,9,10)
 
 # Compute RMSE values for each lambda using the *test set.
@@ -392,6 +391,8 @@ obtain:
 
 ```{r Regularized-model-and-RMSE}
 
+# Compute movie, user, genre, and time effects using the test set, using the optimal
+# regularization parameter value lambda we just found.
 movie_biases_reg <-
   edx_train[, .(b_i = sum(rating - mu - f_t[weekNum])/(.N+lambda)), by = 'movieId']
 

@@ -23,7 +23,7 @@
 <meta name="author" content="Yin-Chi Chan" />
 
 
-<meta name="date" content="2022-04-13" />
+<meta name="date" content="2022-04-26" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -249,9 +249,10 @@ rated movies.</p>
 ratings, a possibly better approach may be binary: would a user like a movie they have not yet
 watched, if that movie were recommended to them? If we assume a user enjoys a movie if they
 rate it 3.5 stars or higher, then the confusion matrix as computed on the validation set is:</p>
-<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="concluding-remarks.html#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">confusionMatrix</span>(<span class="fu">as.factor</span>(<span class="fu">ifelse</span>(predicted_ratings_FINAL_VALIDATION <span class="sc">&gt;=</span> <span class="fl">3.5</span>, <span class="st">&#39;Good&#39;</span>, <span class="st">&#39;Bad&#39;</span>)),</span>
-<span id="cb51-2"><a href="concluding-remarks.html#cb51-2" aria-hidden="true" tabindex="-1"></a>                <span class="fu">as.factor</span>(<span class="fu">ifelse</span>(validation<span class="sc">$</span>rating <span class="sc">&gt;=</span> <span class="fl">3.5</span>, <span class="st">&#39;Good&#39;</span>, <span class="st">&#39;Bad&#39;</span>)),</span>
-<span id="cb51-3"><a href="concluding-remarks.html#cb51-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">positive =</span> <span class="st">&#39;Good&#39;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="concluding-remarks.html#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Classify movies as good or bad based on 3.5-star treshold and compute confusion matrix</span></span>
+<span id="cb51-2"><a href="concluding-remarks.html#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="fu">confusionMatrix</span>(<span class="fu">as.factor</span>(<span class="fu">ifelse</span>(predicted_ratings_FINAL_VALIDATION <span class="sc">&gt;=</span> <span class="fl">3.5</span>, <span class="st">&#39;Good&#39;</span>, <span class="st">&#39;Bad&#39;</span>)),</span>
+<span id="cb51-3"><a href="concluding-remarks.html#cb51-3" aria-hidden="true" tabindex="-1"></a>                <span class="fu">as.factor</span>(<span class="fu">ifelse</span>(validation<span class="sc">$</span>rating <span class="sc">&gt;=</span> <span class="fl">3.5</span>, <span class="st">&#39;Good&#39;</span>, <span class="st">&#39;Bad&#39;</span>)),</span>
+<span id="cb51-4"><a href="concluding-remarks.html#cb51-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">positive =</span> <span class="st">&#39;Good&#39;</span>)</span></code></pre></div>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
@@ -295,7 +296,7 @@ given a true rating of 3.5, but increases from 0.4 to 0.5 given a true rating of
 which can handle the size of the Movielens 10M dataset and in fact uses it for benchmarking
 <span class="citation">(<a href="#ref-cmfrec-benchmarks" role="doc-biblioref">Cortes 2022b</a>)</span>. The best reported result among the R implementations
 has a RMSE of <strong>0.782465</strong>, somewhat better than that achieved here.</p>
-<p>There are three possible reasons why <code>cmfrec</code> outperforms our method in this project.
+<p>There are several possible reasons why <code>cmfrec</code> outperforms our method in this project.
 First, the <code>cmfrec</code> algorithms <em>update</em> user and movie biases during each iteration, rather than the
 static method used here. The benchmarks shown in <span class="citation"><a href="#ref-cmfrec-benchmarks" role="doc-biblioref">Cortes</a> (<a href="#ref-cmfrec-benchmarks" role="doc-biblioref">2022b</a>)</span> show that such static methods
 generally perform worse than methods with iterative bias updates. Second, methods in <code>cmfrec</code> use

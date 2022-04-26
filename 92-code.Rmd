@@ -2,5 +2,8 @@
 
 # Code listing: [`svd.cpp`](https://github.com/yinchi/harvardx-movielens/blob/main/svd.cpp) {#sec-code}
 
+Note that the code below uses $i$ and $j$ as matrix indices rather than $u$ and $i$ which is
+specific to the Movielens models in this project.
+
 ```{Rcpp eval=FALSE, file='svd.cpp', purl = F}
 ```

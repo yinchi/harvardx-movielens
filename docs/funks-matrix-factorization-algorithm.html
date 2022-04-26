@@ -23,7 +23,7 @@
 <meta name="author" content="Yin-Chi Chan" />
 
 
-<meta name="date" content="2022-04-13" />
+<meta name="date" content="2022-04-26" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -232,7 +232,7 @@ We use the model <span class="math inline">\(Y \sim P + UV^\mathrm{T} + \varepsi
 where:</p>
 <ul>
 <li><span class="math inline">\(Y\)</span> is the <span class="math inline">\(N_\mathrm{U}\times N_\mathrm{M}\)</span>
-rating matrix, i.e., with <span class="math inline">\(N_u\)</span> users and <span class="math inline">\(N_i\)</span> movies,</li>
+rating matrix, i.e., with <span class="math inline">\(N_\mathrm{U}\)</span> users and <span class="math inline">\(N_\mathrm{M}\)</span> movies,</li>
 <li><span class="math inline">\(P\)</span> represents the predictions from best model of the previous section,</li>
 <li><span class="math inline">\(U\)</span> and <span class="math inline">\(V\)</span> are <span class="math inline">\(N_\mathrm{U} \times k\)</span> and <span class="math inline">\(N_\mathrm{M} \times k\)</span> matrices, respectively, where
 <span class="math inline">\(k\)</span> is the number of <em>latent features</em> to be found.</li>
@@ -242,20 +242,21 @@ The parameter <span class="math inline">\(k\)</span> is also the <em>rank</em> o
 rank-<span class="math inline">\(k\)</span> approximation of the residual matrix <span class="math inline">\(Y-P\)</span>.</p>
 <p>Funk’s MF estimates <span class="math inline">\(U\)</span> and <span class="math inline">\(V\)</span> using gradient descent,
 but operating only on the known ratings. First, <span class="math inline">\(U\)</span> and <span class="math inline">\(V\)</span> are seeded with random values.
-Then, for each epoch, the algorithm iterates over all known ratings <span class="math inline">\((i,j)\)</span> in the training set
+Then, for each epoch, the algorithm iterates over all known ratings <span class="math inline">\((u,i)\)</span> in the training set
 and updates the feature matrices as follows:</p>
-<p><span class="math display">\[e_{ij} = Y_{ij} - P_{ij} - U_i V_j^\mathrm{T}\]</span>
-<span class="math display">\[U_i \gets U_i + \gamma(e_{ij} V_j - \lambda U_i)\]</span>
-<span class="math display">\[V_j \gets V_i + \gamma(e_{ij} U_i - \lambda V_j)\]</span></p>
+<p><span class="math display">\[e_{u,i} = Y_{u,i} - P_{u,i} - U_u V_i^\mathrm{T}\]</span>
+<span class="math display">\[U_u \gets U_u + \gamma(e_{u,i} V_i - \lambda U_u)\]</span>
+<span class="math display">\[V_i \gets V_i + \gamma(e_{u,i} U_u - \lambda V_i)\]</span></p>
 <p>where <span class="math inline">\(\gamma\)</span> is the learning rate and <span class="math inline">\(\lambda\)</span> is a regularization parameter.
 In this report, these are set to 0.02 and 0.001, respectively, in accordance to guidance from
-<span class="citation"><a href="#ref-Funk2006" role="doc-biblioref">Funk</a> (<a href="#ref-Funk2006" role="doc-biblioref">2006</a>)</span>. The code for the Funk MF implementation used in this report can be found in
+<span class="citation"><a href="#ref-Funk2006" role="doc-biblioref">Funk</a> (<a href="#ref-Funk2006" role="doc-biblioref">2006</a>)</span>, and we will only optimize the rank parameter <span class="math inline">\(k\)</span>.
+The code for the Funk MF implementation used in this report can be found in
 Appendix <a href="sec-code.html#sec-code">A</a>.</p>
 <div id="computing-the-residuals" class="section level2 hasAnchor" number="3.1">
 <h2><span class="header-section-number">3.1</span> Computing the residuals<a href="funks-matrix-factorization-algorithm.html#computing-the-residuals" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>The following code computes <span class="math inline">\(Y_{u,i} - P_{u,i}\)</span> for all <span class="math inline">\((u,i)\)</span> in the training set,
+<p>The following code computes <span class="math inline">\(Y_{u,i} - P_{u,i}\)</span> for all user-movie pairs <span class="math inline">\((u,i)\)</span> in the training set,
 and creates an index mapping eliminating users and movies with no rating pairs.</p>
-<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="funks-matrix-factorization-algorithm.html#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Residuals from previous best model</span></span>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="funks-matrix-factorization-algorithm.html#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute residuals from previous best model</span></span>
 <span id="cb31-2"><a href="funks-matrix-factorization-algorithm.html#cb31-2" aria-hidden="true" tabindex="-1"></a>previous_train <span class="ot">&lt;-</span> genre_biases_reg[</span>
 <span id="cb31-3"><a href="funks-matrix-factorization-algorithm.html#cb31-3" aria-hidden="true" tabindex="-1"></a>  user_biases_reg[</span>
 <span id="cb31-4"><a href="funks-matrix-factorization-algorithm.html#cb31-4" aria-hidden="true" tabindex="-1"></a>    movie_biases_reg[</span>
@@ -267,7 +268,7 @@ and creates an index mapping eliminating users and movies with no rating pairs.<
 <span id="cb31-10"><a href="funks-matrix-factorization-algorithm.html#cb31-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb31-11"><a href="funks-matrix-factorization-algorithm.html#cb31-11" aria-hidden="true" tabindex="-1"></a>residuals_train <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(edx_train<span class="sc">$</span>rating <span class="sc">-</span> previous_train)</span>
 <span id="cb31-12"><a href="funks-matrix-factorization-algorithm.html#cb31-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-13"><a href="funks-matrix-factorization-algorithm.html#cb31-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Test set predictions for previous best model</span></span>
+<span id="cb31-13"><a href="funks-matrix-factorization-algorithm.html#cb31-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate test set predictions for previous best model</span></span>
 <span id="cb31-14"><a href="funks-matrix-factorization-algorithm.html#cb31-14" aria-hidden="true" tabindex="-1"></a>previous_test <span class="ot">&lt;-</span> genre_biases_reg[</span>
 <span id="cb31-15"><a href="funks-matrix-factorization-algorithm.html#cb31-15" aria-hidden="true" tabindex="-1"></a>  user_biases_reg[</span>
 <span id="cb31-16"><a href="funks-matrix-factorization-algorithm.html#cb31-16" aria-hidden="true" tabindex="-1"></a>    movie_biases_reg[</span>
@@ -290,15 +291,16 @@ and creates an index mapping eliminating users and movies with no rating pairs.<
 <code>realRatingMatrix</code> object as input. Note that this object is expected to contain the actual
 ratings rather than a residual matrix.
 This object is easy to create and does not consume too much memory:</p>
-<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="funks-matrix-factorization-algorithm.html#cb32-1" aria-hidden="true" tabindex="-1"></a>mat <span class="ot">&lt;-</span> <span class="fu">new</span>(</span>
-<span id="cb32-2"><a href="funks-matrix-factorization-algorithm.html#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">className</span>(<span class="st">&quot;realRatingMatrix&quot;</span>, <span class="st">&quot;recommenderlab&quot;</span>),</span>
-<span id="cb32-3"><a href="funks-matrix-factorization-algorithm.html#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> <span class="fu">sparseMatrix</span>(Uidx[edx_train<span class="sc">$</span>userId],</span>
-<span id="cb32-4"><a href="funks-matrix-factorization-algorithm.html#cb32-4" aria-hidden="true" tabindex="-1"></a>                      Vidx[edx_train<span class="sc">$</span>movieId],</span>
-<span id="cb32-5"><a href="funks-matrix-factorization-algorithm.html#cb32-5" aria-hidden="true" tabindex="-1"></a>                      <span class="at">x =</span> edx_train<span class="sc">$</span>rating)</span>
-<span id="cb32-6"><a href="funks-matrix-factorization-algorithm.html#cb32-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb32-7"><a href="funks-matrix-factorization-algorithm.html#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="fu">object.size</span>(mat)</span></code></pre></div>
-<pre><code>## 97245808 bytes</code></pre>
-<p>However, attempting to factor this matrix as follows returns an error. Note that this
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="funks-matrix-factorization-algorithm.html#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the recommenderlab::realRatingMatrix object</span></span>
+<span id="cb32-2"><a href="funks-matrix-factorization-algorithm.html#cb32-2" aria-hidden="true" tabindex="-1"></a>mat <span class="ot">&lt;-</span> <span class="fu">new</span>(</span>
+<span id="cb32-3"><a href="funks-matrix-factorization-algorithm.html#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">className</span>(<span class="st">&quot;realRatingMatrix&quot;</span>, <span class="st">&quot;recommenderlab&quot;</span>),</span>
+<span id="cb32-4"><a href="funks-matrix-factorization-algorithm.html#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> <span class="fu">sparseMatrix</span>(Uidx[edx_train<span class="sc">$</span>userId],</span>
+<span id="cb32-5"><a href="funks-matrix-factorization-algorithm.html#cb32-5" aria-hidden="true" tabindex="-1"></a>                      Vidx[edx_train<span class="sc">$</span>movieId],</span>
+<span id="cb32-6"><a href="funks-matrix-factorization-algorithm.html#cb32-6" aria-hidden="true" tabindex="-1"></a>                      <span class="at">x =</span> edx_train<span class="sc">$</span>rating)</span>
+<span id="cb32-7"><a href="funks-matrix-factorization-algorithm.html#cb32-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-8"><a href="funks-matrix-factorization-algorithm.html#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="fu">format</span>(<span class="fu">object.size</span>(mat), <span class="at">units =</span> <span class="st">&quot;auto&quot;</span>, <span class="at">standard=</span><span class="st">&quot;SI&quot;</span>)</span></code></pre></div>
+<pre><code>## [1] &quot;97.2 MB&quot;</code></pre>
+<p>However, attempting to factor this matrix as follows returns an error, as shown below. Note that this
 is just one of several memory allocation requests; there is 32GB of RAM on the laptop used to
 run this project code. This suggests that <code>recommenderlab</code> uses dense matrices in its
 internal functions.</p>
@@ -352,7 +354,7 @@ and is loaded into the R environment below:</p>
 <h2><span class="header-section-number">3.5</span> Computing the optimal rank of matrix <span class="math inline">\(UV\)</span><a href="funks-matrix-factorization-algorithm.html#computing-the-optimal-rank-of-matrix-uv" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>The following code plots the prediction error of the new model against the number of latent features
 in the Funk matrix factorization, i.e. the rank of matrix <span class="math inline">\(UV\)</span>:</p>
-<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="funks-matrix-factorization-algorithm.html#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute RMSE values for varying number of MF features.</span></span>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="funks-matrix-factorization-algorithm.html#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute RMSE values for varying number of MF features, if saved file not found.</span></span>
 <span id="cb37-2"><a href="funks-matrix-factorization-algorithm.html#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
 <span id="cb37-3"><a href="funks-matrix-factorization-algorithm.html#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="st">&#39;funk_tuning.Rdata&#39;</span>)) {</span>
 <span id="cb37-4"><a href="funks-matrix-factorization-algorithm.html#cb37-4" aria-hidden="true" tabindex="-1"></a>  nFeatures <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">8</span>, <span class="fu">seq</span>(<span class="dv">12</span>,<span class="dv">20</span>), <span class="dv">24</span>, <span class="dv">28</span>, <span class="dv">32</span>)</span>
@@ -382,9 +384,12 @@ in the Funk matrix factorization, i.e. the rank of matrix <span class="math inl
 <span id="cb37-28"><a href="funks-matrix-factorization-algorithm.html#cb37-28" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb37-29"><a href="funks-matrix-factorization-algorithm.html#cb37-29" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
 <span id="cb37-30"><a href="funks-matrix-factorization-algorithm.html#cb37-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-31"><a href="funks-matrix-factorization-algorithm.html#cb37-31" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&#39;funk_tuning.Rdata&#39;</span>)</span>
-<span id="cb37-32"><a href="funks-matrix-factorization-algorithm.html#cb37-32" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">cex =</span> <span class="fl">0.7</span>)</span>
-<span id="cb37-33"><a href="funks-matrix-factorization-algorithm.html#cb37-33" aria-hidden="true" tabindex="-1"></a><span class="fu">qplot</span>(nFeatures, rmses, <span class="at">xlab =</span> <span class="st">&#39;rank(UV)&#39;</span>, <span class="at">ylab =</span> <span class="st">&#39;RMSE&#39;</span>, <span class="at">geom =</span> <span class="fu">c</span>(<span class="st">&#39;point&#39;</span>,<span class="st">&#39;line&#39;</span>))</span></code></pre></div>
+<span id="cb37-31"><a href="funks-matrix-factorization-algorithm.html#cb37-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Load RMSE data from file</span></span>
+<span id="cb37-32"><a href="funks-matrix-factorization-algorithm.html#cb37-32" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&#39;funk_tuning.Rdata&#39;</span>)</span>
+<span id="cb37-33"><a href="funks-matrix-factorization-algorithm.html#cb37-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-34"><a href="funks-matrix-factorization-algorithm.html#cb37-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot RMSE against number of MF features.</span></span>
+<span id="cb37-35"><a href="funks-matrix-factorization-algorithm.html#cb37-35" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">cex =</span> <span class="fl">0.7</span>)</span>
+<span id="cb37-36"><a href="funks-matrix-factorization-algorithm.html#cb37-36" aria-hidden="true" tabindex="-1"></a><span class="fu">qplot</span>(nFeatures, rmses, <span class="at">xlab =</span> <span class="st">&#39;rank(UV)&#39;</span>, <span class="at">ylab =</span> <span class="st">&#39;RMSE&#39;</span>, <span class="at">geom =</span> <span class="fu">c</span>(<span class="st">&#39;point&#39;</span>,<span class="st">&#39;line&#39;</span>))</span></code></pre></div>
 <p><img src="movielens_files/figure-html/Funk-MF-1.png" width="432" /></p>
 <p>The optimal number of latent features is:</p>
 <div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="funks-matrix-factorization-algorithm.html#cb38-1" aria-hidden="true" tabindex="-1"></a>nFeaturesOpt <span class="ot">&lt;-</span> nFeatures[<span class="fu">which.min</span>(rmses)]</span>
@@ -395,34 +400,35 @@ in the Funk matrix factorization, i.e. the rank of matrix <span class="math inl
 <h2><span class="header-section-number">3.6</span> Final matrix factorization and RMSE values<a href="funks-matrix-factorization-algorithm.html#final-matrix-factorization-and-rmse-values" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>Using the new model with <span class="math inline">\(k=14\)</span> to predict ratings for the <code>edx_test</code> gives the following RMSE
 values:</p>
-<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="funks-matrix-factorization-algorithm.html#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run Funk MF</span></span>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="funks-matrix-factorization-algorithm.html#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run Funk MF if saved file not found</span></span>
 <span id="cb40-2"><a href="funks-matrix-factorization-algorithm.html#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
 <span id="cb40-3"><a href="funks-matrix-factorization-algorithm.html#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">file.exists</span>(<span class="st">&#39;funk.Rdata&#39;</span>)) {</span>
-<span id="cb40-4"><a href="funks-matrix-factorization-algorithm.html#cb40-4" aria-hidden="true" tabindex="-1"></a>funkResult <span class="ot">&lt;-</span> <span class="fu">funk</span>(Uidx, Vidx, residuals_train, <span class="at">nFeatures =</span> nFeaturesOpt, <span class="at">steps =</span> <span class="dv">500</span>)</span>
-<span id="cb40-5"><a href="funks-matrix-factorization-algorithm.html#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(nFeaturesOpt, funkResult, <span class="at">file =</span> <span class="st">&#39;funk.Rdata&#39;</span>)</span>
+<span id="cb40-4"><a href="funks-matrix-factorization-algorithm.html#cb40-4" aria-hidden="true" tabindex="-1"></a>  funkResult <span class="ot">&lt;-</span> <span class="fu">funk</span>(Uidx, Vidx, residuals_train, <span class="at">nFeatures =</span> nFeaturesOpt, <span class="at">steps =</span> <span class="dv">500</span>)</span>
+<span id="cb40-5"><a href="funks-matrix-factorization-algorithm.html#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">save</span>(nFeaturesOpt, funkResult, <span class="at">file =</span> <span class="st">&#39;funk.Rdata&#39;</span>)</span>
 <span id="cb40-6"><a href="funks-matrix-factorization-algorithm.html#cb40-6" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb40-7"><a href="funks-matrix-factorization-algorithm.html#cb40-7" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
 <span id="cb40-8"><a href="funks-matrix-factorization-algorithm.html#cb40-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-9"><a href="funks-matrix-factorization-algorithm.html#cb40-9" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&#39;funk.Rdata&#39;</span>)</span>
-<span id="cb40-10"><a href="funks-matrix-factorization-algorithm.html#cb40-10" aria-hidden="true" tabindex="-1"></a>U <span class="ot">&lt;-</span> funkResult<span class="sc">$</span>U</span>
-<span id="cb40-11"><a href="funks-matrix-factorization-algorithm.html#cb40-11" aria-hidden="true" tabindex="-1"></a>V <span class="ot">&lt;-</span> funkResult<span class="sc">$</span>V</span>
-<span id="cb40-12"><a href="funks-matrix-factorization-algorithm.html#cb40-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-9"><a href="funks-matrix-factorization-algorithm.html#cb40-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Load MF data from file</span></span>
+<span id="cb40-10"><a href="funks-matrix-factorization-algorithm.html#cb40-10" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&#39;funk.Rdata&#39;</span>)</span>
+<span id="cb40-11"><a href="funks-matrix-factorization-algorithm.html#cb40-11" aria-hidden="true" tabindex="-1"></a>U <span class="ot">&lt;-</span> funkResult<span class="sc">$</span>U</span>
+<span id="cb40-12"><a href="funks-matrix-factorization-algorithm.html#cb40-12" aria-hidden="true" tabindex="-1"></a>V <span class="ot">&lt;-</span> funkResult<span class="sc">$</span>V</span>
 <span id="cb40-13"><a href="funks-matrix-factorization-algorithm.html#cb40-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-14"><a href="funks-matrix-factorization-algorithm.html#cb40-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Uidx[u] is the row index of user u in matrix U</span></span>
-<span id="cb40-15"><a href="funks-matrix-factorization-algorithm.html#cb40-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Vidx[v] is the row index of movie v in matrix V</span></span>
-<span id="cb40-16"><a href="funks-matrix-factorization-algorithm.html#cb40-16" aria-hidden="true" tabindex="-1"></a>predicted_ratings_funk <span class="ot">&lt;-</span> edx_test <span class="sc">|&gt;</span></span>
-<span id="cb40-17"><a href="funks-matrix-factorization-algorithm.html#cb40-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pred =</span> previous_test <span class="sc">+</span></span>
-<span id="cb40-18"><a href="funks-matrix-factorization-algorithm.html#cb40-18" aria-hidden="true" tabindex="-1"></a>           <span class="fu">map2_dbl</span>(userId, movieId, \(u,v) U[Uidx[u],] <span class="sc">%*%</span> V[Vidx[v],])) <span class="sc">|&gt;</span></span>
-<span id="cb40-19"><a href="funks-matrix-factorization-algorithm.html#cb40-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(pred)</span>
-<span id="cb40-20"><a href="funks-matrix-factorization-algorithm.html#cb40-20" aria-hidden="true" tabindex="-1"></a>rmse <span class="ot">&lt;-</span> <span class="fu">RMSE</span>(predicted_ratings_funk, edx_test<span class="sc">$</span>rating)</span>
-<span id="cb40-21"><a href="funks-matrix-factorization-algorithm.html#cb40-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-22"><a href="funks-matrix-factorization-algorithm.html#cb40-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute RMSE and add to data.table</span></span>
-<span id="cb40-23"><a href="funks-matrix-factorization-algorithm.html#cb40-23" aria-hidden="true" tabindex="-1"></a>RMSEs <span class="ot">&lt;-</span> RMSEs <span class="sc">|&gt;</span></span>
-<span id="cb40-24"><a href="funks-matrix-factorization-algorithm.html#cb40-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_row</span>(<span class="at">Method =</span> <span class="st">&quot;Section 2 best model + Matrix factorization&quot;</span>,</span>
-<span id="cb40-25"><a href="funks-matrix-factorization-algorithm.html#cb40-25" aria-hidden="true" tabindex="-1"></a>          <span class="at">RMSE =</span> <span class="fu">RMSE</span>(predicted_ratings_funk, edx_test<span class="sc">$</span>rating),</span>
-<span id="cb40-26"><a href="funks-matrix-factorization-algorithm.html#cb40-26" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;RMSE (clamped estimates)&quot;</span> <span class="ot">=</span> <span class="fu">RMSE</span>(<span class="fu">clamp</span>(predicted_ratings_funk), edx_test<span class="sc">$</span>rating))</span>
-<span id="cb40-27"><a href="funks-matrix-factorization-algorithm.html#cb40-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-28"><a href="funks-matrix-factorization-algorithm.html#cb40-28" aria-hidden="true" tabindex="-1"></a>RMSEs[<span class="fu">nrow</span>(RMSEs),] <span class="sc">|&gt;</span> <span class="fu">kable</span>(<span class="at">align=</span><span class="st">&#39;lrr&#39;</span>, <span class="at">booktabs =</span> T) <span class="sc">|&gt;</span> <span class="fu">row_spec</span>(<span class="dv">0</span>, <span class="at">bold =</span> T)</span></code></pre></div>
+<span id="cb40-14"><a href="funks-matrix-factorization-algorithm.html#cb40-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-15"><a href="funks-matrix-factorization-algorithm.html#cb40-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Uidx[u] is the row index of user u in matrix U</span></span>
+<span id="cb40-16"><a href="funks-matrix-factorization-algorithm.html#cb40-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Vidx[v] is the row index of movie v in matrix V</span></span>
+<span id="cb40-17"><a href="funks-matrix-factorization-algorithm.html#cb40-17" aria-hidden="true" tabindex="-1"></a>predicted_ratings_funk <span class="ot">&lt;-</span> edx_test <span class="sc">|&gt;</span></span>
+<span id="cb40-18"><a href="funks-matrix-factorization-algorithm.html#cb40-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pred =</span> previous_test <span class="sc">+</span></span>
+<span id="cb40-19"><a href="funks-matrix-factorization-algorithm.html#cb40-19" aria-hidden="true" tabindex="-1"></a>           <span class="fu">map2_dbl</span>(userId, movieId, \(u,v) U[Uidx[u],] <span class="sc">%*%</span> V[Vidx[v],])) <span class="sc">|&gt;</span></span>
+<span id="cb40-20"><a href="funks-matrix-factorization-algorithm.html#cb40-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(pred)</span>
+<span id="cb40-21"><a href="funks-matrix-factorization-algorithm.html#cb40-21" aria-hidden="true" tabindex="-1"></a>rmse <span class="ot">&lt;-</span> <span class="fu">RMSE</span>(predicted_ratings_funk, edx_test<span class="sc">$</span>rating)</span>
+<span id="cb40-22"><a href="funks-matrix-factorization-algorithm.html#cb40-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-23"><a href="funks-matrix-factorization-algorithm.html#cb40-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute RMSE and add to data.table</span></span>
+<span id="cb40-24"><a href="funks-matrix-factorization-algorithm.html#cb40-24" aria-hidden="true" tabindex="-1"></a>RMSEs <span class="ot">&lt;-</span> RMSEs <span class="sc">|&gt;</span></span>
+<span id="cb40-25"><a href="funks-matrix-factorization-algorithm.html#cb40-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_row</span>(<span class="at">Method =</span> <span class="st">&quot;Section 2 best model + Matrix factorization&quot;</span>,</span>
+<span id="cb40-26"><a href="funks-matrix-factorization-algorithm.html#cb40-26" aria-hidden="true" tabindex="-1"></a>          <span class="at">RMSE =</span> <span class="fu">RMSE</span>(predicted_ratings_funk, edx_test<span class="sc">$</span>rating),</span>
+<span id="cb40-27"><a href="funks-matrix-factorization-algorithm.html#cb40-27" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;RMSE (clamped estimates)&quot;</span> <span class="ot">=</span> <span class="fu">RMSE</span>(<span class="fu">clamp</span>(predicted_ratings_funk), edx_test<span class="sc">$</span>rating))</span>
+<span id="cb40-28"><a href="funks-matrix-factorization-algorithm.html#cb40-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-29"><a href="funks-matrix-factorization-algorithm.html#cb40-29" aria-hidden="true" tabindex="-1"></a>RMSEs[<span class="fu">nrow</span>(RMSEs),] <span class="sc">|&gt;</span> <span class="fu">kable</span>(<span class="at">align=</span><span class="st">&#39;lrr&#39;</span>, <span class="at">booktabs =</span> T) <span class="sc">|&gt;</span> <span class="fu">row_spec</span>(<span class="dv">0</span>, <span class="at">bold =</span> T)</span></code></pre></div>
 <table>
 <thead>
 <tr>
