@@ -14,7 +14,8 @@
  * @param coo_j Movie indexes of the rating matrix Y.
  * @param coo_x Ratings in the rating matrix Y.  Note Y is a sparse matrix, where
  *     a zero represents no rating given.
- * @param nFeatures the number of features to use, i.e. the number of columns in U and V.
+ * @param nFeatures the number of features to use, i.e. the number of columns
+ *     in U and V.
  * @steps Number of epochs. Each epoch refines the U and V estimates by iterating
  *     through all known ratings once.
  * @regCoef Regularization coefficient, prevents overfitting.

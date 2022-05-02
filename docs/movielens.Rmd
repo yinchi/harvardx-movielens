@@ -144,7 +144,8 @@ movielens <- left_join(ratings, movies, by = "movieId")
 
 # Validation set will be 10% of MovieLens data
 set.seed(1, sample.kind="Rounding")
-test_index <- createDataPartition(y = movielens$rating, times = 1, p = 0.1, list = FALSE)
+test_index <-
+  createDataPartition(y = movielens$rating, times = 1, p = 0.1, list = FALSE)
 edx <- movielens[-test_index,]
 temp <- movielens[test_index,]
 
@@ -158,16 +159,19 @@ edx <- rbind(edx, removed)
 
 # STEP 5: convert timestamps to datetime
 edx <- edx |> mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
-validation <- validation |> mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
+validation <- validation |>
+  mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
 
 rm(dl, ratings, movies, test_index, temp, movielens, removed)
 ```
 
 ## Data description
 
-The data consists of ten million movie ratings, each expressed using six variables.  The number
+The data consists of approximately ten million movie ratings, each expressed using six variables.
+The number
 of ratings in the `edx` and `validation` partitions are `nrow(edx)` and `nrow(validation)`,
-respectively, i.e., `r nrow(edx)` and `r nrow(validation)`.  The six variables are:
+respectively, i.e., `r format(nrow(edx), big.mark = ',')` and
+`r format(nrow(validation), big.mark = ',')`.  The six variables are:
 
 ```{r Colnames}
 
@@ -176,8 +180,10 @@ colnames(edx)
 
 and are defined as follows:
 
-* `userId`: an integer from 1 to `r max(as.integer(edx$userId))` denoting the user who made the rating.
-* `movieId`: an integer from 1 to `r max(as.integer(edx$movieId))` denoting which movie was rated.
+* `userId`: an integer from 1 to `r format(max(as.integer(edx$userId)), big.mark = ',')`
+    denoting the user who made the rating.
+* `movieId`: an integer from 1 to `r format(max(as.integer(edx$movieId)), big.mark = ',')`
+    denoting which movie was rated.
 * `rating`: a multiple of 0.5, from 0.5 to 5.0.
 * `timestamp`: a `POSIXct` object representing the time at which the rating was made.
 * `title`: the name of the movie rated, suffixed which the year of release in parentheses.
@@ -189,7 +195,8 @@ is:
 ```{r Earliest-half-star-rating}
 
 temp <- edx[edx$rating %% 1 == 0.5]
-temp[which.min(temp$timestamp)] |> kable(align='rrrrll', booktabs = T) |> row_spec(0, bold = T)
+temp[which.min(temp$timestamp)] |> kable(align='rrrrll', booktabs = T) |>
+  row_spec(0, bold = T)
 ```
 
 
@@ -264,7 +271,9 @@ genre_summary <-
 
 rm(temp)
 genre_summary |> arrange(desc(`Mean Rating`)) |>
-  kable(align='lrrrr', digits = c(0,0,0,2,1), booktabs = T, linesep = "") |> row_spec(0, bold = T)
+  mutate(Ratings = format(Ratings, big.mark = ',')) |> 
+  kable(align='lrrrr', digits = c(0,0,0,2,1), booktabs = T, linesep = "") |>
+  row_spec(0, bold = T)
 ```
 
 The number of genres for each movie is plotted as a histogram below:
@@ -272,9 +281,12 @@ The number of genres for each movie is plotted as a histogram below:
 
 # The number of genres for a movie is the number of pipe symbols plus one,
 #   except in the case of "(no genres listed)".
-genre_counts <- table(str_count(edx$genres, '\\|') + 1 - str_count(edx$genres, 'no genres'))
+genre_counts <-
+  table(str_count(edx$genres, '\\|') + 1
+        - str_count(edx$genres, 'no genres'))
 par(cex = 0.7)
-barplot(genre_counts, xlab = 'Number of genres', ylab = 'Count', main = 'Genres per movie')
+barplot(genre_counts, xlab = 'Number of genres', ylab = 'Count',
+        main = 'Genres per movie')
 ```
 
 Therefore, it is likely better to analyze genre combinations rather than individual genres.
@@ -450,9 +462,11 @@ clamp <- function(x) raster::clamp(as.numeric(x), 0.5, 5)
 RMSEs <- RMSEs |>
   add_row(Method = "Movie effects",
           RMSE = RMSE(predicted_ratings, edx_test$rating),
-          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), edx_test$rating))
+          "RMSE (clamped estimates)" =
+            RMSE(clamp(predicted_ratings), edx_test$rating))
 
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+RMSEs[nrow(RMSEs),] |>
+  kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 ### Clamping the predictions
@@ -499,8 +513,10 @@ predicted_ratings <- edx_test |>
 RMSEs <- RMSEs |>
   add_row(Method = "Movie + user effects",
           RMSE = RMSE(predicted_ratings, edx_test$rating),
-          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), edx_test$rating))
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+          "RMSE (clamped estimates)" =
+            RMSE(clamp(predicted_ratings), edx_test$rating))
+RMSEs[nrow(RMSEs),] |>
+  kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 ## Adding genre effects
@@ -546,8 +562,10 @@ predicted_ratings <- edx_test |>
 RMSEs <- RMSEs |>
   add_row(Method = "Movie + user + genre effects",
           RMSE = RMSE(predicted_ratings, edx_test$rating),
-          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), edx_test$rating))
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+          "RMSE (clamped estimates)" =
+            RMSE(clamp(predicted_ratings), edx_test$rating))
+RMSEs[nrow(RMSEs),] |>
+  kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 ## Adding a time effect
@@ -628,8 +646,10 @@ predicted_ratings <- edx_test |>
 RMSEs <- RMSEs |>
   add_row(Method = "Movie + user + genre + time effects",
           RMSE = RMSE(predicted_ratings, edx_test$rating),
-          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), edx_test$rating))
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+          "RMSE (clamped estimates)" =
+            RMSE(clamp(predicted_ratings), edx_test$rating))
+RMSEs[nrow(RMSEs),] |>
+  kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 ## Adding $L_2$ regularization {#sec-regularization}
@@ -687,7 +707,8 @@ rmses <- sapply(lambdas, function(l){
 
 # Plot RMSE against lambda
 par(cex = 0.7)
-qplot(lambdas, rmses, xlab = TeX(r'($\lambda)'), ylab = 'RMSE', geom = c('point', 'line'))
+qplot(lambdas, rmses, xlab = TeX(r'($\lambda)'),
+      ylab = 'RMSE', geom = c('point', 'line'))
 ```
 
 The optimal value of $\lambda$ is thus:
@@ -714,7 +735,8 @@ user_biases_reg <-
 
 temp <- user_biases_reg[temp, on = 'userId']
 genre_biases_reg <-
-  temp[, .(b_g = sum(rating - mu - b_i - b_u - f_t[weekNum])/(.N+lambda)), by = 'genres']
+  temp[, .(b_g = sum(rating - mu - b_i - b_u - f_t[weekNum])/(.N+lambda)),
+       by = 'genres']
 
 # Generate predictions for the *edx_test* set.
 predicted_ratings_reg <- genre_biases_reg[
@@ -734,7 +756,8 @@ RMSEs <- RMSEs |>
           RMSE = RMSE(predicted_ratings_reg, edx_test$rating),
           "RMSE (clamped estimates)" =
             RMSE(clamp(predicted_ratings_reg), edx_test$rating))
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+RMSEs[nrow(RMSEs),] |>
+  kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 ## Section summary
@@ -743,7 +766,7 @@ The table of RMSEs for all models considered in this section is below.
 
 ```{r RMSE-summary}
 
-RMSEs |> kable(align='lrr', booktabs = T, linesep = "") |> row_spec(0, bold = T)
+RMSEs |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 The results demonstrate that each added feature has reduced the RMSE, as well as
@@ -782,8 +805,6 @@ and updates the feature matrices as follows:
 where $\gamma$ is the learning rate and $\lambda$ is a regularization parameter.
 In this report, these are set to 0.02 and 0.001, respectively, in accordance to guidance from
 @Funk2006, and we will only optimize the rank parameter $k$.
-The code for the Funk MF implementation used in this report can be found in
-Appendix \@ref(sec-code).
 
 ## Computing the residuals
 
@@ -884,7 +905,7 @@ The above operation did not complete after several minutes and was aborted.
 
 In light of the above failures, a fresh implementation of the Funk MF algorithm, using
 `RCpp`, was written.  The C++ source code is available at
-https://yinchi.github.io/harvardx-movielens/svd.cpp
+https://yinchi.github.io/harvardx-movielens/svd.cpp and in Appendix \@ref(sec-code)
 and is loaded into the R environment below:
 
 ```{r Funk-MF-implemenation, fig.height=3, fig.width=3}
@@ -965,7 +986,8 @@ values:
 # Run Funk MF if saved file not found
 set.seed(1)
 if (!file.exists('funk.Rdata')) {
-  funkResult <- funk(Uidx, Vidx, residuals_train, nFeatures = nFeaturesOpt, steps = 500)
+  funkResult <-
+    funk(Uidx, Vidx, residuals_train, nFeatures = nFeaturesOpt, steps = 500)
   save(nFeaturesOpt, funkResult, file = 'funk.Rdata')
 }
 set.seed(1)
@@ -988,16 +1010,18 @@ rmse <- RMSE(predicted_ratings_funk, edx_test$rating)
 RMSEs <- RMSEs |>
   add_row(Method = "Section 2 best model + Matrix factorization",
           RMSE = RMSE(predicted_ratings_funk, edx_test$rating),
-          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings_funk), edx_test$rating))
+          "RMSE (clamped estimates)" =
+            RMSE(clamp(predicted_ratings_funk),edx_test$rating))
 
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+RMSEs[nrow(RMSEs),] |>
+  kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 The RMSEs of all models in this report, evaluated using `edx_test`, are as follows:
 
 ```{r RMSE-summary-2}
 
-RMSEs |> kable(align='lrr', booktabs = T, linesep = "") |> row_spec(0, bold = T)
+RMSEs |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 We now "submit" our best model, i.e.
@@ -1043,7 +1067,7 @@ predicted_ratings_FINAL_VALIDATION <- validation |>
            map2_dbl(userId, movieId, \(u,v) U[Uidx[u],] %*% V[Vidx[v],])) |>
   pull(pred) |> clamp()
 
-# Compute RMSE and add to data.table
+# Compute RMSE
 RMSE(predicted_ratings_FINAL_VALIDATION, validation$rating)
 ```
 
@@ -1106,10 +1130,12 @@ rate it 3.5 stars or higher, then the confusion matrix as computed on the valida
 
 ```{r Confusion-matrix-3.5}
 
-# Classify movies as good or bad based on 3.5-star treshold and compute confusion matrix
-confusionMatrix(as.factor(ifelse(predicted_ratings_FINAL_VALIDATION >= 3.5, 'Good', 'Bad')),
-                as.factor(ifelse(validation$rating >= 3.5, 'Good', 'Bad')),
-                positive = 'Good')
+# Classify movies as good or bad based on 3.5-star threshold
+#  and compute confusion matrix
+confusionMatrix(
+  as.factor(ifelse(predicted_ratings_FINAL_VALIDATION >= 3.5,'Good', 'Bad')),
+  as.factor(ifelse(validation$rating >= 3.5, 'Good', 'Bad')),
+  positive = 'Good')
 ```
 
 The accuracy of our model is about three-quarters, with approximately equal sensitivity and
@@ -1132,8 +1158,9 @@ which can handle the size of the Movielens 10M dataset and in fact uses it for b
 has a RMSE of **0.782465**, somewhat better than that achieved here.
 
 There are several possible reasons why `cmfrec` outperforms our method in this project.
-First, the `cmfrec` algorithms *update* user and movie biases during each iteration, rather than the
-static method used here.  The benchmarks shown in @cmfrec-benchmarks show that such static methods
+First, the `cmfrec` algorithms also  update user and movie biases during each MF iteration,
+as opposed to the static method used here which only updates $U$ and $V$.
+The benchmarks shown in @cmfrec-benchmarks show that such static methods
 generally perform worse than methods with iterative bias updates. Second, methods in `cmfrec` use
 alternating least squares (ALS) by default rather than the gradient descent method used here,
 which improves numerical stability/convergence.  Another benefit of ALS is the possibility of

@@ -27,8 +27,6 @@ and updates the feature matrices as follows:
 where $\gamma$ is the learning rate and $\lambda$ is a regularization parameter.
 In this report, these are set to 0.02 and 0.001, respectively, in accordance to guidance from
 @Funk2006, and we will only optimize the rank parameter $k$.
-The code for the Funk MF implementation used in this report can be found in
-Appendix \@ref(sec-code).
 
 ## Computing the residuals
 
@@ -129,7 +127,7 @@ The above operation did not complete after several minutes and was aborted.
 
 In light of the above failures, a fresh implementation of the Funk MF algorithm, using
 `RCpp`, was written.  The C++ source code is available at
-https://yinchi.github.io/harvardx-movielens/svd.cpp
+https://yinchi.github.io/harvardx-movielens/svd.cpp and in Appendix \@ref(sec-code)
 and is loaded into the R environment below:
 
 ```{r Funk-MF-implemenation, fig.height=3, fig.width=3}
@@ -210,7 +208,8 @@ values:
 # Run Funk MF if saved file not found
 set.seed(1)
 if (!file.exists('funk.Rdata')) {
-  funkResult <- funk(Uidx, Vidx, residuals_train, nFeatures = nFeaturesOpt, steps = 500)
+  funkResult <-
+    funk(Uidx, Vidx, residuals_train, nFeatures = nFeaturesOpt, steps = 500)
   save(nFeaturesOpt, funkResult, file = 'funk.Rdata')
 }
 set.seed(1)
@@ -233,16 +232,18 @@ rmse <- RMSE(predicted_ratings_funk, edx_test$rating)
 RMSEs <- RMSEs |>
   add_row(Method = "Section 2 best model + Matrix factorization",
           RMSE = RMSE(predicted_ratings_funk, edx_test$rating),
-          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings_funk), edx_test$rating))
+          "RMSE (clamped estimates)" =
+            RMSE(clamp(predicted_ratings_funk),edx_test$rating))
 
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+RMSEs[nrow(RMSEs),] |>
+  kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 The RMSEs of all models in this report, evaluated using `edx_test`, are as follows:
 
 ```{r RMSE-summary-2}
 
-RMSEs |> kable(align='lrr', booktabs = T, linesep = "") |> row_spec(0, bold = T)
+RMSEs |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 ```
 
 We now "submit" our best model, i.e.

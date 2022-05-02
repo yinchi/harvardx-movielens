@@ -65,7 +65,8 @@ movielens <- left_join(ratings, movies, by = "movieId")
 
 # Validation set will be 10% of MovieLens data
 set.seed(1, sample.kind="Rounding")
-test_index <- createDataPartition(y = movielens$rating, times = 1, p = 0.1, list = FALSE)
+test_index <-
+  createDataPartition(y = movielens$rating, times = 1, p = 0.1, list = FALSE)
 edx <- movielens[-test_index,]
 temp <- movielens[test_index,]
 
@@ -79,16 +80,19 @@ edx <- rbind(edx, removed)
 
 # STEP 5: convert timestamps to datetime
 edx <- edx |> mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
-validation <- validation |> mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
+validation <- validation |>
+  mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
 
 rm(dl, ratings, movies, test_index, temp, movielens, removed)
 ```
 
 ## Data description
 
-The data consists of ten million movie ratings, each expressed using six variables.  The number
+The data consists of approximately ten million movie ratings, each expressed using six variables.
+The number
 of ratings in the `edx` and `validation` partitions are `nrow(edx)` and `nrow(validation)`,
-respectively, i.e., `r nrow(edx)` and `r nrow(validation)`.  The six variables are:
+respectively, i.e., `r format(nrow(edx), big.mark = ',')` and
+`r format(nrow(validation), big.mark = ',')`.  The six variables are:
 
 ```{r Colnames}
 
@@ -97,8 +101,10 @@ colnames(edx)
 
 and are defined as follows:
 
-* `userId`: an integer from 1 to `r max(as.integer(edx$userId))` denoting the user who made the rating.
-* `movieId`: an integer from 1 to `r max(as.integer(edx$movieId))` denoting which movie was rated.
+* `userId`: an integer from 1 to `r format(max(as.integer(edx$userId)), big.mark = ',')`
+    denoting the user who made the rating.
+* `movieId`: an integer from 1 to `r format(max(as.integer(edx$movieId)), big.mark = ',')`
+    denoting which movie was rated.
 * `rating`: a multiple of 0.5, from 0.5 to 5.0.
 * `timestamp`: a `POSIXct` object representing the time at which the rating was made.
 * `title`: the name of the movie rated, suffixed which the year of release in parentheses.
@@ -110,7 +116,8 @@ is:
 ```{r Earliest-half-star-rating}
 
 temp <- edx[edx$rating %% 1 == 0.5]
-temp[which.min(temp$timestamp)] |> kable(align='rrrrll', booktabs = T) |> row_spec(0, bold = T)
+temp[which.min(temp$timestamp)] |> kable(align='rrrrll', booktabs = T) |>
+  row_spec(0, bold = T)
 ```
 
 
@@ -185,7 +192,9 @@ genre_summary <-
 
 rm(temp)
 genre_summary |> arrange(desc(`Mean Rating`)) |>
-  kable(align='lrrrr', digits = c(0,0,0,2,1), booktabs = T, linesep = "") |> row_spec(0, bold = T)
+  mutate(Ratings = format(Ratings, big.mark = ',')) |> 
+  kable(align='lrrrr', digits = c(0,0,0,2,1), booktabs = T, linesep = "") |>
+  row_spec(0, bold = T)
 ```
 
 The number of genres for each movie is plotted as a histogram below:
@@ -193,9 +202,12 @@ The number of genres for each movie is plotted as a histogram below:
 
 # The number of genres for a movie is the number of pipe symbols plus one,
 #   except in the case of "(no genres listed)".
-genre_counts <- table(str_count(edx$genres, '\\|') + 1 - str_count(edx$genres, 'no genres'))
+genre_counts <-
+  table(str_count(edx$genres, '\\|') + 1
+        - str_count(edx$genres, 'no genres'))
 par(cex = 0.7)
-barplot(genre_counts, xlab = 'Number of genres', ylab = 'Count', main = 'Genres per movie')
+barplot(genre_counts, xlab = 'Number of genres', ylab = 'Count',
+        main = 'Genres per movie')
 ```
 
 Therefore, it is likely better to analyze genre combinations rather than individual genres.

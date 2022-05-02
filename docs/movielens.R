@@ -81,7 +81,8 @@ movielens <- left_join(ratings, movies, by = "movieId")
 
 # Validation set will be 10% of MovieLens data
 set.seed(1, sample.kind="Rounding")
-test_index <- createDataPartition(y = movielens$rating, times = 1, p = 0.1, list = FALSE)
+test_index <-
+  createDataPartition(y = movielens$rating, times = 1, p = 0.1, list = FALSE)
 edx <- movielens[-test_index,]
 temp <- movielens[test_index,]
 
@@ -95,7 +96,8 @@ edx <- rbind(edx, removed)
 
 # STEP 5: convert timestamps to datetime
 edx <- edx |> mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
-validation <- validation |> mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
+validation <- validation |>
+  mutate(timestamp = as_datetime(timestamp)) |> as.data.table()
 
 rm(dl, ratings, movies, test_index, temp, movielens, removed)
 
@@ -108,7 +110,8 @@ colnames(edx)
 ## ----Earliest-half-star-rating-----------------------------------------------------------------------------------
 
 temp <- edx[edx$rating %% 1 == 0.5]
-temp[which.min(temp$timestamp)] |> kable(align='rrrrll', booktabs = T) |> row_spec(0, bold = T)
+temp[which.min(temp$timestamp)] |> kable(align='rrrrll', booktabs = T) |>
+  row_spec(0, bold = T)
 
 
 ## ----Matrix-density----------------------------------------------------------------------------------------------
@@ -173,16 +176,21 @@ genre_summary <-
 
 rm(temp)
 genre_summary |> arrange(desc(`Mean Rating`)) |>
-  kable(align='lrrrr', digits = c(0,0,0,2,1), booktabs = T, linesep = "") |> row_spec(0, bold = T)
+  mutate(Ratings = format(Ratings, big.mark = ',')) |> 
+  kable(align='lrrrr', digits = c(0,0,0,2,1), booktabs = T, linesep = "") |>
+  row_spec(0, bold = T)
 
 
 ## ----Genre-counts-hist, fig.height=3, fig.width=4----------------------------------------------------------------
 
 # The number of genres for a movie is the number of pipe symbols plus one,
 #   except in the case of "(no genres listed)".
-genre_counts <- table(str_count(edx$genres, '\\|') + 1 - str_count(edx$genres, 'no genres'))
+genre_counts <-
+  table(str_count(edx$genres, '\\|') + 1
+        - str_count(edx$genres, 'no genres'))
 par(cex = 0.7)
-barplot(genre_counts, xlab = 'Number of genres', ylab = 'Count', main = 'Genres per movie')
+barplot(genre_counts, xlab = 'Number of genres', ylab = 'Count',
+        main = 'Genres per movie')
 
 
 ## ----Genre-counts------------------------------------------------------------------------------------------------
@@ -257,9 +265,11 @@ clamp <- function(x) raster::clamp(as.numeric(x), 0.5, 5)
 RMSEs <- RMSEs |>
   add_row(Method = "Movie effects",
           RMSE = RMSE(predicted_ratings, edx_test$rating),
-          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), edx_test$rating))
+          "RMSE (clamped estimates)" =
+            RMSE(clamp(predicted_ratings), edx_test$rating))
 
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+RMSEs[nrow(RMSEs),] |>
+  kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 
 
 ## ----User-effects, fig.height=3, fig.width=4---------------------------------------------------------------------
@@ -288,8 +298,10 @@ predicted_ratings <- edx_test |>
 RMSEs <- RMSEs |>
   add_row(Method = "Movie + user effects",
           RMSE = RMSE(predicted_ratings, edx_test$rating),
-          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), edx_test$rating))
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+          "RMSE (clamped estimates)" =
+            RMSE(clamp(predicted_ratings), edx_test$rating))
+RMSEs[nrow(RMSEs),] |>
+  kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 
 
 ## ----Genre-effects, fig.height=3, fig.width=4--------------------------------------------------------------------
@@ -320,8 +332,10 @@ predicted_ratings <- edx_test |>
 RMSEs <- RMSEs |>
   add_row(Method = "Movie + user + genre effects",
           RMSE = RMSE(predicted_ratings, edx_test$rating),
-          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), edx_test$rating))
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+          "RMSE (clamped estimates)" =
+            RMSE(clamp(predicted_ratings), edx_test$rating))
+RMSEs[nrow(RMSEs),] |>
+  kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 
 
 ## ----Time-averages, fig.height=3, fig.width=4--------------------------------------------------------------------
@@ -383,8 +397,10 @@ predicted_ratings <- edx_test |>
 RMSEs <- RMSEs |>
   add_row(Method = "Movie + user + genre + time effects",
           RMSE = RMSE(predicted_ratings, edx_test$rating),
-          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings), edx_test$rating))
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+          "RMSE (clamped estimates)" =
+            RMSE(clamp(predicted_ratings), edx_test$rating))
+RMSEs[nrow(RMSEs),] |>
+  kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 
 
 ## ----Regularization, fig.height=3, fig.width=4-------------------------------------------------------------------
@@ -428,7 +444,8 @@ rmses <- sapply(lambdas, function(l){
 
 # Plot RMSE against lambda
 par(cex = 0.7)
-qplot(lambdas, rmses, xlab = TeX(r'($\lambda)'), ylab = 'RMSE', geom = c('point', 'line'))
+qplot(lambdas, rmses, xlab = TeX(r'($\lambda)'),
+      ylab = 'RMSE', geom = c('point', 'line'))
 
 
 ## ----Optimal-lambda----------------------------------------------------------------------------------------------
@@ -450,7 +467,8 @@ user_biases_reg <-
 
 temp <- user_biases_reg[temp, on = 'userId']
 genre_biases_reg <-
-  temp[, .(b_g = sum(rating - mu - b_i - b_u - f_t[weekNum])/(.N+lambda)), by = 'genres']
+  temp[, .(b_g = sum(rating - mu - b_i - b_u - f_t[weekNum])/(.N+lambda)),
+       by = 'genres']
 
 # Generate predictions for the *edx_test* set.
 predicted_ratings_reg <- genre_biases_reg[
@@ -470,12 +488,13 @@ RMSEs <- RMSEs |>
           RMSE = RMSE(predicted_ratings_reg, edx_test$rating),
           "RMSE (clamped estimates)" =
             RMSE(clamp(predicted_ratings_reg), edx_test$rating))
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+RMSEs[nrow(RMSEs),] |>
+  kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 
 
 ## ----RMSE-summary------------------------------------------------------------------------------------------------
 
-RMSEs |> kable(align='lrr', booktabs = T, linesep = "") |> row_spec(0, bold = T)
+RMSEs |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 
 
 ## ----Computing the residuals, fig.height=3, fig.width=3----------------------------------------------------------
@@ -592,7 +611,8 @@ nFeaturesOpt
 # Run Funk MF if saved file not found
 set.seed(1)
 if (!file.exists('funk.Rdata')) {
-  funkResult <- funk(Uidx, Vidx, residuals_train, nFeatures = nFeaturesOpt, steps = 500)
+  funkResult <-
+    funk(Uidx, Vidx, residuals_train, nFeatures = nFeaturesOpt, steps = 500)
   save(nFeaturesOpt, funkResult, file = 'funk.Rdata')
 }
 set.seed(1)
@@ -615,14 +635,16 @@ rmse <- RMSE(predicted_ratings_funk, edx_test$rating)
 RMSEs <- RMSEs |>
   add_row(Method = "Section 2 best model + Matrix factorization",
           RMSE = RMSE(predicted_ratings_funk, edx_test$rating),
-          "RMSE (clamped estimates)" = RMSE(clamp(predicted_ratings_funk), edx_test$rating))
+          "RMSE (clamped estimates)" =
+            RMSE(clamp(predicted_ratings_funk),edx_test$rating))
 
-RMSEs[nrow(RMSEs),] |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+RMSEs[nrow(RMSEs),] |>
+  kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 
 
 ## ----RMSE-summary-2----------------------------------------------------------------------------------------------
 
-RMSEs |> kable(align='lrr', booktabs = T, linesep = "") |> row_spec(0, bold = T)
+RMSEs |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
 
 
 ## ----Save-model--------------------------------------------------------------------------------------------------
@@ -651,7 +673,7 @@ predicted_ratings_FINAL_VALIDATION <- validation |>
            map2_dbl(userId, movieId, \(u,v) U[Uidx[u],] %*% V[Vidx[v],])) |>
   pull(pred) |> clamp()
 
-# Compute RMSE and add to data.table
+# Compute RMSE
 RMSE(predicted_ratings_FINAL_VALIDATION, validation$rating)
 
 
@@ -677,10 +699,12 @@ mean(abs(predicted_ratings_FINAL_VALIDATION - validation$rating) < 0.5)
 
 ## ----Confusion-matrix-3.5----------------------------------------------------------------------------------------
 
-# Classify movies as good or bad based on 3.5-star treshold and compute confusion matrix
-confusionMatrix(as.factor(ifelse(predicted_ratings_FINAL_VALIDATION >= 3.5, 'Good', 'Bad')),
-                as.factor(ifelse(validation$rating >= 3.5, 'Good', 'Bad')),
-                positive = 'Good')
+# Classify movies as good or bad based on 3.5-star threshold
+#  and compute confusion matrix
+confusionMatrix(
+  as.factor(ifelse(predicted_ratings_FINAL_VALIDATION >= 3.5,'Good', 'Bad')),
+  as.factor(ifelse(validation$rating >= 3.5, 'Good', 'Bad')),
+  positive = 'Good')
 
 
 
