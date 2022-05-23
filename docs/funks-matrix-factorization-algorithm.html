@@ -23,7 +23,7 @@
 <meta name="author" content="Yin-Chi Chan" />
 
 
-<meta name="date" content="2022-05-02" />
+<meta name="date" content="2022-05-23" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -298,9 +298,8 @@ This object is easy to create and does not consume too much memory:</p>
 <span id="cb32-7"><a href="funks-matrix-factorization-algorithm.html#cb32-7" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb32-8"><a href="funks-matrix-factorization-algorithm.html#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="fu">format</span>(<span class="fu">object.size</span>(mat), <span class="at">units =</span> <span class="st">&quot;auto&quot;</span>, <span class="at">standard=</span><span class="st">&quot;SI&quot;</span>)</span></code></pre></div>
 <pre><code>## [1] &quot;97.2 MB&quot;</code></pre>
-<p>However, attempting to factor this matrix as follows returns an error, as shown below. Note that this
-is just one of several memory allocation requests; there is 32GB of RAM on the laptop used to
-run this project code. This suggests that <code>recommenderlab</code> uses dense matrices in its
+<p>However, attempting to factor this matrix as follows returns an error, as shown below.
+This suggests that <code>recommenderlab</code> uses dense matrices in its
 internal functions.</p>
 <div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="funks-matrix-factorization-algorithm.html#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># NOT RUN</span></span>
 <span id="cb34-2"><a href="funks-matrix-factorization-algorithm.html#cb34-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -336,7 +335,7 @@ does not use sparse matrix representations internally:</p>
 <a href="https://yinchi.github.io/harvardx-movielens/svd.cpp" class="uri">https://yinchi.github.io/harvardx-movielens/svd.cpp</a> and in Appendix <a href="sec-code.html#sec-code">A</a>
 and is loaded into the R environment below:</p>
 <div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="funks-matrix-factorization-algorithm.html#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Funk matrix factorization. See C++ source for full documentation.</span></span>
-<span id="cb36-2"><a href="funks-matrix-factorization-algorithm.html#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Values for regCoef and learningRate are as suggested by [Funk 2006].</span></span>
+<span id="cb36-2"><a href="funks-matrix-factorization-algorithm.html#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Default values for regCoef and learningRate are as suggested by [Funk 2006].</span></span>
 <span id="cb36-3"><a href="funks-matrix-factorization-algorithm.html#cb36-3" aria-hidden="true" tabindex="-1"></a>Rcpp<span class="sc">::</span><span class="fu">sourceCpp</span>(<span class="st">&quot;svd.cpp&quot;</span>)</span>
 <span id="cb36-4"><a href="funks-matrix-factorization-algorithm.html#cb36-4" aria-hidden="true" tabindex="-1"></a>funk <span class="ot">&lt;-</span> <span class="cf">function</span>(Uidx, Vidx, residuals, nFeatures, <span class="at">steps =</span> <span class="dv">500</span>,</span>
 <span id="cb36-5"><a href="funks-matrix-factorization-algorithm.html#cb36-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">regCoef =</span> <span class="fl">0.02</span>, <span class="at">learningRate =</span> <span class="fl">1e-3</span>) {</span>
@@ -459,7 +458,7 @@ Section 2 best model + Matrix factorization
 </tbody>
 </table>
 <p>The RMSEs of all models in this report, evaluated using <code>edx_test</code>, are as follows:</p>
-<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="funks-matrix-factorization-algorithm.html#cb41-1" aria-hidden="true" tabindex="-1"></a>RMSEs <span class="sc">|&gt;</span> <span class="fu">kable</span>(<span class="at">align=</span><span class="st">&#39;lrr&#39;</span>, <span class="at">booktabs =</span> T) <span class="sc">|&gt;</span> <span class="fu">row_spec</span>(<span class="dv">0</span>, <span class="at">bold =</span> T)</span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="funks-matrix-factorization-algorithm.html#cb41-1" aria-hidden="true" tabindex="-1"></a>RMSEs <span class="sc">|&gt;</span> <span class="fu">kable</span>(<span class="at">align=</span><span class="st">&#39;lrr&#39;</span>, <span class="at">booktabs =</span> T, <span class="at">linesep=</span><span class="st">&#39;&#39;</span>) <span class="sc">|&gt;</span> <span class="fu">row_spec</span>(<span class="dv">0</span>, <span class="at">bold =</span> T)</span></code></pre></div>
 <table>
 <thead>
 <tr>

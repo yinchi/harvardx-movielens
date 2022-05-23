@@ -23,7 +23,7 @@
 <meta name="author" content="Yin-Chi Chan" />
 
 
-<meta name="date" content="2022-05-02" />
+<meta name="date" content="2022-05-23" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -248,10 +248,10 @@ div.csl-indent {
 <h2><span class="header-section-number">2.1</span> Overview and notation<a href="sec-linear-models.html#sec-notation" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>Let <span class="math inline">\(Y\)</span> be a <span class="math inline">\(N_\mathrm{U}\times N_\mathrm{M}\)</span> matrix of movie ratings, such that <span class="math inline">\(Y_{u,i}\)</span> is
 the rating user <span class="math inline">\(u\)</span> has given or would give movie <span class="math inline">\(i\)</span>.
-Additionally, define <span class="math inline">\(X_j\)</span> such that <span class="math inline">\(X_{u,i}\)</span> denotes the <span class="math inline">\(j\)</span>th attribute
+Additionally, define <span class="math inline">\(X_j\)</span> such that <span class="math inline">\(X_{j;u,i}\)</span> denotes the <span class="math inline">\(j\)</span>th attribute
 of user-movie pair <span class="math inline">\((u,i)\)</span>. Such attributes include <span class="math inline">\(u\)</span> and <span class="math inline">\(i\)</span>
 themselves, the genres of movie <span class="math inline">\(i\)</span>, and the timestamp at which the rating was made.
-Finally, only the indices <span class="math inline">\((u,i)\)</span> in the training set, denoted <span class="math inline">\(\mathcal{T}\)</span>, are observable.</p>
+Finally, only the indices <span class="math inline">\((u,i)\)</span> contained in the training set, denoted <span class="math inline">\(\mathcal{T}\)</span>, are observable.</p>
 <p>The goal is to
 estimate <span class="math inline">\(Y\)</span> given the observable elements of <span class="math inline">\(Y\)</span> (the actual ratings). Given a user-movie pair <span class="math inline">\((u,i)\)</span>,
 we model <span class="math inline">\(Y_{u,i}\)</span> using a multiple linear regression model:
@@ -310,7 +310,7 @@ The best estimate <span class="math inline">\(\hat{\mu}\)</span> of <span class=
 <h2><span class="header-section-number">2.3</span> Modeling movie effects<a href="sec-linear-models.html#modeling-movie-effects" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>We add a term to our model for movie effects:
 <span class="math display">\[
-Y_{u,i} \sim \mu + b_{1;i}i + \varepsilon_{u,i},
+Y_{u,i} \sim \mu + b_{1;i} + \varepsilon_{u,i},
 \]</span>
 The least-squares estimate <span class="math inline">\(\hat{b}_{1;i}\)</span> of <span class="math inline">\(b_{1;i}\)</span> is the training-set mean of
 <span class="math inline">\(Y_{u,i} - \hat{\mu}\)</span> for each movie <span class="math inline">\(i\)</span>. The following code computes <span class="math inline">\(\hat{b}_{1;i}\)</span> for each <span class="math inline">\(i\)</span> and
@@ -385,9 +385,9 @@ This slightly reduces the RMSE when multiple biases are added to the model, as w
 <h2><span class="header-section-number">2.4</span> Modeling movie and user effects<a href="sec-linear-models.html#modeling-movie-and-user-effects" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>We add a term <span class="math inline">\(b_u\)</span> to our model for user effects:
 <span class="math display">\[
-Y_{u,i} \sim \mu + b_{1;i}i + b_{2;u}u + \varepsilon_{u,i}.
+Y_{u,i} \sim \mu + b_{1;i} + b_{2;u} + \varepsilon_{u,i}.
 \]</span>
-We approximate <span class="math inline">\(b_{2,u}\)</span> for each user <span class="math inline">\(u\)</span> as the mean of
+We approximate <span class="math inline">\(b_{2;u}\)</span> for each user <span class="math inline">\(u\)</span> as the mean of
 <span class="math inline">\(\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1;i}\)</span>. The following code computes <span class="math inline">\(\hat{b}_{2;u}\)</span> for
 each <span class="math inline">\(u\)</span> and plots these as a histogram:</p>
 <div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="sec-linear-models.html#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Estimate user effects</span></span>
@@ -455,7 +455,7 @@ where <span class="math inline">\(g(i)\)</span> is the <em>combination</em> of g
 We approximate <span class="math inline">\(b_{3;g}\)</span> for each genre combination <span class="math inline">\(g\)</span> as the mean of
 <span class="math inline">\(\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1;i} - \hat{b}_{2;u}\)</span>, averaged over
 all ratings in the training set where <span class="math inline">\(g(i) = g\)</span>. The following code computes
-<span class="math inline">\(\hat{b}_{3,g}\)</span> for each <span class="math inline">\(g\)</span> and plots these as a histogram:</p>
+<span class="math inline">\(\hat{b}_{3;g}\)</span> for each <span class="math inline">\(g\)</span> and plots these as a histogram:</p>
 <div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="sec-linear-models.html#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Estimate genre effects</span></span>
 <span id="cb22-2"><a href="sec-linear-models.html#cb22-2" aria-hidden="true" tabindex="-1"></a>genre_biases <span class="ot">&lt;-</span> edx_train <span class="sc">|&gt;</span> </span>
 <span id="cb22-3"><a href="sec-linear-models.html#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(movie_biases, <span class="at">by=</span><span class="st">&#39;movieId&#39;</span>) <span class="sc">|&gt;</span></span>
@@ -624,7 +624,8 @@ procedure minimizes
 \]</span>
 in this section we add a penalty term such that the new expression to minimize is as follows:
 <span class="math display">\[
-\text{SSE} + \lambda\sum_j\left\Vert b_j\right\Vert_2^2.
+\text{SSE}_R = \text{SSE} + \lambda\sum_j\left\Vert b_j\right\Vert_2^2
+= \text{SSE} + \lambda\sum_i b_{1;i}^2 + \lambda\sum_u b_{2;u}^2 + \lambda\sum_g b_{3;g}^2.
 \]</span>
 Fitting the regularized model to the training set for different <span class="math inline">\(\lambda\)</span>, and
 using the test set for RMSE calculation, we obtain the following plot of RMSE against <span class="math inline">\(\lambda\)</span>.</p>
@@ -742,7 +743,7 @@ Movie + user + genre + time effects (regularized)
 <div id="section-summary" class="section level2 hasAnchor" number="2.8">
 <h2><span class="header-section-number">2.8</span> Section summary<a href="sec-linear-models.html#section-summary" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>The table of RMSEs for all models considered in this section is below.</p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="sec-linear-models.html#cb30-1" aria-hidden="true" tabindex="-1"></a>RMSEs <span class="sc">|&gt;</span> <span class="fu">kable</span>(<span class="at">align=</span><span class="st">&#39;lrr&#39;</span>, <span class="at">booktabs =</span> T) <span class="sc">|&gt;</span> <span class="fu">row_spec</span>(<span class="dv">0</span>, <span class="at">bold =</span> T)</span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="sec-linear-models.html#cb30-1" aria-hidden="true" tabindex="-1"></a>RMSEs <span class="sc">|&gt;</span> <span class="fu">kable</span>(<span class="at">align=</span><span class="st">&#39;lrr&#39;</span>, <span class="at">booktabs =</span> T, <span class="at">linesep=</span><span class="st">&#39;&#39;</span>) <span class="sc">|&gt;</span> <span class="fu">row_spec</span>(<span class="dv">0</span>, <span class="at">bold =</span> T)</span></code></pre></div>
 <table>
 <thead>
 <tr>

@@ -83,9 +83,8 @@ mat <- new(
 format(object.size(mat), units = "auto", standard="SI")
 ```
 
-However, attempting to factor this matrix as follows returns an error, as shown below. Note that this
-is just one of several memory allocation requests; there is 32GB of RAM on the laptop used to
-run this project code.  This suggests that `recommenderlab` uses dense matrices in its
+However, attempting to factor this matrix as follows returns an error, as shown below.
+This suggests that `recommenderlab` uses dense matrices in its
 internal functions.
 
 ```{r recommnder-lab-fail, eval=FALSE, purl=FALSE}
@@ -133,7 +132,7 @@ and is loaded into the R environment below:
 ```{r Funk-MF-implemenation, fig.height=3, fig.width=3}
 
 # Funk matrix factorization. See C++ source for full documentation.
-# Values for regCoef and learningRate are as suggested by [Funk 2006].
+# Default values for regCoef and learningRate are as suggested by [Funk 2006].
 Rcpp::sourceCpp("svd.cpp")
 funk <- function(Uidx, Vidx, residuals, nFeatures, steps = 500,
                  regCoef = 0.02, learningRate = 1e-3) {
@@ -243,7 +242,7 @@ The RMSEs of all models in this report, evaluated using `edx_test`, are as follo
 
 ```{r RMSE-summary-2}
 
-RMSEs |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+RMSEs |> kable(align='lrr', booktabs = T, linesep='') |> row_spec(0, bold = T)
 ```
 
 We now "submit" our best model, i.e.

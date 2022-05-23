@@ -27,10 +27,10 @@ rm(removed2, temp, test_index)
 
 Let $Y$ be a $N_\mathrm{U}\times N_\mathrm{M}$ matrix of movie ratings, such that $Y_{u,i}$ is
 the rating user $u$ has given or would give movie $i$.
-Additionally, define $X_j$ such that $X_{u,i}$ denotes the $j$th attribute
+Additionally, define $X_j$ such that $X_{j;u,i}$ denotes the $j$th attribute
 of user-movie pair $(u,i)$. Such attributes include $u$ and $i$
 themselves, the genres of movie $i$, and the timestamp at which the rating was made.
-Finally, only the indices $(u,i)$ in the training set, denoted $\mathcal{T}$, are observable.
+Finally, only the indices $(u,i)$ contained in the training set, denoted $\mathcal{T}$, are observable.
 
 The goal is to
 estimate $Y$ given the observable elements of $Y$ (the actual ratings). Given a user-movie pair $(u,i)$,
@@ -100,7 +100,7 @@ RMSEs[[nrow(RMSEs),'RMSE']]
 
 We add a term to our model for movie effects:
 $$
-Y_{u,i} \sim \mu + b_{1;i}i + \varepsilon_{u,i},
+Y_{u,i} \sim \mu + b_{1;i} + \varepsilon_{u,i},
 $$
 The least-squares estimate $\hat{b}_{1;i}$ of $b_{1;i}$ is the training-set mean of
 $Y_{u,i} - \hat{\mu}$ for each movie $i$. The following code computes $\hat{b}_{1;i}$ for each $i$ and
@@ -155,9 +155,9 @@ This slightly reduces the RMSE when multiple biases are added to the model, as w
 
 We add a term $b_u$ to our model for user effects:
 $$
-Y_{u,i} \sim \mu + b_{1;i}i + b_{2;u}u + \varepsilon_{u,i}.
+Y_{u,i} \sim \mu + b_{1;i} + b_{2;u} + \varepsilon_{u,i}.
 $$
-We approximate $b_{2,u}$ for each user $u$ as the mean of
+We approximate $b_{2;u}$ for each user $u$ as the mean of
 $\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1;i}$. The following code computes $\hat{b}_{2;u}$ for
 each $u$ and plots these as a histogram:
 
@@ -205,7 +205,7 @@ where $g(i)$ is the *combination* of genres for movie $i$.
 We approximate $b_{3;g}$ for each genre combination $g$ as the mean of
 $\hat{b}_u = Y_{u,i} - \hat{\mu} - \hat{b}_{1;i} - \hat{b}_{2;u}$, averaged over
 all ratings in the training set where $g(i) = g$. The following code computes
-$\hat{b}_{3,g}$ for each $g$ and plots these as a histogram:
+$\hat{b}_{3;g}$ for each $g$ and plots these as a histogram:
 
 
 ```{r Genre-effects, fig.height=3, fig.width=4}
@@ -337,7 +337,8 @@ $$
 $$
 in this section we add a penalty term such that the new expression to minimize is as follows:
 $$
-\text{SSE} + \lambda\sum_j\left\Vert b_j\right\Vert_2^2.
+\text{SSE}_R = \text{SSE} + \lambda\sum_j\left\Vert b_j\right\Vert_2^2
+= \text{SSE} + \lambda\sum_i b_{1;i}^2 + \lambda\sum_u b_{2;u}^2 + \lambda\sum_g b_{3;g}^2.
 $$
 Fitting the regularized model to the training set for different $\lambda$, and
 using the test set for RMSE calculation, we obtain the following plot of RMSE against $\lambda$.
@@ -442,7 +443,7 @@ The table of RMSEs for all models considered in this section is below.
 
 ```{r RMSE-summary}
 
-RMSEs |> kable(align='lrr', booktabs = T) |> row_spec(0, bold = T)
+RMSEs |> kable(align='lrr', booktabs = T, linesep='') |> row_spec(0, bold = T)
 ```
 
 The results demonstrate that each added feature has reduced the RMSE, as well as

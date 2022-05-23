@@ -23,7 +23,7 @@
 <meta name="author" content="Yin-Chi Chan" />
 
 
-<meta name="date" content="2022-05-02" />
+<meta name="date" content="2022-05-23" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -232,11 +232,12 @@ and time-based biases, and uses Funk’s matrix factorization to approximate the
 these effects have been removed from the ratings. The RMSE achieved by our final model,
 as evaluated using the validation partition, is
 <strong>0.7941947</strong>.</p>
-<p>Note that the effect of adding genre and time-based biases was small. In particular, the genres
-of a movie can be uniquely determined from its <code>movieID</code>, and most movies have been rated many times,
-decreasing the importance of genre information. For the same reason, adding the year of release
-of each movie as a model feature is also unlikely to significantly improve the results.
-However, this result is because the validation set for this project was deliberately constructed <strong>not</strong> to
+<p>Note that the effect of adding genre and time-based biases was small. To explain this, first note that
+the movie bias for frequently-rated movies will be quite accurate without the need to “borrow”
+additional information from similar movies. On the other hand, movies with few ratings have little
+effect on the overall RMSE. For the same reason, adding the year of release
+of each movie as a model feature is also unlikely to significantly improve the results.</p>
+<p>However, this result is because the validation set for this project was deliberately constructed <strong>not</strong> to
 contain any movies not in the training and test sets. In a live environment, adding
 genre and time-based information will prove useful for predicting ratings of <em>new</em>
 movies, where a movie bias cannot be computed (using a zero value is the likely best solution).
